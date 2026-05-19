@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getSupabaseClient } from "@/lib/supabase";
-import type { Book, Thesis } from "@/lib/types";
+import type { Book, Thesis, VerificationStatus } from "@/lib/types";
 import { valueToUIStatus } from "@/lib/utils";
 
 type CatalogTab = "books" | "theses";
@@ -55,7 +55,7 @@ export function CatalogBrowser({
   const [thesisYear, setThesisYear] = useState("all");
   const [thesisTopic, setThesisTopic] = useState("all");
   const [thesisAdvisor, setThesisAdvisor] = useState("all");
-  const [thesisStatus, setThesisStatus] = useState("all");
+  const [thesisStatus, setThesisStatus] = useState<VerificationStatus | "all">("all");
 
   useEffect(() => {
     return () => {
@@ -150,7 +150,7 @@ export function CatalogBrowser({
           chip("Tahun", thesisYear, () => setThesisYear("all")),
           chip("Topik", thesisTopic, () => setThesisTopic("all")),
           chip("Pembimbing", thesisAdvisor, () => setThesisAdvisor("all")),
-          chip("Status", thesisStatus === "all" ? thesisStatus : valueToUIStatus(thesisStatus as any), () => setThesisStatus("all"), thesisStatus),
+          chip("Status", thesisStatus === "all" ? thesisStatus : valueToUIStatus(thesisStatus), () => setThesisStatus("all"), thesisStatus),
         ];
 
   const resetCurrentFilters = () => {
@@ -398,15 +398,15 @@ function ThesisFilters({
   years: string[];
   topics: string[];
   advisors: string[];
-  statuses: string[];
+  statuses: VerificationStatus[];
   year: string;
   topic: string;
   advisor: string;
-  status: string;
+  status: VerificationStatus | "all";
   onYear: (value: string) => void;
   onTopic: (value: string) => void;
   onAdvisor: (value: string) => void;
-  onStatus: (value: string) => void;
+  onStatus: (value: VerificationStatus | "all") => void;
 }) {
   const yearOptions: FilterOption[] = years.map((y) => ({
     label: y,
@@ -421,7 +421,7 @@ function ThesisFilters({
     value: a,
   }));
   const statusOptions: FilterOption[] = statuses.map((s) => ({
-    label: valueToUIStatus(s as any),
+    label: valueToUIStatus(s),
     value: s,
   }));
   
@@ -430,7 +430,13 @@ function ThesisFilters({
       <FilterSelect label="Tahun" value={year} onValueChange={onYear} options={yearOptions} placeholder="Semua tahun" />
       <FilterSelect label="Topik" value={topic} onValueChange={onTopic} options={topicOptions} placeholder="Semua topik" />
       <FilterSelect label="Dosen pembimbing" value={advisor} onValueChange={onAdvisor} options={advisorOptions} placeholder="Semua pembimbing" />
-      <FilterSelect label="Status" value={status} onValueChange={onStatus} options={statusOptions} placeholder="Semua status" />
+      <FilterSelect
+        label="Status"
+        value={status}
+        onValueChange={(value) => onStatus(value as VerificationStatus | "all")}
+        options={statusOptions}
+        placeholder="Semua status"
+      />
     </div>
   );
 }
@@ -580,7 +586,7 @@ function sortCollections<T extends Book | Thesis>(items: T[], sort: SortValue) {
   });
 }
 
-function unique(values: string[]) {
+function unique<T extends string>(values: T[]) {
   return Array.from(new Set(values.filter(Boolean))).sort((a, b) => a.localeCompare(b));
 }
 

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getSupabaseClient, insertAttendanceRow, fetchAttendanceRows } from '@/lib/supabase';
+import { insertAttendanceRow, fetchAttendanceRows } from '@/lib/supabase';
 
 export async function POST(request: Request) {
   try {

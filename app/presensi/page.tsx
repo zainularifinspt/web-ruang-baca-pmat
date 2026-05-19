@@ -269,11 +269,11 @@ export default function AttendancePage() {
 
                   <Button
                     className="h-12 w-full rounded-2xl bg-emerald-700 text-base shadow-sm transition hover:-translate-y-0.5 hover:bg-emerald-800"
-                    disabled={!canSubmit}
+                    disabled={!canSubmit || isSubmitting}
                     type="submit"
                   >
                     <CalendarCheck className="size-4" />
-                    Simpan Presensi
+                    {isSubmitting ? "Menyimpan..." : "Simpan Presensi"}
                   </Button>
                 </form>
               </CardContent>

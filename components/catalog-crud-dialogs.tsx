@@ -156,7 +156,7 @@ export function DeleteCollectionDialog({ item }: { item: Book | Thesis }) {
         <DialogHeader>
           <DialogTitle>Hapus {item.type === "book" ? "buku" : "skripsi"}?</DialogTitle>
           <DialogDescription>
-            Data "{item.title}" akan dihapus dari Supabase. Tindakan ini tidak dapat
+            Data &quot;{item.title}&quot; akan dihapus dari Supabase. Tindakan ini tidak dapat
             dibatalkan dari aplikasi.
           </DialogDescription>
         </DialogHeader>

@@ -10,7 +10,10 @@ import {
 } from "lucide-react";
 import { LogoutButton } from "@/app/admin/logout-button";
 import { Button } from "@/components/ui/button";
+import { hasValidSupabaseConfig } from "@/lib/supabase-config";
 import { createSupabaseServerClient } from "@/lib/supabase-auth-server";
+
+export const dynamic = "force-dynamic";
 
 const adminLinks = [
   {
@@ -40,6 +43,10 @@ const adminLinks = [
 ];
 
 export default async function AdminPage() {
+  if (!hasValidSupabaseConfig()) {
+    redirect("/login?redirectTo=/admin&error=configuration");
+  }
+
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
