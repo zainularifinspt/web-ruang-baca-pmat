@@ -22,12 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import {
-  findUserByNimNip,
-  getVisitorStatusFromRole,
-  visitPurposes,
-  visitorStatuses,
-} from "@/lib/mock-data";
+import { findUserByNimNip, getVisitorStatusFromRole, visitPurposes, visitorStatuses } from "@/lib/mock-data";
 import type { VisitPurpose, VisitorStatus } from "@/lib/types";
 import { cn, formatDate } from "@/lib/utils";
 
@@ -47,6 +42,7 @@ export default function AttendancePage() {
   const [studyProgram, setStudyProgram] = useState("Pendidikan Matematika");
   const [purpose, setPurpose] = useState<VisitPurpose | "">("");
   const [submitted, setSubmitted] = useState<SubmittedAttendance | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const matchedUser = useMemo(
     () => findUserByNimNip(identifier.trim()),
@@ -80,14 +76,42 @@ export default function AttendancePage() {
       return;
     }
 
-    setSubmitted({
-      identifier,
-      name,
-      visitorStatus,
-      studyProgram,
-      purpose,
-      visitedAt: new Date().toISOString(),
-    });
+    // submit to API
+    setIsSubmitting(true);
+    void fetch('/api/attendance', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        visitor_name: name,
+        nim_nip: identifier,
+        visitor_status: visitorStatus,
+        study_program: studyProgram,
+        purpose,
+      }),
+    })
+      .then(async (res) => {
+        setIsSubmitting(false);
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          throw new Error(body.error || 'Gagal menyimpan presensi');
+        }
+
+        const body = await res.json();
+        const row = body.row;
+        setSubmitted({
+          identifier,
+          name: row.visitor_name,
+          visitorStatus: row.visitor_status as VisitorStatus,
+          studyProgram: row.study_program,
+          purpose: row.purpose as VisitPurpose,
+          visitedAt: row.visited_at,
+        });
+        toast.success('Presensi berhasil disimpan');
+      })
+      .catch((err) => {
+        setIsSubmitting(false);
+        toast.error(err?.message || 'Gagal menyimpan presensi');
+      });
   }
 
   function resetForm() {

@@ -77,14 +77,13 @@ export type Thesis = CollectionBase & {
 
 export type Attendance = {
   id: string;
-  userId?: string;
-  guestName: string;
-  guestNim: string;
-  visitorStatus: VisitorStatus;
-  studyProgram: string;
-  purpose: VisitPurpose;
-  visitedAt: string;
-  status: "Berhasil" | "Perlu Cek";
+  visitor_name: string;
+  nim_nip: string;
+  visitor_status: VisitorStatus;
+  study_program: string;
+  purpose: VisitPurpose | string;
+  attendance_status: "Berhasil" | "Perlu Cek";
+  visited_at: string;
 };
 
 export type VisitorMetric = {

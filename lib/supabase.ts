@@ -16,6 +16,55 @@ type CatalogData = {
   error?: string;
 };
 
+type AttendanceRow = {
+  id: string;
+  visitor_name: string;
+  nim_nip: string;
+  visitor_status: string;
+  study_program: string;
+  purpose: string;
+  attendance_status: string;
+  visited_at: string;
+};
+
+export async function fetchAttendanceRows(limit = 50, query?: { search?: string; visitorStatus?: string; purpose?: string; }) {
+  try {
+    let builder = getSupabaseClient().from('attendance').select('*').order('visited_at', { ascending: false }).limit(limit);
+
+    if (query?.search) {
+      const q = query.search;
+      // search in visitor_name or nim_nip
+      builder = builder.or(`visitor_name.ilike.%${q}%,nim_nip.ilike.%${q}%`);
+    }
+
+    if (query?.visitorStatus && query.visitorStatus !== 'all') {
+      builder = builder.eq('visitor_status', query.visitorStatus);
+    }
+
+    if (query?.purpose && query.purpose !== 'all') {
+      builder = builder.eq('purpose', query.purpose);
+    }
+
+    const { data, error } = await builder;
+
+    if (error) return { rows: [] as AttendanceRow[], error: error.message };
+
+    return { rows: (data ?? []) as AttendanceRow[], error: undefined };
+  } catch (err) {
+    return { rows: [] as AttendanceRow[], error: err instanceof Error ? err.message : 'Failed to fetch attendance' };
+  }
+}
+
+export async function insertAttendanceRow(payload: Partial<AttendanceRow>) {
+  try {
+    const { data, error } = await getSupabaseClient().from('attendance').insert(payload).select('*').single();
+    if (error) return { row: null as AttendanceRow | null, error: error.message };
+    return { row: data as AttendanceRow, error: undefined };
+  } catch (err) {
+    return { row: null as AttendanceRow | null, error: err instanceof Error ? err.message : 'Failed to insert attendance' };
+  }
+}
+
 const verificationStatuses: VerificationStatus[] = [
   "pending",
   "approved",
