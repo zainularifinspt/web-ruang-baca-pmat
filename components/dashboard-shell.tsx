@@ -89,9 +89,9 @@ function DashboardShell({ children }: { children: ReactNode }) {
       <aside className="fixed inset-y-0 left-0 hidden w-[19rem] border-r border-slate-200/80 bg-white p-4 shadow-sm lg:block">
         <SidebarContent />
       </aside>
-      <div className="lg:pl-[19rem]">
+      <div className="w-full lg:pl-[19rem]">
         <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
-          <div className="mx-auto flex min-h-20 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
+          <div className="mx-auto flex min-h-20 w-full max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
             <div className="flex min-w-0 items-center gap-2">
               <Dialog open={open} onOpenChange={setOpen}>
                 <DialogTrigger asChild>
@@ -120,7 +120,7 @@ function DashboardShell({ children }: { children: ReactNode }) {
             </div>
           </div>
         </header>
-        <main className="mx-auto max-w-6xl p-4 sm:p-6 lg:p-8">{children}</main>
+        <main className="mx-auto w-full max-w-6xl p-4 sm:p-6 lg:p-8">{children}</main>
       </div>
     </div>
   );

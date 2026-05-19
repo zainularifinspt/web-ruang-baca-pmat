@@ -122,7 +122,7 @@ export default function AttendanceReportPage() {
         />
       </div>
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,7fr)_minmax(280px,3fr)]">
+      <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
         <section className="min-w-0 rounded-[1.25rem] border border-slate-200/70 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
           <div className="flex flex-col gap-3 border-b border-slate-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
             <div>
@@ -190,7 +190,7 @@ export default function AttendanceReportPage() {
           <div className="p-3 sm:p-4">
             {filteredAttendances.length ? (
               <>
-                <div className="hidden overflow-hidden rounded-xl border border-slate-200/70 md:block">
+                <div className="hidden overflow-x-auto rounded-xl border border-slate-200/70 md:block">
                   <Table className="min-w-[760px]">
                     <TableHeader className="sticky top-0 z-10 bg-slate-50/95">
                       <TableRow>
@@ -263,9 +263,9 @@ export default function AttendanceReportPage() {
           </div>
         </section>
 
-        <aside className="rounded-[1.25rem] border border-slate-200/70 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+        <aside className="min-w-0 rounded-[1.25rem] border border-slate-200/70 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
           <div className="border-b border-slate-100 px-4 py-4">
-            <div className="flex items-start justify-between gap-3">
+            <div className="flex min-w-0 items-start justify-between gap-3">
               <div>
                 <h2 className="text-base font-semibold text-slate-950">Presensi Terbaru</h2>
                 <p className="mt-1 text-xs leading-5 text-slate-500">Cuplikan aktivitas operasional.</p>
