@@ -69,7 +69,7 @@ export default function DashboardPage() {
   const { role, roleLabel } = useRole();
   const collections = allCollections();
   const verificationQueue = collections.filter(
-    (item) => item.verificationStatus !== "Disetujui",
+    (item) => item.verificationStatus !== "approved",
   );
   const todayVisits = attendances.filter((item) =>
     item.visitedAt.includes(previewDate),
