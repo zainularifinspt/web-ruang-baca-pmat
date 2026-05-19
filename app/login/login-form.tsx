@@ -48,11 +48,17 @@ export function LoginForm() {
         return;
       }
 
+      const userId = data.user.id;
+      console.log("Supabase login user.id:", userId);
+
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("role")
-        .eq("id", data.user.id)
-        .maybeSingle();
+        .eq("id", userId)
+        .single();
+
+      console.log("Supabase profile query result:", profile);
+      console.log("Supabase profile query error:", profileError);
 
       const homeRoute = getHomeRouteForRole(profile?.role);
 
