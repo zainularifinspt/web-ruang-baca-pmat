@@ -12,6 +12,7 @@ export type BookFormValues = {
   rackLocation: string;
   stock: number;
   status: VerificationStatus;
+  coverUrl: string;
 };
 
 export type ThesisFormValues = {

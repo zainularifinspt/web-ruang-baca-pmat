@@ -61,6 +61,7 @@ export type Book = CollectionBase & {
   stock: number;
   available: number;
   isbn: string;
+  coverUrl?: string;
 };
 
 export type Thesis = CollectionBase & {

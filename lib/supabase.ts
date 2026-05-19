@@ -90,29 +90,25 @@ async function fetchTableRows(table: "books" | "theses") {
 }
 
 function mapBookRow(row: UnknownRow): Book {
-  const stock = numberValue(row, ["stock", "total_stock", "jumlah_stok"]);
+  const stock = numberValue(row, ["stock"]);
   const rackLocation = textValue(
     row,
-    ["rack_location", "rackLocation", "location", "lokasi", "rak"],
+    ["rack_location"],
     "-",
-  );
-  const available = numberValue(
-    row,
-    ["available", "available_stock", "available_count", "stock_available", "tersedia"],
-    stock,
   );
 
   return {
     ...mapBaseRow(row),
     type: "book",
-    author: textValue(row, ["author", "penulis"]),
-    publisher: textValue(row, ["publisher", "penerbit"]),
-    category: textValue(row, ["category", "kategori"], "Buku"),
+    author: textValue(row, ["author"]),
+    publisher: textValue(row, ["publisher"]),
+    category: textValue(row, ["category"], "Buku"),
     rackLocation,
     location: rackLocation,
     stock,
-    available,
+    available: stock,
     isbn: textValue(row, ["isbn"]),
+    coverUrl: optionalTextValue(row, ["cover_url"]),
   };
 }
 
@@ -149,10 +145,10 @@ function mapBaseRow(row: UnknownRow): CollectionBase {
 
   return {
     id: textValue(row, ["id"]),
-    title: textValue(row, ["title", "judul"], "Tanpa judul"),
+    title: textValue(row, ["title"], "Tanpa judul"),
     year: numberValue(row, ["year", "tahun", "graduation_year", "graduationYear"], currentYear),
     code: textValue(row, ["code", "kode", "collection_code", "kode_koleksi"], "-"),
-    location: textValue(row, ["location", "lokasi", "rak", "rack_location", "physical_location"], "-"),
+    location: textValue(row, ["location", "rack_location", "physical_location"], "-"),
     inputSource: inputSourceValue(row),
     inputBy: textValue(row, ["input_by", "inputBy", "diinput_oleh"], "Supabase"),
     verificationStatus: verificationStatusValue(row),
@@ -189,7 +185,7 @@ function numberValue(row: UnknownRow, keys: string[], fallback = 0) {
 }
 
 function keywordsValue(row: UnknownRow) {
-  const value = firstValue(row, ["keywords", "tags", "topic"]);
+  const value = firstValue(row, ["keywords", "tags", "topic", "category"]);
 
   if (Array.isArray(value)) {
     return value.map((item) => String(item).trim()).filter(Boolean);

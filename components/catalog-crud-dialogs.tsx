@@ -51,6 +51,7 @@ const emptyBookValues: BookFormValues = {
   rackLocation: "",
   stock: 1,
   status: "Menunggu Verifikasi",
+  coverUrl: "",
 };
 
 const defaultAccessNote =
@@ -185,6 +186,7 @@ function EditBookDialog({ item }: { item: Book }) {
     rackLocation: item.rackLocation,
     stock: item.stock,
     status: item.verificationStatus,
+    coverUrl: item.coverUrl ?? "",
   });
 
   return (
@@ -323,6 +325,15 @@ function BookDialog({
                 value={values.status}
                 disabled={form.isPending}
                 onValueChange={(status) => onValuesChange({ ...values, status })}
+              />
+            </Field>
+            <Field label="Cover URL" className="sm:col-span-2">
+              <Input
+                type="url"
+                value={values.coverUrl}
+                onChange={(event) => onValuesChange({ ...values, coverUrl: event.target.value })}
+                placeholder="https://..."
+                disabled={form.isPending}
               />
             </Field>
           </div>

@@ -9,15 +9,13 @@ import type {
 } from "@/lib/catalog-crud-types";
 import type { Book, Thesis } from "@/lib/types";
 
-type TableName = "books" | "theses";
 type MutationPayload = Record<string, unknown>;
 
 export async function createBook(values: BookFormValues): Promise<CatalogActionResult> {
   const validationError = validateBook(values);
   if (validationError) return failure(validationError);
 
-  const payloads = bookPayloadVariants(values);
-  const result = await insertWithFallback("books", payloads);
+  const result = await insertBook(bookPayload(values));
   revalidateCatalogPaths();
 
   return result.ok
@@ -44,7 +42,7 @@ export async function updateBook(
   const validationError = validateBook(values);
   if (validationError) return failure(validationError);
 
-  const result = await updateWithFallback("books", id, bookPayloadVariants(values));
+  const result = await updateBookRow(id, bookPayload(values));
   revalidateCatalogPaths();
 
   return result.ok ? success("Buku berhasil diperbarui.") : failure(result.message);
@@ -77,32 +75,14 @@ export async function deleteCollection(
     : success(type === "book" ? "Buku berhasil dihapus." : "Skripsi berhasil dihapus.");
 }
 
-async function insertWithFallback(table: TableName, payloads: MutationPayload[]) {
-  let lastMessage = "Data gagal disimpan ke Supabase.";
-
-  for (const payload of payloads) {
-    const { error } = await getSupabaseClient().from(table).insert(payload);
-    if (!error) return success("ok");
-    lastMessage = error.message;
-  }
-
-  return failure(lastMessage);
+async function insertBook(payload: MutationPayload) {
+  const { error } = await getSupabaseClient().from("books").insert(payload);
+  return error ? failure(error.message) : success("ok");
 }
 
-async function updateWithFallback(
-  table: TableName,
-  id: string,
-  payloads: MutationPayload[],
-) {
-  let lastMessage = "Data gagal diperbarui di Supabase.";
-
-  for (const payload of payloads) {
-    const { error } = await getSupabaseClient().from(table).update(payload).eq("id", id);
-    if (!error) return success("ok");
-    lastMessage = error.message;
-  }
-
-  return failure(lastMessage);
+async function updateBookRow(id: string, payload: MutationPayload) {
+  const { error } = await getSupabaseClient().from("books").update(payload).eq("id", id);
+  return error ? failure(error.message) : success("ok");
 }
 
 async function insertThesis(payload: MutationPayload) {
@@ -115,46 +95,16 @@ async function updateThesisRow(id: string, payload: MutationPayload) {
   return error ? failure(error.message) : success("ok");
 }
 
-function bookPayloadVariants(values: BookFormValues): MutationPayload[] {
-  const currentYear = new Date().getFullYear();
-
-  return [
-    {
-      title: values.title,
-      author: values.author,
-      category: values.category,
-      rack_location: values.rackLocation,
-      stock: values.stock,
-      available: values.stock,
-      year: currentYear,
-      keywords: [values.category],
-      status: values.status,
-    },
-    {
-      title: values.title,
-      author: values.author,
-      category: values.category,
-      rack_location: values.rackLocation,
-      stock: values.stock,
-      status: values.status,
-    },
-    {
-      title: values.title,
-      author: values.author,
-      category: values.category,
-      location: values.rackLocation,
-      stock: values.stock,
-      status: values.status,
-    },
-    {
-      judul: values.title,
-      penulis: values.author,
-      kategori: values.category,
-      lokasi: values.rackLocation,
-      jumlah_stok: values.stock,
-      status: values.status,
-    },
-  ];
+function bookPayload(values: BookFormValues): MutationPayload {
+  return {
+    title: values.title,
+    author: values.author,
+    category: values.category,
+    rack_location: values.rackLocation,
+    stock: values.stock,
+    status: values.status,
+    cover_url: optionalPayloadValue(values.coverUrl),
+  };
 }
 
 function thesisPayload(values: ThesisFormValues): MutationPayload {
