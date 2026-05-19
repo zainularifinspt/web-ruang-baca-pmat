@@ -29,8 +29,7 @@ export async function createThesis(values: ThesisFormValues): Promise<CatalogAct
   const validationError = validateThesis(values);
   if (validationError) return failure(validationError);
 
-  const payloads = thesisPayloadVariants(values);
-  const result = await insertWithFallback("theses", payloads);
+  const result = await insertThesis(thesisPayload(values));
   revalidateCatalogPaths();
 
   return result.ok
@@ -58,7 +57,7 @@ export async function updateThesis(
   const validationError = validateThesis(values);
   if (validationError) return failure(validationError);
 
-  const result = await updateWithFallback("theses", id, thesisPayloadVariants(values));
+  const result = await updateThesisRow(id, thesisPayload(values));
   revalidateCatalogPaths();
 
   return result.ok ? success("Skripsi berhasil diperbarui.") : failure(result.message);
@@ -106,6 +105,16 @@ async function updateWithFallback(
   return failure(lastMessage);
 }
 
+async function insertThesis(payload: MutationPayload) {
+  const { error } = await getSupabaseClient().from("theses").insert(payload);
+  return error ? failure(error.message) : success("ok");
+}
+
+async function updateThesisRow(id: string, payload: MutationPayload) {
+  const { error } = await getSupabaseClient().from("theses").update(payload).eq("id", id);
+  return error ? failure(error.message) : success("ok");
+}
+
 function bookPayloadVariants(values: BookFormValues): MutationPayload[] {
   const currentYear = new Date().getFullYear();
 
@@ -148,61 +157,20 @@ function bookPayloadVariants(values: BookFormValues): MutationPayload[] {
   ];
 }
 
-function thesisPayloadVariants(values: ThesisFormValues): MutationPayload[] {
-  return [
-    {
-      title: values.title,
-      student_name: values.studentName,
-      year: values.year,
-      topic: values.topic,
-      abstract: values.abstract,
-      supervisor_1: values.supervisor1,
-      supervisor_2: values.supervisor2,
-      cover_url: optionalPayloadValue(values.coverUrl),
-      physical_location: values.physicalLocation,
-      access_note: values.accessNote,
-      verification_status: values.verificationStatus,
-    },
-    {
-      title: values.title,
-      student_name: values.studentName,
-      year: values.year,
-      topic: values.topic,
-      abstract: values.abstract,
-      supervisor_1: values.supervisor1,
-      supervisor_2: values.supervisor2,
-      cover_url: optionalPayloadValue(values.coverUrl),
-      physical_location: values.physicalLocation,
-      access_note: values.accessNote,
-      verification_status: values.verificationStatus,
-    },
-    {
-      title: values.title,
-      studentName: values.studentName,
-      year: values.year,
-      topic: values.topic,
-      abstract: values.abstract,
-      supervisor1: values.supervisor1,
-      supervisor2: values.supervisor2,
-      coverUrl: optionalPayloadValue(values.coverUrl),
-      physicalLocation: values.physicalLocation,
-      accessNote: values.accessNote,
-      verificationStatus: values.verificationStatus,
-    },
-    {
-      judul: values.title,
-      nama_mahasiswa: values.studentName,
-      tahun: values.year,
-      topik: values.topic,
-      abstrak: values.abstract,
-      pembimbing_1: values.supervisor1,
-      pembimbing_2: values.supervisor2,
-      cover_url: optionalPayloadValue(values.coverUrl),
-      physical_location: values.physicalLocation,
-      access_note: values.accessNote,
-      status_verifikasi: values.verificationStatus,
-    },
-  ];
+function thesisPayload(values: ThesisFormValues): MutationPayload {
+  return {
+    title: values.title,
+    student_name: values.studentName,
+    year: values.year,
+    topic: values.topic,
+    abstract: values.abstract,
+    supervisor_1: values.supervisor1,
+    supervisor_2: values.supervisor2,
+    cover_url: optionalPayloadValue(values.coverUrl),
+    physical_location: values.physicalLocation,
+    access_note: values.accessNote,
+    verification_status: values.verificationStatus,
+  };
 }
 
 function validateBook(values: BookFormValues) {

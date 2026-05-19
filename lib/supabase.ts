@@ -117,27 +117,27 @@ function mapBookRow(row: UnknownRow): Book {
 }
 
 function mapThesisRow(row: UnknownRow): Thesis {
-  const topic = textValue(row, ["topic", "topik"], keywordsValue(row)[0] ?? "Skripsi");
+  const topic = textValue(row, ["topic"], "Skripsi");
   const physicalLocation = textValue(
     row,
-    ["physical_location", "physicalLocation", "location", "lokasi"],
+    ["physical_location"],
     "-",
   );
 
   return {
     ...mapBaseRow(row),
     type: "thesis",
-    studentName: textValue(row, ["student_name", "studentName", "author_name", "nama_mahasiswa"]),
+    studentName: textValue(row, ["student_name"]),
     topic,
-    supervisor1: textValue(row, ["supervisor1", "supervisor_1", "pembimbing_1"]),
-    supervisor2: textValue(row, ["supervisor2", "supervisor_2", "pembimbing_2"]),
-    abstract: textValue(row, ["abstract", "abstrak"]),
-    coverUrl: optionalTextValue(row, ["cover_url", "coverUrl"]),
+    supervisor1: textValue(row, ["supervisor_1"]),
+    supervisor2: textValue(row, ["supervisor_2"]),
+    abstract: textValue(row, ["abstract"]),
+    coverUrl: optionalTextValue(row, ["cover_url"]),
     physicalLocation,
     location: physicalLocation,
     accessNote: textValue(
       row,
-      ["access_note", "accessNote"],
+      ["access_note"],
       "Dokumen lengkap tersedia dalam bentuk fisik di Ruang Baca Program Studi Pendidikan Matematika.",
     ),
     keywords: [topic],
@@ -189,7 +189,7 @@ function numberValue(row: UnknownRow, keys: string[], fallback = 0) {
 }
 
 function keywordsValue(row: UnknownRow) {
-  const value = firstValue(row, ["keywords", "kata_kunci", "tags", "topic", "topik"]);
+  const value = firstValue(row, ["keywords", "tags", "topic"]);
 
   if (Array.isArray(value)) {
     return value.map((item) => String(item).trim()).filter(Boolean);
@@ -209,7 +209,6 @@ function verificationStatusValue(row: UnknownRow): VerificationStatus {
   const value = textValue(row, [
     "verification_status",
     "verificationStatus",
-    "status_verifikasi",
     "status",
   ]);
 
