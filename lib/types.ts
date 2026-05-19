@@ -1,0 +1,101 @@
+export type Role = "admin" | "dosen" | "petugas" | "mahasiswa";
+
+export type Permission =
+  | "view_dashboard"
+  | "view_catalog"
+  | "create_collection"
+  | "verify_collection"
+  | "view_attendance"
+  | "manage_users"
+  | "view_reports"
+  | "export_data"
+  | "use_whatsapp_simulation";
+
+export type VerificationStatus =
+  | "Menunggu Verifikasi"
+  | "Disetujui"
+  | "Perlu Revisi"
+  | "Ditolak";
+
+export type VisitPurpose =
+  | "Mencari buku"
+  | "Mencari referensi skripsi"
+  | "Membaca buku"
+  | "Diskusi kelompok"
+  | "Konsultasi akademik"
+  | "Lainnya";
+
+export type VisitorStatus = "Mahasiswa" | "Dosen" | "Umum";
+
+export type ExportType = "attendance" | "book" | "thesis" | "visitor";
+
+export type User = {
+  id: string;
+  name: string;
+  nimNip: string;
+  phoneNumber: string;
+  role: Role;
+  studyProgram?: string;
+};
+
+export type CollectionBase = {
+  id: string;
+  title: string;
+  year: number;
+  code: string;
+  location: string;
+  inputSource: "Dasbor" | "Simulasi WhatsApp" | "Impor";
+  inputBy: string;
+  verificationStatus: VerificationStatus;
+  notes?: string;
+  keywords: string[];
+  createdAt: string;
+};
+
+export type Book = CollectionBase & {
+  type: "book";
+  author: string;
+  publisher: string;
+  category: string;
+  stock: number;
+  available: number;
+  isbn: string;
+};
+
+export type Thesis = CollectionBase & {
+  type: "thesis";
+  authorName: string;
+  supervisor1: string;
+  supervisor2: string;
+  abstract: string;
+  graduationYear: number;
+};
+
+export type Attendance = {
+  id: string;
+  userId?: string;
+  guestName: string;
+  guestNim: string;
+  visitorStatus: VisitorStatus;
+  studyProgram: string;
+  purpose: VisitPurpose;
+  visitedAt: string;
+  status: "Berhasil" | "Perlu Cek";
+};
+
+export type VisitorMetric = {
+  label: string;
+  visits: number;
+  books: number;
+  theses: number;
+};
+
+export type WhatsAppSubmission = {
+  id: string;
+  sender: string;
+  message: string;
+  parsedType: "Buku" | "Skripsi" | "Tidak valid";
+  status: VerificationStatus;
+  response: string;
+  receivedAt: string;
+};
