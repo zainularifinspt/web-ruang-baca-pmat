@@ -1,6 +1,12 @@
-import { verificationTone } from "@/lib/mock-data";
 import type { VerificationStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
+
+const verificationTone: Record<VerificationStatus, string> = {
+  "Menunggu Verifikasi": "bg-amber-100 text-amber-800 border-amber-200",
+  Disetujui: "bg-emerald-100 text-emerald-800 border-emerald-200",
+  "Perlu Revisi": "bg-sky-100 text-sky-800 border-sky-200",
+  Ditolak: "bg-rose-100 text-rose-800 border-rose-200",
+};
 
 export function StatusBadge({ status }: { status: VerificationStatus }) {
   return (

@@ -6,7 +6,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { books, theses } from "@/lib/mock-data";
+import { fetchCollectionById } from "@/lib/supabase";
 import { formatDate } from "@/lib/utils";
 
 export default async function CollectionDetailPage({
@@ -15,12 +15,7 @@ export default async function CollectionDetailPage({
   params: Promise<{ type: string; id: string }>;
 }) {
   const { type, id } = await params;
-  const item =
-    type === "buku"
-      ? books.find((book) => book.id === id)
-      : type === "skripsi"
-        ? theses.find((thesis) => thesis.id === id)
-        : undefined;
+  const item = await fetchCollectionById(type, id);
 
   if (!item) notFound();
 

@@ -15,15 +15,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { books, theses } from "@/lib/mock-data";
 import type { Book, Thesis } from "@/lib/types";
 
 type CatalogTab = "books" | "theses";
 type SortValue = "newest" | "oldest" | "title";
 
 export function CatalogBrowser({
+  books,
+  theses,
   initialTab = "books",
 }: {
+  books: Book[];
+  theses: Thesis[];
   initialTab?: CatalogTab;
 }) {
   const [query, setQuery] = useState("");
@@ -69,7 +72,7 @@ export function CatalogBrowser({
       return matchesQuery && matchesCategory && matchesLocation && matchesAvailability;
     });
     return sortCollections(result, sort);
-  }, [normalizedQuery, bookCategory, bookLocation, bookAvailability, sort]);
+  }, [books, normalizedQuery, bookCategory, bookLocation, bookAvailability, sort]);
 
   const filteredTheses = useMemo(() => {
     const result = theses.filter((item) => {
@@ -88,17 +91,17 @@ export function CatalogBrowser({
       return matchesQuery && matchesYear && matchesTopic && matchesAdvisor && matchesStatus;
     });
     return sortCollections(result, sort);
-  }, [normalizedQuery, thesisYear, thesisTopic, thesisAdvisor, thesisStatus, sort]);
+  }, [theses, normalizedQuery, thesisYear, thesisTopic, thesisAdvisor, thesisStatus, sort]);
 
-  const bookCategories = useMemo(() => unique(books.map((item) => item.category)), []);
-  const bookLocations = useMemo(() => unique(books.map((item) => item.location)), []);
-  const thesisYears = useMemo(() => unique(theses.map((item) => String(item.year))), []);
-  const thesisTopics = useMemo(() => unique(theses.flatMap((item) => item.keywords)), []);
+  const bookCategories = useMemo(() => unique(books.map((item) => item.category)), [books]);
+  const bookLocations = useMemo(() => unique(books.map((item) => item.location)), [books]);
+  const thesisYears = useMemo(() => unique(theses.map((item) => String(item.year))), [theses]);
+  const thesisTopics = useMemo(() => unique(theses.flatMap((item) => item.keywords)), [theses]);
   const thesisAdvisors = useMemo(
     () => unique(theses.flatMap((item) => [item.supervisor1, item.supervisor2])),
-    [],
+    [theses],
   );
-  const thesisStatuses = useMemo(() => unique(theses.map((item) => item.verificationStatus)), []);
+  const thesisStatuses = useMemo(() => unique(theses.map((item) => item.verificationStatus)), [theses]);
 
   const activeChips =
     tab === "books"
@@ -253,14 +256,38 @@ export function CatalogBrowser({
           {isLoading ? (
             <CatalogSkeleton />
           ) : (
-            <CollectionGrid items={filteredBooks} empty="Buku tidak ditemukan." />
+            <CollectionGrid
+              items={filteredBooks}
+              empty={
+                books.length
+                  ? "Buku tidak ditemukan."
+                  : "Belum ada data buku dari Supabase."
+              }
+              description={
+                books.length
+                  ? "Coba gunakan kata kunci lain, ubah filter, atau reset pilihan yang aktif."
+                  : "Katalog buku akan tampil otomatis setelah tabel books memiliki data."
+              }
+            />
           )}
         </TabsContent>
         <TabsContent value="theses" className="mt-6">
           {isLoading ? (
             <CatalogSkeleton />
           ) : (
-            <CollectionGrid items={filteredTheses} empty="Skripsi tidak ditemukan." />
+            <CollectionGrid
+              items={filteredTheses}
+              empty={
+                theses.length
+                  ? "Skripsi tidak ditemukan."
+                  : "Belum ada data skripsi dari Supabase."
+              }
+              description={
+                theses.length
+                  ? "Coba gunakan kata kunci lain, ubah filter, atau reset pilihan yang aktif."
+                  : "Repositori skripsi akan tampil otomatis setelah tabel theses memiliki data."
+              }
+            />
           )}
         </TabsContent>
       </Tabs>
@@ -414,15 +441,17 @@ function FilterChips({
 function CollectionGrid({
   items,
   empty,
+  description,
 }: {
   items: Array<Book | Thesis>;
   empty: string;
+  description: string;
 }) {
   if (!items.length) {
     return (
       <EmptyState
         title={empty}
-        description="Coba gunakan kata kunci lain, ubah filter, atau reset pilihan yang aktif."
+        description={description}
       />
     );
   }
@@ -483,7 +512,7 @@ function sortCollections<T extends Book | Thesis>(items: T[], sort: SortValue) {
 }
 
 function unique(values: string[]) {
-  return Array.from(new Set(values)).sort((a, b) => a.localeCompare(b));
+  return Array.from(new Set(values.filter(Boolean))).sort((a, b) => a.localeCompare(b));
 }
 
 function chip(

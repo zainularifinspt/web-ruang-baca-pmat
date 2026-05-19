@@ -1,17 +1,15 @@
-"use client";
-
-import { Plus } from "lucide-react";
-import { toast } from "sonner";
-import { CatalogBrowser } from "@/components/catalog-browser";
-import { ExportButton } from "@/components/export-button";
+import {
+  DashboardCatalogActions,
+  DashboardCatalogContent,
+} from "@/components/dashboard-catalog-content";
 import { PageHeader } from "@/components/page-header";
-import { Button } from "@/components/ui/button";
-import { useRole } from "@/components/role-provider";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { fetchCatalogData } from "@/lib/supabase";
 
-export default function DashboardCatalogPage() {
-  const { role, canAccess } = useRole();
-  const canCreate = canAccess(role, "create_collection");
-  const canExport = canAccess(role, "export_data");
+export const dynamic = "force-dynamic";
+
+export default async function DashboardCatalogPage() {
+  const { books, theses, error } = await fetchCatalogData();
 
   return (
     <div className="space-y-6">
@@ -19,32 +17,15 @@ export default function DashboardCatalogPage() {
         eyebrow="Katalog internal"
         title="Manajemen Buku dan Skripsi"
         description="Kelola koleksi, cek status verifikasi, dan siapkan ekspor data untuk kebutuhan laporan ruang baca."
-        action={
-          <>
-          {canExport ? (
-            <>
-              <ExportButton type="book" label="Ekspor buku" />
-              <ExportButton type="thesis" label="Ekspor skripsi" />
-            </>
-          ) : null}
-          {canCreate ? (
-            <Button
-              size="sm"
-              className="rounded-xl"
-              onClick={() =>
-                toast.info("Form input koleksi disimulasikan", {
-                  description: "Data baru akan masuk antrean verifikasi pada implementasi lengkap.",
-                })
-              }
-            >
-              <Plus />
-              Tambah koleksi
-            </Button>
-          ) : null}
-          </>
-        }
+        action={<DashboardCatalogActions />}
       />
-      <CatalogBrowser />
+      {error ? (
+        <Alert className="border-amber-200 bg-amber-50 text-amber-950">
+          <AlertTitle>Data Supabase belum dapat dimuat</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      ) : null}
+      <DashboardCatalogContent books={books} theses={theses} />
     </div>
   );
 }

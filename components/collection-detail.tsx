@@ -86,7 +86,7 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
         ) : null}
         <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-3 text-sm text-emerald-900">
           <Sparkles className="mr-2 inline size-4" />
-          Informasi ini berasal dari data pratinjau untuk membantu validasi tampilan detail koleksi.
+          Informasi ini berasal dari data katalog Supabase ruang baca.
         </div>
       </div>
     </DialogContent>
