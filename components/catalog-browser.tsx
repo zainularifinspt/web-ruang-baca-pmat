@@ -18,6 +18,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getSupabaseClient } from "@/lib/supabase";
 import type { Book, Thesis } from "@/lib/types";
+import { valueToUIStatus } from "@/lib/utils";
 
 type CatalogTab = "books" | "theses";
 type SortValue = "newest" | "oldest" | "title";
@@ -145,7 +146,7 @@ export function CatalogBrowser({
           chip("Tahun", thesisYear, () => setThesisYear("all")),
           chip("Topik", thesisTopic, () => setThesisTopic("all")),
           chip("Pembimbing", thesisAdvisor, () => setThesisAdvisor("all")),
-          chip("Status", thesisStatus, () => setThesisStatus("all")),
+          chip("Status", thesisStatus === "all" ? thesisStatus : valueToUIStatus(thesisStatus as any), () => setThesisStatus("all"), thesisStatus),
         ];
 
   const resetCurrentFilters = () => {
@@ -393,12 +394,15 @@ function ThesisFilters({
   onAdvisor: (value: string) => void;
   onStatus: (value: string) => void;
 }) {
+  // Map status values to display labels for the filter
+  const statusOptions = statuses.map((s) => [s, valueToUIStatus(s as any)]);
+  
   return (
     <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
       <FilterSelect label="Tahun" value={year} onValueChange={onYear} options={years} placeholder="Semua tahun" />
       <FilterSelect label="Topik" value={topic} onValueChange={onTopic} options={topics} placeholder="Semua topik" />
       <FilterSelect label="Dosen pembimbing" value={advisor} onValueChange={onAdvisor} options={advisors} placeholder="Semua pembimbing" />
-      <FilterSelect label="Status" value={status} onValueChange={onStatus} options={statuses} placeholder="Semua status" />
+      <FilterSelect label="Status" value={status} onValueChange={onStatus} options={statusOptions} placeholder="Semua status" />
     </div>
   );
 }

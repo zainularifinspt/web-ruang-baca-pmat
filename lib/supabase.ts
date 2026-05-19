@@ -17,10 +17,9 @@ type CatalogData = {
 };
 
 const verificationStatuses: VerificationStatus[] = [
-  "Menunggu Verifikasi",
-  "Disetujui",
-  "Perlu Revisi",
-  "Ditolak",
+  "pending",
+  "approved",
+  "rejected",
 ];
 
 let cachedClient: SupabaseClient | null = null;
@@ -216,16 +215,13 @@ function verificationStatusValue(row: UnknownRow): VerificationStatus {
 
   const normalized = value.toLowerCase();
   if (["approved", "approve", "verified", "disetujui"].includes(normalized)) {
-    return "Disetujui";
-  }
-  if (["revision", "needs_revision", "perlu revisi"].includes(normalized)) {
-    return "Perlu Revisi";
+    return "approved";
   }
   if (["rejected", "ditolak"].includes(normalized)) {
-    return "Ditolak";
+    return "rejected";
   }
 
-  return "Menunggu Verifikasi";
+  return "pending";
 }
 
 function bookStatusValue(row: UnknownRow): BookStatus {

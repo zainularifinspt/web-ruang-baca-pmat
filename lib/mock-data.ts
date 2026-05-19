@@ -20,10 +20,9 @@ export const roleLabels: Record<Role, string> = {
 };
 
 export const verificationTone: Record<VerificationStatus, string> = {
-  "Menunggu Verifikasi": "bg-amber-100 text-amber-800 border-amber-200",
-  Disetujui: "bg-emerald-100 text-emerald-800 border-emerald-200",
-  "Perlu Revisi": "bg-sky-100 text-sky-800 border-sky-200",
-  Ditolak: "bg-rose-100 text-rose-800 border-rose-200",
+  pending: "bg-amber-100 text-amber-800 border-amber-200",
+  approved: "bg-emerald-100 text-emerald-800 border-emerald-200",
+  rejected: "bg-rose-100 text-rose-800 border-rose-200",
 };
 
 export const visitPurposes: VisitPurpose[] = [
@@ -130,7 +129,7 @@ export const books: Book[] = [
     rackLocation: "Rak A1",
     inputSource: "Dasbor",
     inputBy: "Siti Rahma",
-    verificationStatus: "Disetujui",
+    verificationStatus: "approved",
     keywords: ["kalkulus", "limit", "turunan", "integral"],
     createdAt: "2026-05-01T09:12:00+08:00",
   },
@@ -151,7 +150,7 @@ export const books: Book[] = [
     rackLocation: "Rak B2",
     inputSource: "Simulasi WhatsApp",
     inputBy: "Muh. Farid",
-    verificationStatus: "Menunggu Verifikasi",
+    verificationStatus: "pending",
     keywords: ["statistika", "penelitian", "data"],
     createdAt: "2026-05-17T14:05:00+08:00",
   },
@@ -172,7 +171,7 @@ export const books: Book[] = [
     rackLocation: "Rak C1",
     inputSource: "Dasbor",
     inputBy: "Admin Prodi",
-    verificationStatus: "Perlu Revisi",
+    verificationStatus: "pending",
     notes: "Lengkapi nomor ISBN pada data fisik.",
     keywords: ["geometri", "vektor", "ruang"],
     createdAt: "2026-05-12T11:45:00+08:00",
@@ -198,7 +197,7 @@ export const theses: Thesis[] = [
       "Dokumen lengkap tersedia dalam bentuk fisik di Ruang Baca Program Studi Pendidikan Matematika.",
     inputSource: "Dasbor",
     inputBy: "Admin Prodi",
-    verificationStatus: "Disetujui",
+    verificationStatus: "approved",
     keywords: ["berpikir kritis", "spldv", "analisis"],
     createdAt: "2026-04-28T10:20:00+08:00",
   },
@@ -220,7 +219,7 @@ export const theses: Thesis[] = [
       "Dokumen lengkap tersedia dalam bentuk fisik di Ruang Baca Program Studi Pendidikan Matematika.",
     inputSource: "Simulasi WhatsApp",
     inputBy: "Siti Rahma",
-    verificationStatus: "Menunggu Verifikasi",
+    verificationStatus: "pending",
     keywords: ["lkpd", "etnomatematika", "transformasi"],
     createdAt: "2026-05-15T16:10:00+08:00",
   },
@@ -242,7 +241,7 @@ export const theses: Thesis[] = [
       "Dokumen lengkap tersedia dalam bentuk fisik di Ruang Baca Program Studi Pendidikan Matematika.",
     inputSource: "Impor",
     inputBy: "Petugas Lama",
-    verificationStatus: "Ditolak",
+    verificationStatus: "rejected",
     notes: "Data duplikat dengan SKR-2022-019.",
     keywords: ["pbl", "literasi numerasi", "eksperimen"],
     createdAt: "2026-05-08T08:35:00+08:00",
@@ -319,7 +318,7 @@ export const whatsappSubmissions: WhatsAppSubmission[] = [
     sender: "Siti Rahma",
     message: "Buku#Statistika Pendidikan#Sugiyono#2020#4",
     parsedType: "Buku",
-    status: "Menunggu Verifikasi",
+    status: "pending",
     response:
       "Simulasi berhasil: Buku Statistika Pendidikan masuk antrean verifikasi.",
     receivedAt: "2026-05-17T14:05:00+08:00",
@@ -330,7 +329,7 @@ export const whatsappSubmissions: WhatsAppSubmission[] = [
     message:
       "Skripsi#Pengembangan LKPD Berbasis Etnomatematika#Fajri Ramadhan#2023",
     parsedType: "Skripsi",
-    status: "Menunggu Verifikasi",
+    status: "pending",
     response:
       "Simulasi berhasil: Skripsi Fajri Ramadhan masuk antrean verifikasi.",
     receivedAt: "2026-05-15T16:10:00+08:00",

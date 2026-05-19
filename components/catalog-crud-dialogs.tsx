@@ -37,13 +37,9 @@ import type {
   ThesisFormValues,
 } from "@/lib/catalog-crud-types";
 import type { Book, Thesis, VerificationStatus } from "@/lib/types";
+import { uiStatusToValue, valueToUIStatus, getAllVerificationStatusLabels } from "@/lib/utils";
 
-const verificationStatuses: VerificationStatus[] = [
-  "Menunggu Verifikasi",
-  "Disetujui",
-  "Perlu Revisi",
-  "Ditolak",
-];
+const verificationStatuses = getAllVerificationStatusLabels();
 
 const bookStatusOptions: Array<{ label: string; value: BookStatus }> = [
   { label: "Tersedia", value: "tersedia" },
@@ -75,7 +71,7 @@ const emptyThesisValues: ThesisFormValues = {
   coverUrl: "",
   physicalLocation: "",
   accessNote: defaultAccessNote,
-  verificationStatus: "Menunggu Verifikasi",
+  verificationStatus: "pending",
 };
 
 export function AddBookDialog() {
@@ -542,17 +538,17 @@ function StatusSelect({
 }) {
   return (
     <Select
-      value={value}
+      value={valueToUIStatus(value)}
       disabled={disabled}
-      onValueChange={(nextValue) => onValueChange(nextValue as VerificationStatus)}
+      onValueChange={(uiLabel) => onValueChange(uiStatusToValue(uiLabel))}
     >
       <SelectTrigger className="rounded-xl">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
-        {verificationStatuses.map((status) => (
-          <SelectItem key={status} value={status}>
-            {status}
+        {verificationStatuses.map((uiLabel) => (
+          <SelectItem key={uiLabel} value={uiLabel}>
+            {uiLabel}
           </SelectItem>
         ))}
       </SelectContent>

@@ -11,11 +11,7 @@ export type Permission =
   | "export_data"
   | "use_whatsapp_simulation";
 
-export type VerificationStatus =
-  | "Menunggu Verifikasi"
-  | "Disetujui"
-  | "Perlu Revisi"
-  | "Ditolak";
+export type VerificationStatus = "pending" | "approved" | "rejected";
 
 export type BookStatus = "tersedia" | "dipinjam" | "arsip";
 
