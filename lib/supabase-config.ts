@@ -18,6 +18,17 @@ export function hasValidSupabaseConfig() {
   return Boolean(supabaseUrl && supabaseAnonKey && isHttpUrl(supabaseUrl));
 }
 
+export function getSupabaseServiceRoleConfig() {
+  const { supabaseUrl } = getSupabaseConfig();
+  const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseServiceRoleKey) {
+    throw new Error("SUPABASE_SERVICE_ROLE_KEY is required for admin account management.");
+  }
+
+  return { supabaseUrl, supabaseServiceRoleKey };
+}
+
 function isHttpUrl(value: string) {
   try {
     const url = new URL(value);

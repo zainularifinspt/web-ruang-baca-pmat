@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import {
   BookOpen,
   Clock3,
-  LayoutDashboard,
   ScanLine,
   Search,
 } from "lucide-react";
@@ -49,17 +48,10 @@ export function PublicNav() {
             <Clock3 className="size-3.5 text-emerald-600" />
             08.00-16.00
           </div>
-          <Button asChild size="sm" className="rounded-full">
-            <Link href="/dashboard">
-              <LayoutDashboard />
-              Dasbor
-            </Link>
-          </Button>
         </nav>
         <div className="flex items-center gap-1.5 md:hidden">
           <MobileIconLink href="/katalog?tab=books" label="Katalog" icon={Search} />
           <MobileIconLink href="/presensi" label="Presensi" icon={ScanLine} />
-          <MobileIconLink href="/dashboard" label="Dasbor" icon={LayoutDashboard} />
         </div>
       </div>
     </header>

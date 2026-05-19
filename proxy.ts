@@ -13,6 +13,14 @@ function redirectToLogin(request: NextRequest, error?: string) {
   return NextResponse.redirect(loginUrl);
 }
 
+function isProtectedPetugasPath(pathname: string) {
+  return pathname === "/petugas" || pathname.startsWith("/petugas/");
+}
+
+function isProtectedAdminPath(pathname: string) {
+  return pathname === "/admin" || pathname.startsWith("/admin/") || pathname === "/dashboard" || pathname.startsWith("/dashboard/");
+}
+
 export async function proxy(request: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -60,13 +68,24 @@ export async function proxy(request: NextRequest) {
     .eq("id", user.id)
     .maybeSingle();
 
-  if (error || profile?.role !== "admin") {
+  const role = profile?.role;
+  const pathname = request.nextUrl.pathname;
+
+  if (error || (role !== "admin" && role !== "petugas")) {
     return redirectToLogin(request, "admin_required");
+  }
+
+  if (isProtectedAdminPath(pathname) && role !== "admin") {
+    return redirectToLogin(request, "admin_required");
+  }
+
+  if (isProtectedPetugasPath(pathname) && role !== "admin" && role !== "petugas") {
+    return redirectToLogin(request, "staff_required");
   }
 
   return response;
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/admin/:path*", "/dashboard/:path*", "/petugas/:path*"],
 };

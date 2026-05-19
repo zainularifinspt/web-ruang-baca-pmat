@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useState } from "react";
 import { LockKeyhole, LogIn, Mail, ShieldAlert } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -10,15 +10,14 @@ import { createSupabaseBrowserClient } from "@/lib/supabase-auth-client";
 
 const authErrorMessages: Record<string, string> = {
   admin_required: "Akun ini belum memiliki akses admin.",
+  staff_required: "Akun ini belum memiliki akses petugas.",
   configuration: "Konfigurasi Supabase belum lengkap.",
 };
 
-function getSafeRedirect(value: string | null) {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) {
-    return "/admin";
-  }
-
-  return value;
+function getHomeRouteForRole(role: string | null | undefined) {
+  if (role === "admin") return "/admin";
+  if (role === "petugas") return "/petugas";
+  return null;
 }
 
 export function LoginForm() {
@@ -29,10 +28,6 @@ export function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const redirectTo = useMemo(
-    () => getSafeRedirect(searchParams.get("redirectTo")),
-    [searchParams],
-  );
   const queryError = searchParams.get("error");
   const displayError = formError || (queryError ? authErrorMessages[queryError] : "");
 
@@ -59,13 +54,15 @@ export function LoginForm() {
         .eq("id", data.user.id)
         .maybeSingle();
 
-      if (profileError || profile?.role !== "admin") {
+      const homeRoute = getHomeRouteForRole(profile?.role);
+
+      if (profileError || !homeRoute) {
         await supabase.auth.signOut();
-        setFormError("Akun berhasil dikenali, tetapi belum memiliki role admin.");
+        setFormError("Akun berhasil dikenali, tetapi belum memiliki role admin atau petugas.");
         return;
       }
 
-      router.replace(redirectTo);
+      router.replace(homeRoute);
       router.refresh();
     } catch (error) {
       setFormError(

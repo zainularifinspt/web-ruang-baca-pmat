@@ -1,7 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getSupabaseClient } from "@/lib/supabase";
+import { requireStaffRole } from "@/lib/auth-guards";
+import { createSupabaseAdminClient } from "@/lib/supabase-admin";
 import type {
   BookFormValues,
   CatalogActionResult,
@@ -12,10 +13,13 @@ import type { Book, Thesis } from "@/lib/types";
 type MutationPayload = Record<string, unknown>;
 
 export async function createBook(values: BookFormValues): Promise<CatalogActionResult> {
+  const auth = await requireStaffRole(["admin", "petugas"]);
+  if (!auth.ok) return failure(auth.message);
+
   const validationError = validateBook(values);
   if (validationError) return failure(validationError);
 
-  const result = await insertBook(bookPayload(values));
+  const result = await safelyMutateCatalog(() => insertBook(bookPayload(values)));
   revalidateCatalogPaths();
 
   return result.ok
@@ -24,10 +28,13 @@ export async function createBook(values: BookFormValues): Promise<CatalogActionR
 }
 
 export async function createThesis(values: ThesisFormValues): Promise<CatalogActionResult> {
+  const auth = await requireStaffRole(["admin", "petugas"]);
+  if (!auth.ok) return failure(auth.message);
+
   const validationError = validateThesis(values);
   if (validationError) return failure(validationError);
 
-  const result = await insertThesis(thesisPayload(values));
+  const result = await safelyMutateCatalog(() => insertThesis(thesisPayload(values)));
   revalidateCatalogPaths();
 
   return result.ok
@@ -39,10 +46,13 @@ export async function updateBook(
   id: Book["id"],
   values: BookFormValues,
 ): Promise<CatalogActionResult> {
+  const auth = await requireStaffRole(["admin", "petugas"]);
+  if (!auth.ok) return failure(auth.message);
+
   const validationError = validateBook(values);
   if (validationError) return failure(validationError);
 
-  const result = await updateBookRow(id, bookPayload(values));
+  const result = await safelyMutateCatalog(() => updateBookRow(id, bookPayload(values)));
   revalidateCatalogPaths();
 
   return result.ok ? success("Buku berhasil diperbarui.") : failure(result.message);
@@ -52,10 +62,13 @@ export async function updateThesis(
   id: Thesis["id"],
   values: ThesisFormValues,
 ): Promise<CatalogActionResult> {
+  const auth = await requireStaffRole(["admin", "petugas"]);
+  if (!auth.ok) return failure(auth.message);
+
   const validationError = validateThesis(values);
   if (validationError) return failure(validationError);
 
-  const result = await updateThesisRow(id, thesisPayload(values));
+  const result = await safelyMutateCatalog(() => updateThesisRow(id, thesisPayload(values)));
   revalidateCatalogPaths();
 
   return result.ok ? success("Skripsi berhasil diperbarui.") : failure(result.message);
@@ -65,33 +78,40 @@ export async function deleteCollection(
   type: Book["type"] | Thesis["type"],
   id: string,
 ): Promise<CatalogActionResult> {
-  const table = type === "book" ? "books" : "theses";
-  const { error } = await getSupabaseClient().from(table).delete().eq("id", id);
+  const auth = await requireStaffRole(["admin", "petugas"]);
+  if (!auth.ok) return failure(auth.message);
+
+  const result = await safelyMutateCatalog(async () => {
+    const table = type === "book" ? "books" : "theses";
+    const { error } = await createSupabaseAdminClient().from(table).delete().eq("id", id);
+
+    return error
+      ? failure(error.message)
+      : success(type === "book" ? "Buku berhasil dihapus." : "Skripsi berhasil dihapus.");
+  });
 
   revalidateCatalogPaths();
 
-  return error
-    ? failure(error.message)
-    : success(type === "book" ? "Buku berhasil dihapus." : "Skripsi berhasil dihapus.");
+  return result;
 }
 
 async function insertBook(payload: MutationPayload) {
-  const { error } = await getSupabaseClient().from("books").insert(payload);
+  const { error } = await createSupabaseAdminClient().from("books").insert(payload);
   return error ? failure(error.message) : success("ok");
 }
 
 async function updateBookRow(id: string, payload: MutationPayload) {
-  const { error } = await getSupabaseClient().from("books").update(payload).eq("id", id);
+  const { error } = await createSupabaseAdminClient().from("books").update(payload).eq("id", id);
   return error ? failure(error.message) : success("ok");
 }
 
 async function insertThesis(payload: MutationPayload) {
-  const { error } = await getSupabaseClient().from("theses").insert(payload);
+  const { error } = await createSupabaseAdminClient().from("theses").insert(payload);
   return error ? failure(error.message) : success("ok");
 }
 
 async function updateThesisRow(id: string, payload: MutationPayload) {
-  const { error } = await getSupabaseClient().from("theses").update(payload).eq("id", id);
+  const { error } = await createSupabaseAdminClient().from("theses").update(payload).eq("id", id);
   return error ? failure(error.message) : success("ok");
 }
 
@@ -155,6 +175,19 @@ function validateThesis(values: ThesisFormValues) {
 function revalidateCatalogPaths() {
   revalidatePath("/katalog");
   revalidatePath("/dashboard/katalog");
+  revalidatePath("/petugas");
+}
+
+async function safelyMutateCatalog(
+  operation: () => Promise<CatalogActionResult>,
+): Promise<CatalogActionResult> {
+  try {
+    return await operation();
+  } catch (error) {
+    return failure(
+      error instanceof Error ? error.message : "Gagal memperbarui data katalog.",
+    );
+  }
 }
 
 function success(message: string): CatalogActionResult {

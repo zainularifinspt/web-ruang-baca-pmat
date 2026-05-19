@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   ShieldCheck,
   Users,
+  UserPlus,
 } from "lucide-react";
 import { LogoutButton } from "@/app/admin/logout-button";
 import { Button } from "@/components/ui/button";
@@ -33,6 +34,12 @@ const adminLinks = [
     title: "Presensi",
     description: "Pantau data kunjungan.",
     icon: ClipboardList,
+  },
+  {
+    href: "/admin/petugas",
+    title: "Akun Petugas",
+    description: "Buat akun petugas ruang baca.",
+    icon: UserPlus,
   },
   {
     href: "/dashboard/pengguna",
