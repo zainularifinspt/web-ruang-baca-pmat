@@ -23,6 +23,10 @@ import { valueToUIStatus } from "@/lib/utils";
 type CatalogTab = "books" | "theses";
 type SortValue = "newest" | "oldest" | "title";
 type CollectionItem = Book | Thesis;
+type FilterOption = {
+  label: string;
+  value: string;
+};
 
 export function CatalogBrowser({
   books,
@@ -348,20 +352,30 @@ function BookFilters({
   onLocation: (value: string) => void;
   onAvailability: (value: string) => void;
 }) {
+  const categoryOptions: FilterOption[] = categories.map((cat) => ({
+    label: cat,
+    value: cat,
+  }));
+  const locationOptions: FilterOption[] = locations.map((loc) => ({
+    label: loc,
+    value: loc,
+  }));
+  const availabilityOptions: FilterOption[] = [
+    { label: "Tersedia", value: "available" },
+    { label: "Terbatas", value: "limited" },
+    { label: "Tidak tersedia", value: "empty" },
+  ];
+
   return (
     <div className="grid gap-3 md:grid-cols-3">
-      <FilterSelect label="Kategori" value={category} onValueChange={onCategory} options={categories} placeholder="Semua kategori" />
-      <FilterSelect label="Lokasi rak" value={location} onValueChange={onLocation} options={locations} placeholder="Semua lokasi" />
+      <FilterSelect label="Kategori" value={category} onValueChange={onCategory} options={categoryOptions} placeholder="Semua kategori" />
+      <FilterSelect label="Lokasi rak" value={location} onValueChange={onLocation} options={locationOptions} placeholder="Semua lokasi" />
       <FilterSelect
         label="Ketersediaan"
         value={availability}
         onValueChange={onAvailability}
         placeholder="Semua status"
-        options={[
-          ["available", "Tersedia"],
-          ["limited", "Terbatas"],
-          ["empty", "Tidak tersedia"],
-        ]}
+        options={availabilityOptions}
       />
     </div>
   );
@@ -394,14 +408,28 @@ function ThesisFilters({
   onAdvisor: (value: string) => void;
   onStatus: (value: string) => void;
 }) {
-  // Map status values to display labels for the filter
-  const statusOptions = statuses.map((s) => [s, valueToUIStatus(s as any)]);
+  const yearOptions: FilterOption[] = years.map((y) => ({
+    label: y,
+    value: y,
+  }));
+  const topicOptions: FilterOption[] = topics.map((t) => ({
+    label: t,
+    value: t,
+  }));
+  const advisorOptions: FilterOption[] = advisors.map((a) => ({
+    label: a,
+    value: a,
+  }));
+  const statusOptions: FilterOption[] = statuses.map((s) => ({
+    label: valueToUIStatus(s as any),
+    value: s,
+  }));
   
   return (
     <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-      <FilterSelect label="Tahun" value={year} onValueChange={onYear} options={years} placeholder="Semua tahun" />
-      <FilterSelect label="Topik" value={topic} onValueChange={onTopic} options={topics} placeholder="Semua topik" />
-      <FilterSelect label="Dosen pembimbing" value={advisor} onValueChange={onAdvisor} options={advisors} placeholder="Semua pembimbing" />
+      <FilterSelect label="Tahun" value={year} onValueChange={onYear} options={yearOptions} placeholder="Semua tahun" />
+      <FilterSelect label="Topik" value={topic} onValueChange={onTopic} options={topicOptions} placeholder="Semua topik" />
+      <FilterSelect label="Dosen pembimbing" value={advisor} onValueChange={onAdvisor} options={advisorOptions} placeholder="Semua pembimbing" />
       <FilterSelect label="Status" value={status} onValueChange={onStatus} options={statusOptions} placeholder="Semua status" />
     </div>
   );
@@ -417,7 +445,7 @@ function FilterSelect({
   label: string;
   value: string;
   onValueChange: (value: string) => void;
-  options: string[] | Array<[string, string]>;
+  options: FilterOption[];
   placeholder: string;
 }) {
   return (
@@ -429,16 +457,11 @@ function FilterSelect({
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">{placeholder}</SelectItem>
-          {options.map((option) => {
-            const [optionValue, optionLabel] = Array.isArray(option)
-              ? option
-              : [option, option];
-            return (
-              <SelectItem key={optionValue} value={optionValue}>
-                {optionLabel}
-              </SelectItem>
-            );
-          })}
+          {options.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
         </SelectContent>
       </Select>
     </div>
