@@ -343,7 +343,6 @@ function Footer() {
             <Link href="/katalog?tab=books" className="hover:text-white">Cari Buku</Link>
             <Link href="/katalog?tab=theses" className="hover:text-white">Cari Skripsi</Link>
             <Link href="/presensi" className="hover:text-white">Presensi</Link>
-            <Link href="/dashboard" className="hover:text-white">Dasbor</Link>
           </div>
         </div>
         <div>
