@@ -121,6 +121,24 @@ export async function fetchCollectionById(type: string, id: string) {
   return mappedRows.find((item) => item.id === id) ?? null;
 }
 
+export async function fetchBookById(id: string) {
+  const { row, error } = await fetchTableRowById("books", id);
+
+  return {
+    book: row ? mapBookRow(row) : null,
+    error,
+  };
+}
+
+export async function fetchThesisById(id: string) {
+  const { row, error } = await fetchTableRowById("theses", id);
+
+  return {
+    thesis: row ? mapThesisRow(row) : null,
+    error,
+  };
+}
+
 async function fetchTableRows(table: "books" | "theses") {
   try {
     const { data, error } = await getSupabaseClient().from(table).select("*");
@@ -133,6 +151,27 @@ async function fetchTableRows(table: "books" | "theses") {
   } catch (error) {
     return {
       rows: [] as UnknownRow[],
+      error: error instanceof Error ? error.message : "Supabase data could not be loaded.",
+    };
+  }
+}
+
+async function fetchTableRowById(table: "books" | "theses", id: string) {
+  try {
+    const { data, error } = await getSupabaseClient()
+      .from(table)
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (error) {
+      return { row: null as UnknownRow | null, error: error.message };
+    }
+
+    return { row: (data ?? null) as UnknownRow | null, error: undefined };
+  } catch (error) {
+    return {
+      row: null as UnknownRow | null,
       error: error instanceof Error ? error.message : "Supabase data could not be loaded.",
     };
   }

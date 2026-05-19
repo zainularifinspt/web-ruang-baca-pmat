@@ -27,6 +27,7 @@ type FilterOption = {
   label: string;
   value: string;
 };
+const SEARCH_DEBOUNCE_MS = 350;
 
 export function CatalogBrowser({
   books,
@@ -43,10 +44,12 @@ export function CatalogBrowser({
 }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [tab, setTab] = useState<CatalogTab>(initialTab);
   const [sort, setSort] = useState<SortValue>("newest");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isFilterLoading, setIsFilterLoading] = useState(false);
   const loadingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [bookCategory, setBookCategory] = useState("all");
   const [bookLocation, setBookLocation] = useState("all");
@@ -60,13 +63,37 @@ export function CatalogBrowser({
   useEffect(() => {
     return () => {
       if (loadingTimer.current) clearTimeout(loadingTimer.current);
+      if (searchTimer.current) clearTimeout(searchTimer.current);
     };
   }, []);
 
   useEffect(() => {
+    if (searchTimer.current) clearTimeout(searchTimer.current);
+
+    const normalizedInput = query.trim();
+
+    if (normalizedInput === debouncedQuery.trim()) return;
+
+    searchTimer.current = setTimeout(() => {
+      setDebouncedQuery(query);
+    }, SEARCH_DEBOUNCE_MS);
+
+    return () => {
+      if (searchTimer.current) clearTimeout(searchTimer.current);
+    };
+  }, [debouncedQuery, query]);
+
+  useEffect(() => {
     if (!enableRealtime) return;
 
-    const supabase = getSupabaseClient();
+    let supabase: ReturnType<typeof getSupabaseClient>;
+
+    try {
+      supabase = getSupabaseClient();
+    } catch {
+      return;
+    }
+
     const channel = supabase
       .channel("catalog-realtime")
       .on(
@@ -87,19 +114,16 @@ export function CatalogBrowser({
   }, [enableRealtime, router]);
 
   const triggerLoading = () => {
-    setIsLoading(true);
+    setIsFilterLoading(true);
     if (loadingTimer.current) clearTimeout(loadingTimer.current);
-    loadingTimer.current = setTimeout(() => setIsLoading(false), 260);
+    loadingTimer.current = setTimeout(() => setIsFilterLoading(false), 260);
   };
 
-  const normalizedQuery = useMemo(() => query.trim().toLowerCase(), [query]);
+  const normalizedQuery = useMemo(() => debouncedQuery.trim().toLowerCase(), [debouncedQuery]);
 
   const filteredBooks = useMemo(() => {
     const result = books.filter((item) => {
-      const matchesQuery = [item.title, item.author, item.category, item.rackLocation, item.year, ...item.keywords]
-        .join(" ")
-        .toLowerCase()
-        .includes(normalizedQuery);
+      const matchesQuery = matchesSearch(item, normalizedQuery);
       const matchesCategory = bookCategory === "all" || item.category === bookCategory;
       const matchesLocation = bookLocation === "all" || item.rackLocation === bookLocation;
       const availability = getAvailabilityValue(item);
@@ -112,10 +136,7 @@ export function CatalogBrowser({
 
   const filteredTheses = useMemo(() => {
     const result = theses.filter((item) => {
-      const matchesQuery = [item.title, item.studentName, item.topic, item.supervisor1, item.supervisor2, item.year, item.verificationStatus, item.physicalLocation]
-        .join(" ")
-        .toLowerCase()
-        .includes(normalizedQuery);
+      const matchesQuery = matchesSearch(item, normalizedQuery);
       const matchesYear = thesisYear === "all" || String(item.year) === thesisYear;
       const matchesTopic = thesisTopic === "all" || item.keywords.includes(thesisTopic);
       const matchesAdvisor =
@@ -168,6 +189,9 @@ export function CatalogBrowser({
   };
 
   const currentCount = tab === "books" ? filteredBooks.length : filteredTheses.length;
+  const hasQuery = query.trim().length > 0;
+  const isSearchLoading = query.trim() !== debouncedQuery.trim();
+  const isLoading = isFilterLoading || isSearchLoading;
 
   return (
     <div className="space-y-6">
@@ -180,7 +204,7 @@ export function CatalogBrowser({
             </h2>
           </div>
           <Badge variant="secondary" className="w-fit rounded-full">
-            {currentCount} hasil ditemukan
+            {isLoading ? "Mencari..." : `${currentCount} hasil ditemukan`}
           </Badge>
         </div>
 
@@ -190,11 +214,23 @@ export function CatalogBrowser({
             value={query}
             onChange={(event) => {
               setQuery(event.target.value);
-              triggerLoading();
             }}
-            placeholder="Cari judul, penulis, topik, pembimbing, atau lokasi rak"
-            className="h-12 rounded-2xl border-slate-200 bg-slate-50 pl-12 text-base shadow-inner shadow-slate-900/3 sm:h-14"
+            placeholder="Cari judul atau penulis"
+            className="h-12 rounded-2xl border-slate-200 bg-slate-50 pl-12 pr-12 text-base shadow-inner shadow-slate-900/3 sm:h-14"
           />
+          {hasQuery ? (
+            <button
+              type="button"
+              onClick={() => {
+                setQuery("");
+                setDebouncedQuery("");
+              }}
+              className="absolute right-3 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-200/70 hover:text-slate-700"
+              aria-label="Kosongkan pencarian"
+            >
+              <X className="size-4" />
+            </button>
+          ) : null}
         </div>
       </div>
 
@@ -584,6 +620,20 @@ function sortCollections<T extends Book | Thesis>(items: T[], sort: SortValue) {
     if (sort === "oldest") return a.year - b.year;
     return b.year - a.year;
   });
+}
+
+function matchesSearch(item: Book | Thesis, normalizedQuery: string) {
+  if (!normalizedQuery) return true;
+
+  const searchableFields =
+    item.type === "book"
+      ? [item.title, item.author]
+      : [item.title, item.studentName, item.supervisor1, item.supervisor2];
+
+  return searchableFields
+    .join(" ")
+    .toLowerCase()
+    .includes(normalizedQuery);
 }
 
 function unique<T extends string>(values: T[]) {
