@@ -129,10 +129,12 @@ function mapThesisRow(row: UnknownRow): Thesis {
 }
 
 function mapBaseRow(row: UnknownRow): CollectionBase {
+  const currentYear = new Date().getFullYear();
+
   return {
     id: textValue(row, ["id"]),
     title: textValue(row, ["title", "judul"], "Tanpa judul"),
-    year: numberValue(row, ["year", "tahun", "graduation_year", "graduationYear"]),
+    year: numberValue(row, ["year", "tahun", "graduation_year", "graduationYear"], currentYear),
     code: textValue(row, ["code", "kode", "collection_code", "kode_koleksi"], "-"),
     location: textValue(row, ["location", "lokasi", "rak"], "-"),
     inputSource: inputSourceValue(row),
@@ -171,7 +173,7 @@ function numberValue(row: UnknownRow, keys: string[], fallback = 0) {
 }
 
 function keywordsValue(row: UnknownRow) {
-  const value = firstValue(row, ["keywords", "kata_kunci", "tags"]);
+  const value = firstValue(row, ["keywords", "kata_kunci", "tags", "topic", "topik"]);
 
   if (Array.isArray(value)) {
     return value.map((item) => String(item).trim()).filter(Boolean);

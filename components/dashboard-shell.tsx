@@ -151,7 +151,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
           <p className="text-xs font-medium text-slate-500">Peran aktif</p>
           <p className="mt-1 font-semibold text-slate-950">{roleLabel}</p>
           <p className="mt-2 text-xs leading-5 text-slate-600">
-            Mode pratinjau: data masih contoh untuk validasi alur.
+            Mode peran dapat diganti untuk mengecek akses fitur.
           </p>
         </div>
       </div>

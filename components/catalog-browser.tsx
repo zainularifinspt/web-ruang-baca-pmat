@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { ArrowUpDown, Search, SlidersHorizontal, X } from "lucide-react";
 import { CollectionCard } from "@/components/collection-card";
 import { EmptyState } from "@/components/empty-state";
@@ -15,20 +16,27 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getSupabaseClient } from "@/lib/supabase";
 import type { Book, Thesis } from "@/lib/types";
 
 type CatalogTab = "books" | "theses";
 type SortValue = "newest" | "oldest" | "title";
+type CollectionItem = Book | Thesis;
 
 export function CatalogBrowser({
   books,
   theses,
   initialTab = "books",
+  itemActions,
+  enableRealtime = true,
 }: {
   books: Book[];
   theses: Thesis[];
   initialTab?: CatalogTab;
+  itemActions?: (item: CollectionItem) => ReactNode;
+  enableRealtime?: boolean;
 }) {
+  const router = useRouter();
   const [query, setQuery] = useState("");
   const [tab, setTab] = useState<CatalogTab>(initialTab);
   const [sort, setSort] = useState<SortValue>("newest");
@@ -49,6 +57,29 @@ export function CatalogBrowser({
       if (loadingTimer.current) clearTimeout(loadingTimer.current);
     };
   }, []);
+
+  useEffect(() => {
+    if (!enableRealtime) return;
+
+    const supabase = getSupabaseClient();
+    const channel = supabase
+      .channel("catalog-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "books" },
+        () => router.refresh(),
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "theses" },
+        () => router.refresh(),
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [enableRealtime, router]);
 
   const triggerLoading = () => {
     setIsLoading(true);
@@ -258,6 +289,7 @@ export function CatalogBrowser({
           ) : (
             <CollectionGrid
               items={filteredBooks}
+              itemActions={itemActions}
               empty={
                 books.length
                   ? "Buku tidak ditemukan."
@@ -277,6 +309,7 @@ export function CatalogBrowser({
           ) : (
             <CollectionGrid
               items={filteredTheses}
+              itemActions={itemActions}
               empty={
                 theses.length
                   ? "Skripsi tidak ditemukan."
@@ -440,10 +473,12 @@ function FilterChips({
 
 function CollectionGrid({
   items,
+  itemActions,
   empty,
   description,
 }: {
-  items: Array<Book | Thesis>;
+  items: CollectionItem[];
+  itemActions?: (item: CollectionItem) => ReactNode;
   empty: string;
   description: string;
 }) {
@@ -458,9 +493,16 @@ function CollectionGrid({
 
   return (
     <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-      {items.map((item) => (
-        <CollectionCard key={item.id} item={item} />
-      ))}
+      {items.map((item) => {
+        const actions = itemActions?.(item);
+
+        return (
+          <div key={item.id} className="space-y-3">
+            <CollectionCard item={item} />
+            {actions ? <div className="flex flex-wrap gap-2">{actions}</div> : null}
+          </div>
+        );
+      })}
     </div>
   );
 }

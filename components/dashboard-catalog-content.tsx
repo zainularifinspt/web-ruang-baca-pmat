@@ -1,10 +1,13 @@
 "use client";
 
-import { Plus } from "lucide-react";
-import { toast } from "sonner";
 import { CatalogBrowser } from "@/components/catalog-browser";
+import {
+  AddBookDialog,
+  AddThesisDialog,
+  DeleteCollectionDialog,
+  EditCollectionDialog,
+} from "@/components/catalog-crud-dialogs";
 import { ExportButton } from "@/components/export-button";
-import { Button } from "@/components/ui/button";
 import { useRole } from "@/components/role-provider";
 import type { Book, Thesis } from "@/lib/types";
 
@@ -15,13 +18,31 @@ export function DashboardCatalogContent({
   books: Book[];
   theses: Thesis[];
 }) {
-  return <CatalogBrowser books={books} theses={theses} />;
+  const { role } = useRole();
+  const canEdit = role === "admin" || role === "petugas";
+  const canDelete = role === "admin";
+
+  return (
+    <CatalogBrowser
+      books={books}
+      theses={theses}
+      itemActions={(item) =>
+        canEdit || canDelete ? (
+          <>
+            {canEdit ? <EditCollectionDialog item={item} /> : null}
+            {canDelete ? <DeleteCollectionDialog item={item} /> : null}
+          </>
+        ) : null
+      }
+    />
+  );
 }
 
 export function DashboardCatalogActions() {
   const { role, canAccess } = useRole();
-  const canCreate = canAccess(role, "create_collection");
   const canExport = canAccess(role, "export_data");
+  const canAddBook = role === "admin" || role === "petugas";
+  const canAddThesis = role === "admin" || role === "petugas" || role === "dosen";
 
   return (
     <>
@@ -31,21 +52,8 @@ export function DashboardCatalogActions() {
           <ExportButton type="thesis" label="Ekspor skripsi" />
         </>
       ) : null}
-      {canCreate ? (
-        <Button
-          size="sm"
-          className="rounded-xl"
-          onClick={() =>
-            toast.info("Form input koleksi disimulasikan", {
-              description:
-                "Data baru akan masuk antrean verifikasi pada implementasi lengkap.",
-            })
-          }
-        >
-          <Plus />
-          Tambah koleksi
-        </Button>
-      ) : null}
+      {canAddBook ? <AddBookDialog /> : null}
+      {canAddThesis ? <AddThesisDialog /> : null}
     </>
   );
 }
