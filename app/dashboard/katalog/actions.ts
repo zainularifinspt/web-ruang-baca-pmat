@@ -124,6 +124,8 @@ function thesisPayload(values: ThesisFormValues): MutationPayload {
 }
 
 function validateBook(values: BookFormValues) {
+  const bookStatuses = ["tersedia", "dipinjam", "arsip"];
+
   if (!values.title.trim()) return "Judul buku wajib diisi.";
   if (!values.author.trim()) return "Penulis buku wajib diisi.";
   if (!values.category.trim()) return "Kategori buku wajib diisi.";
@@ -131,6 +133,7 @@ function validateBook(values: BookFormValues) {
   if (!Number.isFinite(values.stock) || values.stock < 0) {
     return "Stok harus berupa angka 0 atau lebih.";
   }
+  if (!bookStatuses.includes(values.status)) return "Status buku tidak valid.";
   return null;
 }
 

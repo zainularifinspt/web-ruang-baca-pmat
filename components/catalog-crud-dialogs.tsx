@@ -32,6 +32,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import type {
   BookFormValues,
+  BookStatus,
   CatalogActionResult,
   ThesisFormValues,
 } from "@/lib/catalog-crud-types";
@@ -44,13 +45,19 @@ const verificationStatuses: VerificationStatus[] = [
   "Ditolak",
 ];
 
+const bookStatusOptions: Array<{ label: string; value: BookStatus }> = [
+  { label: "Tersedia", value: "tersedia" },
+  { label: "Dipinjam", value: "dipinjam" },
+  { label: "Arsip", value: "arsip" },
+];
+
 const emptyBookValues: BookFormValues = {
   title: "",
   author: "",
   category: "",
   rackLocation: "",
   stock: 1,
-  status: "Menunggu Verifikasi",
+  status: "tersedia",
   coverUrl: "",
 };
 
@@ -185,7 +192,7 @@ function EditBookDialog({ item }: { item: Book }) {
     category: item.category,
     rackLocation: item.rackLocation,
     stock: item.stock,
-    status: item.verificationStatus,
+    status: item.status,
     coverUrl: item.coverUrl ?? "",
   });
 
@@ -321,7 +328,7 @@ function BookDialog({
               />
             </Field>
             <Field label="Status" className="sm:col-span-2">
-              <StatusSelect
+              <BookStatusSelect
                 value={values.status}
                 disabled={form.isPending}
                 onValueChange={(status) => onValuesChange({ ...values, status })}
@@ -546,6 +553,35 @@ function StatusSelect({
         {verificationStatuses.map((status) => (
           <SelectItem key={status} value={status}>
             {status}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
+function BookStatusSelect({
+  value,
+  disabled,
+  onValueChange,
+}: {
+  value: BookStatus;
+  disabled?: boolean;
+  onValueChange: (value: BookStatus) => void;
+}) {
+  return (
+    <Select
+      value={value}
+      disabled={disabled}
+      onValueChange={(nextValue) => onValueChange(nextValue as BookStatus)}
+    >
+      <SelectTrigger className="rounded-xl">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {bookStatusOptions.map((status) => (
+          <SelectItem key={status.value} value={status.value}>
+            {status.label}
           </SelectItem>
         ))}
       </SelectContent>

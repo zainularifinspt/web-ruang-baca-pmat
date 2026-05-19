@@ -1,4 +1,6 @@
-import type { VerificationStatus } from "@/lib/types";
+import type { BookStatus, VerificationStatus } from "@/lib/types";
+
+export type { BookStatus };
 
 export type CatalogActionResult = {
   ok: boolean;
@@ -11,7 +13,7 @@ export type BookFormValues = {
   category: string;
   rackLocation: string;
   stock: number;
-  status: VerificationStatus;
+  status: BookStatus;
   coverUrl: string;
 };
 

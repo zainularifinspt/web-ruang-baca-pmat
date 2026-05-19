@@ -2,6 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type {
   Book,
+  BookStatus,
   CollectionBase,
   Thesis,
   VerificationStatus,
@@ -109,6 +110,7 @@ function mapBookRow(row: UnknownRow): Book {
     available: stock,
     isbn: textValue(row, ["isbn"]),
     coverUrl: optionalTextValue(row, ["cover_url"]),
+    status: bookStatusValue(row),
   };
 }
 
@@ -224,6 +226,14 @@ function verificationStatusValue(row: UnknownRow): VerificationStatus {
   }
 
   return "Menunggu Verifikasi";
+}
+
+function bookStatusValue(row: UnknownRow): BookStatus {
+  const value = textValue(row, ["status"], "tersedia").toLowerCase();
+
+  if (value === "dipinjam" || value === "arsip") return value;
+
+  return "tersedia";
 }
 
 function inputSourceValue(row: UnknownRow): CollectionBase["inputSource"] {

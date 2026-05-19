@@ -17,6 +17,8 @@ export type VerificationStatus =
   | "Perlu Revisi"
   | "Ditolak";
 
+export type BookStatus = "tersedia" | "dipinjam" | "arsip";
+
 export type VisitPurpose =
   | "Mencari buku"
   | "Mencari referensi skripsi"
@@ -62,6 +64,7 @@ export type Book = CollectionBase & {
   available: number;
   isbn: string;
   coverUrl?: string;
+  status: BookStatus;
 };
 
 export type Thesis = CollectionBase & {
