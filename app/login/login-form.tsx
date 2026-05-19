@@ -14,12 +14,6 @@ const authErrorMessages: Record<string, string> = {
   configuration: "Konfigurasi Supabase belum lengkap.",
 };
 
-function getHomeRouteForRole(role: string | null | undefined) {
-  if (role === "admin") return "/admin";
-  if (role === "petugas") return "/petugas";
-  return null;
-}
-
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -38,38 +32,48 @@ export function LoginForm() {
 
     try {
       const supabase = createSupabaseBrowserClient();
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const result = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error || !data.user) {
-        setFormError(error?.message ?? "Login gagal. Periksa email dan password.");
+      if (result.error || !result.data.user) {
+        setFormError(result.error?.message ?? "Login gagal. Periksa email dan password.");
         return;
       }
 
-      const userId = data.user.id;
-      console.log("Supabase login user.id:", userId);
+      const user = result.data.user;
+      console.log("LOGIN USER ID:", user.id);
 
-      const { data: profile, error: profileError } = await supabase
+      const { data: profile, error } = await supabase
         .from("profiles")
         .select("role")
-        .eq("id", userId)
+        .eq("id", user.id)
         .single();
 
-      console.log("Supabase profile query result:", profile);
-      console.log("Supabase profile query error:", profileError);
+      console.log("PROFILE:", profile);
+      console.log("PROFILE ERROR:", error);
 
-      const homeRoute = getHomeRouteForRole(profile?.role);
-
-      if (profileError || !homeRoute) {
+      if (error || !profile?.role) {
         await supabase.auth.signOut();
         setFormError("Akun berhasil dikenali, tetapi belum memiliki role admin atau petugas.");
         return;
       }
 
-      router.replace(homeRoute);
-      router.refresh();
+      if (profile.role === "admin") {
+        router.replace("/admin");
+        router.refresh();
+        return;
+      }
+
+      if (profile.role === "petugas") {
+        router.replace("/petugas");
+        router.refresh();
+        return;
+      }
+
+      await supabase.auth.signOut();
+      setFormError("Akun berhasil dikenali, tetapi belum memiliki role admin atau petugas.");
     } catch (error) {
       setFormError(
         error instanceof Error ? error.message : "Login gagal. Silakan coba lagi.",
