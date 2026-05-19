@@ -57,6 +57,7 @@ export type Book = CollectionBase & {
   author: string;
   publisher: string;
   category: string;
+  rackLocation: string;
   stock: number;
   available: number;
   isbn: string;
@@ -64,11 +65,14 @@ export type Book = CollectionBase & {
 
 export type Thesis = CollectionBase & {
   type: "thesis";
-  authorName: string;
+  studentName: string;
+  topic: string;
   supervisor1: string;
   supervisor2: string;
   abstract: string;
-  graduationYear: number;
+  coverUrl?: string;
+  physicalLocation: string;
+  accessNote: string;
 };
 
 export type Attendance = {

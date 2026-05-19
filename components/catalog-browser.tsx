@@ -91,12 +91,12 @@ export function CatalogBrowser({
 
   const filteredBooks = useMemo(() => {
     const result = books.filter((item) => {
-      const matchesQuery = [item.title, item.author, item.category, item.location, item.year, ...item.keywords]
+      const matchesQuery = [item.title, item.author, item.category, item.rackLocation, item.year, ...item.keywords]
         .join(" ")
         .toLowerCase()
         .includes(normalizedQuery);
       const matchesCategory = bookCategory === "all" || item.category === bookCategory;
-      const matchesLocation = bookLocation === "all" || item.location === bookLocation;
+      const matchesLocation = bookLocation === "all" || item.rackLocation === bookLocation;
       const availability = getAvailabilityValue(item);
       const matchesAvailability =
         bookAvailability === "all" || availability === bookAvailability;
@@ -107,7 +107,7 @@ export function CatalogBrowser({
 
   const filteredTheses = useMemo(() => {
     const result = theses.filter((item) => {
-      const matchesQuery = [item.title, item.authorName, item.supervisor1, item.supervisor2, item.year, item.verificationStatus, ...item.keywords]
+      const matchesQuery = [item.title, item.studentName, item.topic, item.supervisor1, item.supervisor2, item.year, item.verificationStatus, item.physicalLocation]
         .join(" ")
         .toLowerCase()
         .includes(normalizedQuery);
@@ -125,7 +125,7 @@ export function CatalogBrowser({
   }, [theses, normalizedQuery, thesisYear, thesisTopic, thesisAdvisor, thesisStatus, sort]);
 
   const bookCategories = useMemo(() => unique(books.map((item) => item.category)), [books]);
-  const bookLocations = useMemo(() => unique(books.map((item) => item.location)), [books]);
+  const bookLocations = useMemo(() => unique(books.map((item) => item.rackLocation)), [books]);
   const thesisYears = useMemo(() => unique(theses.map((item) => String(item.year))), [theses]);
   const thesisTopics = useMemo(() => unique(theses.flatMap((item) => item.keywords)), [theses]);
   const thesisAdvisors = useMemo(

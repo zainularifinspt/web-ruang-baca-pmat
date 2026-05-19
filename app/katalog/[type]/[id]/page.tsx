@@ -41,10 +41,10 @@ export default async function CollectionDetailPage({
           </CardHeader>
           <CardContent className="grid gap-5 text-sm">
             <div className="grid gap-3 sm:grid-cols-2">
-              <Meta label={isBook ? "Penulis" : "Mahasiswa"} value={isBook ? item.author : item.authorName} />
+              <Meta label={isBook ? "Penulis" : "Mahasiswa"} value={isBook ? item.author : item.studentName} />
               <Meta label="Tahun" value={String(item.year)} />
               <Meta label="Kode" value={item.code} />
-              <Meta label="Lokasi" value={item.location} />
+              <Meta label="Lokasi" value={isBook ? item.rackLocation : item.physicalLocation} />
               <Meta label="Sumber input" value={item.inputSource} />
               <Meta label="Diinput oleh" value={item.inputBy} />
               <Meta label="Tanggal input" value={formatDate(item.createdAt)} />
@@ -61,7 +61,8 @@ export default async function CollectionDetailPage({
               <div className="space-y-3 rounded-2xl border bg-muted/35 p-4">
                 <Meta label="Pembimbing 1" value={item.supervisor1} />
                 <Meta label="Pembimbing 2" value={item.supervisor2} />
-                <Meta label="Tahun lulus" value={String(item.graduationYear)} />
+                <Meta label="Topik" value={item.topic} />
+                <Meta label="Catatan akses" value={item.accessNote} />
                 <p className="leading-6 text-muted-foreground">{item.abstract}</p>
               </div>
             )}

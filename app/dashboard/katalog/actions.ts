@@ -114,18 +114,18 @@ function bookPayloadVariants(values: BookFormValues): MutationPayload[] {
       title: values.title,
       author: values.author,
       category: values.category,
-      location: values.location,
+      rack_location: values.rackLocation,
       stock: values.stock,
       available: values.stock,
       year: currentYear,
       keywords: [values.category],
-      verification_status: values.status,
+      status: values.status,
     },
     {
       title: values.title,
       author: values.author,
       category: values.category,
-      location: values.location,
+      rack_location: values.rackLocation,
       stock: values.stock,
       status: values.status,
     },
@@ -133,15 +133,15 @@ function bookPayloadVariants(values: BookFormValues): MutationPayload[] {
       title: values.title,
       author: values.author,
       category: values.category,
-      location: values.location,
+      location: values.rackLocation,
       stock: values.stock,
-      verification_status: values.status,
+      status: values.status,
     },
     {
       judul: values.title,
       penulis: values.author,
       kategori: values.category,
-      lokasi: values.location,
+      lokasi: values.rackLocation,
       jumlah_stok: values.stock,
       status: values.status,
     },
@@ -152,43 +152,54 @@ function thesisPayloadVariants(values: ThesisFormValues): MutationPayload[] {
   return [
     {
       title: values.title,
-      author_name: values.authorName,
-      year: values.year,
-      graduation_year: values.year,
-      keywords: [values.topic],
-      abstract: values.abstract,
-      supervisor1: values.supervisor1,
-      supervisor2: values.supervisor2,
-      verification_status: values.verificationStatus,
-    },
-    {
-      title: values.title,
-      author_name: values.authorName,
+      student_name: values.studentName,
       year: values.year,
       topic: values.topic,
       abstract: values.abstract,
       supervisor_1: values.supervisor1,
       supervisor_2: values.supervisor2,
+      cover_url: optionalPayloadValue(values.coverUrl),
+      physical_location: values.physicalLocation,
+      access_note: values.accessNote,
       verification_status: values.verificationStatus,
     },
     {
       title: values.title,
-      authorName: values.authorName,
+      student_name: values.studentName,
       year: values.year,
-      keywords: [values.topic],
+      topic: values.topic,
+      abstract: values.abstract,
+      supervisor_1: values.supervisor1,
+      supervisor_2: values.supervisor2,
+      cover_url: optionalPayloadValue(values.coverUrl),
+      physical_location: values.physicalLocation,
+      access_note: values.accessNote,
+      verification_status: values.verificationStatus,
+    },
+    {
+      title: values.title,
+      studentName: values.studentName,
+      year: values.year,
+      topic: values.topic,
       abstract: values.abstract,
       supervisor1: values.supervisor1,
       supervisor2: values.supervisor2,
+      coverUrl: optionalPayloadValue(values.coverUrl),
+      physicalLocation: values.physicalLocation,
+      accessNote: values.accessNote,
       verificationStatus: values.verificationStatus,
     },
     {
       judul: values.title,
-      nama_mahasiswa: values.authorName,
+      nama_mahasiswa: values.studentName,
       tahun: values.year,
       topik: values.topic,
       abstrak: values.abstract,
       pembimbing_1: values.supervisor1,
       pembimbing_2: values.supervisor2,
+      cover_url: optionalPayloadValue(values.coverUrl),
+      physical_location: values.physicalLocation,
+      access_note: values.accessNote,
       status_verifikasi: values.verificationStatus,
     },
   ];
@@ -198,7 +209,7 @@ function validateBook(values: BookFormValues) {
   if (!values.title.trim()) return "Judul buku wajib diisi.";
   if (!values.author.trim()) return "Penulis buku wajib diisi.";
   if (!values.category.trim()) return "Kategori buku wajib diisi.";
-  if (!values.location.trim()) return "Lokasi rak wajib diisi.";
+  if (!values.rackLocation.trim()) return "Lokasi rak wajib diisi.";
   if (!Number.isFinite(values.stock) || values.stock < 0) {
     return "Stok harus berupa angka 0 atau lebih.";
   }
@@ -207,7 +218,7 @@ function validateBook(values: BookFormValues) {
 
 function validateThesis(values: ThesisFormValues) {
   if (!values.title.trim()) return "Judul skripsi wajib diisi.";
-  if (!values.authorName.trim()) return "Nama mahasiswa wajib diisi.";
+  if (!values.studentName.trim()) return "Nama mahasiswa wajib diisi.";
   if (!Number.isFinite(values.year) || values.year < 1900) {
     return "Tahun skripsi tidak valid.";
   }
@@ -215,6 +226,8 @@ function validateThesis(values: ThesisFormValues) {
   if (!values.abstract.trim()) return "Abstrak wajib diisi.";
   if (!values.supervisor1.trim()) return "Dosen pembimbing 1 wajib diisi.";
   if (!values.supervisor2.trim()) return "Dosen pembimbing 2 wajib diisi.";
+  if (!values.physicalLocation.trim()) return "Lokasi fisik wajib diisi.";
+  if (!values.accessNote.trim()) return "Catatan akses wajib diisi.";
   return null;
 }
 
@@ -229,4 +242,8 @@ function success(message: string): CatalogActionResult {
 
 function failure(message: string): CatalogActionResult {
   return { ok: false, message };
+}
+
+function optionalPayloadValue(value: string) {
+  return value.trim() || null;
 }

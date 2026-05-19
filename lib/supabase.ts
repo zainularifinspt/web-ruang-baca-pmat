@@ -91,6 +91,11 @@ async function fetchTableRows(table: "books" | "theses") {
 
 function mapBookRow(row: UnknownRow): Book {
   const stock = numberValue(row, ["stock", "total_stock", "jumlah_stok"]);
+  const rackLocation = textValue(
+    row,
+    ["rack_location", "rackLocation", "location", "lokasi", "rak"],
+    "-",
+  );
   const available = numberValue(
     row,
     ["available", "available_stock", "available_count", "stock_available", "tersedia"],
@@ -103,6 +108,8 @@ function mapBookRow(row: UnknownRow): Book {
     author: textValue(row, ["author", "penulis"]),
     publisher: textValue(row, ["publisher", "penerbit"]),
     category: textValue(row, ["category", "kategori"], "Buku"),
+    rackLocation,
+    location: rackLocation,
     stock,
     available,
     isbn: textValue(row, ["isbn"]),
@@ -110,21 +117,30 @@ function mapBookRow(row: UnknownRow): Book {
 }
 
 function mapThesisRow(row: UnknownRow): Thesis {
-  const graduationYear = numberValue(row, [
-    "graduation_year",
-    "graduationYear",
-    "tahun_lulus",
-    "year",
-  ]);
+  const topic = textValue(row, ["topic", "topik"], keywordsValue(row)[0] ?? "Skripsi");
+  const physicalLocation = textValue(
+    row,
+    ["physical_location", "physicalLocation", "location", "lokasi"],
+    "-",
+  );
 
   return {
     ...mapBaseRow(row),
     type: "thesis",
-    authorName: textValue(row, ["author_name", "authorName", "student_name", "nama_mahasiswa"]),
+    studentName: textValue(row, ["student_name", "studentName", "author_name", "nama_mahasiswa"]),
+    topic,
     supervisor1: textValue(row, ["supervisor1", "supervisor_1", "pembimbing_1"]),
     supervisor2: textValue(row, ["supervisor2", "supervisor_2", "pembimbing_2"]),
     abstract: textValue(row, ["abstract", "abstrak"]),
-    graduationYear,
+    coverUrl: optionalTextValue(row, ["cover_url", "coverUrl"]),
+    physicalLocation,
+    location: physicalLocation,
+    accessNote: textValue(
+      row,
+      ["access_note", "accessNote"],
+      "Dokumen lengkap tersedia dalam bentuk fisik di Ruang Baca Program Studi Pendidikan Matematika.",
+    ),
+    keywords: [topic],
   };
 }
 
@@ -136,7 +152,7 @@ function mapBaseRow(row: UnknownRow): CollectionBase {
     title: textValue(row, ["title", "judul"], "Tanpa judul"),
     year: numberValue(row, ["year", "tahun", "graduation_year", "graduationYear"], currentYear),
     code: textValue(row, ["code", "kode", "collection_code", "kode_koleksi"], "-"),
-    location: textValue(row, ["location", "lokasi", "rak"], "-"),
+    location: textValue(row, ["location", "lokasi", "rak", "rack_location", "physical_location"], "-"),
     inputSource: inputSourceValue(row),
     inputBy: textValue(row, ["input_by", "inputBy", "diinput_oleh"], "Supabase"),
     verificationStatus: verificationStatusValue(row),

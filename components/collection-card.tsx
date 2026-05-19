@@ -33,7 +33,7 @@ export function CollectionCard({ item }: { item: CollectionItem }) {
                 <StatusBadge status={item.verificationStatus} />
               )}
               <Badge variant="secondary" className="rounded-full">
-                {isBook ? item.category : item.keywords[0] ?? "Skripsi"}
+                {isBook ? item.category : item.topic}
               </Badge>
             </div>
 
@@ -72,14 +72,20 @@ function BookCover({ item }: { item: Book }) {
 function ThesisCover({ item }: { item: Thesis }) {
   return (
     <div className="relative h-32 bg-slate-900 p-5 text-white">
+      {item.coverUrl ? (
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-35"
+          style={{ backgroundImage: `url(${item.coverUrl})` }}
+        />
+      ) : null}
       <div className="absolute right-5 top-5 rounded-full bg-white/10 px-3 py-1 text-xs">
-        {item.graduationYear}
+        {item.year}
       </div>
       <div className="relative flex h-full flex-col justify-between">
         <GraduationCap className="size-7 text-emerald-200" />
         <div>
           <p className="text-xs uppercase tracking-wide text-slate-300">{item.code}</p>
-          <p className="mt-1 line-clamp-1 text-sm font-semibold">{item.keywords.join(" • ")}</p>
+          <p className="mt-1 line-clamp-1 text-sm font-semibold">{item.topic}</p>
         </div>
       </div>
     </div>
@@ -99,7 +105,7 @@ function BookMeta({ item }: { item: Book }) {
       </p>
       <p className="flex items-center gap-2">
         <MapPin className="size-4 text-slate-400" />
-        {item.location}
+        {item.rackLocation}
       </p>
     </div>
   );
@@ -111,7 +117,7 @@ function ThesisMeta({ item }: { item: Thesis }) {
       <div className="grid gap-2">
         <p className="flex items-center gap-2">
           <UserRound className="size-4 text-slate-400" />
-          <span className="line-clamp-1">{item.authorName}</span>
+          <span className="line-clamp-1">{item.studentName}</span>
         </p>
         <p className="flex items-center gap-2">
           <Calendar className="size-4 text-slate-400" />

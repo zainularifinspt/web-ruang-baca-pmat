@@ -48,19 +48,25 @@ const emptyBookValues: BookFormValues = {
   title: "",
   author: "",
   category: "",
-  location: "",
+  rackLocation: "",
   stock: 1,
   status: "Menunggu Verifikasi",
 };
 
+const defaultAccessNote =
+  "Dokumen lengkap tersedia dalam bentuk fisik di Ruang Baca Program Studi Pendidikan Matematika.";
+
 const emptyThesisValues: ThesisFormValues = {
   title: "",
-  authorName: "",
+  studentName: "",
   year: new Date().getFullYear(),
   topic: "",
   abstract: "",
   supervisor1: "",
   supervisor2: "",
+  coverUrl: "",
+  physicalLocation: "",
+  accessNote: defaultAccessNote,
   verificationStatus: "Menunggu Verifikasi",
 };
 
@@ -176,7 +182,7 @@ function EditBookDialog({ item }: { item: Book }) {
     title: item.title,
     author: item.author,
     category: item.category,
-    location: item.location,
+    rackLocation: item.rackLocation,
     stock: item.stock,
     status: item.verificationStatus,
   });
@@ -202,12 +208,15 @@ function EditBookDialog({ item }: { item: Book }) {
 function EditThesisDialog({ item }: { item: Thesis }) {
   const [values, setValues] = useState<ThesisFormValues>({
     title: item.title,
-    authorName: item.authorName,
+    studentName: item.studentName,
     year: item.year,
-    topic: item.keywords[0] ?? "",
+    topic: item.topic,
     abstract: item.abstract,
     supervisor1: item.supervisor1,
     supervisor2: item.supervisor2,
+    coverUrl: item.coverUrl ?? "",
+    physicalLocation: item.physicalLocation,
+    accessNote: item.accessNote,
     verificationStatus: item.verificationStatus,
   });
 
@@ -290,8 +299,8 @@ function BookDialog({
             </Field>
             <Field label="Lokasi rak">
               <Input
-                value={values.location}
-                onChange={(event) => onValuesChange({ ...values, location: event.target.value })}
+                value={values.rackLocation}
+                onChange={(event) => onValuesChange({ ...values, rackLocation: event.target.value })}
                 placeholder="Rak A1"
                 disabled={form.isPending}
                 required
@@ -367,9 +376,9 @@ function ThesisDialog({
             </Field>
             <Field label="Nama mahasiswa">
               <Input
-                value={values.authorName}
+                value={values.studentName}
                 onChange={(event) =>
-                  onValuesChange({ ...values, authorName: event.target.value })
+                  onValuesChange({ ...values, studentName: event.target.value })
                 }
                 placeholder="Nama mahasiswa"
                 disabled={form.isPending}
@@ -424,6 +433,35 @@ function ThesisDialog({
                   onValuesChange({ ...values, supervisor2: event.target.value })
                 }
                 placeholder="Nama pembimbing 2"
+                disabled={form.isPending}
+                required
+              />
+            </Field>
+            <Field label="Cover URL" className="sm:col-span-2">
+              <Input
+                type="url"
+                value={values.coverUrl}
+                onChange={(event) => onValuesChange({ ...values, coverUrl: event.target.value })}
+                placeholder="https://..."
+                disabled={form.isPending}
+              />
+            </Field>
+            <Field label="Lokasi fisik">
+              <Input
+                value={values.physicalLocation}
+                onChange={(event) =>
+                  onValuesChange({ ...values, physicalLocation: event.target.value })
+                }
+                placeholder="Lemari Skripsi 1"
+                disabled={form.isPending}
+                required
+              />
+            </Field>
+            <Field label="Catatan akses">
+              <Textarea
+                value={values.accessNote}
+                onChange={(event) => onValuesChange({ ...values, accessNote: event.target.value })}
+                placeholder={defaultAccessNote}
                 disabled={form.isPending}
                 required
               />

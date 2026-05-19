@@ -1,4 +1,4 @@
-import { BookOpen, Calendar, MapPin, Sparkles, UserRound } from "lucide-react";
+import { BookOpen, Calendar, ExternalLink, MapPin, Sparkles, UserRound } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -44,10 +44,10 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
       </div>
       <div className="space-y-5 p-5 sm:p-6">
         <div className="grid gap-3 sm:grid-cols-2">
-          <Info icon={<UserRound />} label={isBook ? "Penulis" : "Mahasiswa"} value={isBook ? item.author : item.authorName} />
+          <Info icon={<UserRound />} label={isBook ? "Penulis" : "Mahasiswa"} value={isBook ? item.author : item.studentName} />
           <Info icon={<Calendar />} label="Tahun" value={String(item.year)} />
           <Info icon={<BookOpen />} label="Kode Koleksi" value={item.code} />
-          <Info icon={<MapPin />} label="Lokasi Fisik" value={item.location} />
+          <Info icon={<MapPin />} label="Lokasi Fisik" value={isBook ? item.rackLocation : item.physicalLocation} />
         </div>
         <div className="rounded-2xl border bg-slate-50 p-4 text-sm leading-6">
           {isBook ? (
@@ -59,7 +59,7 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
             </div>
           ) : (
             <div className="space-y-2">
-              <Meta label="Tahun lulus" value={String(item.graduationYear)} />
+              <Meta label="Topik" value={item.topic} />
               <p className="text-muted-foreground">{item.abstract}</p>
             </div>
           )}
@@ -71,11 +71,27 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
           <Meta label="Kata kunci" value={item.keywords.join(", ")} />
         </div>
         {!isBook ? (
-          <div className="rounded-2xl border bg-white p-4">
-            <p className="mb-3 text-sm font-semibold text-slate-950">Dosen Pembimbing</p>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Info icon={<UserRound />} label="Pembimbing 1" value={item.supervisor1} />
-              <Info icon={<UserRound />} label="Pembimbing 2" value={item.supervisor2} />
+          <div className="space-y-4">
+            <div className="rounded-2xl border bg-white p-4">
+              <p className="mb-3 text-sm font-semibold text-slate-950">Dosen Pembimbing</p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Info icon={<UserRound />} label="Pembimbing 1" value={item.supervisor1} />
+                <Info icon={<UserRound />} label="Pembimbing 2" value={item.supervisor2} />
+              </div>
+            </div>
+            <div className="rounded-2xl border bg-white p-4 text-sm leading-6">
+              <Meta label="Catatan akses" value={item.accessNote} />
+              {item.coverUrl ? (
+                <a
+                  href={item.coverUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-2 inline-flex items-center gap-2 font-medium text-primary hover:underline"
+                >
+                  <ExternalLink className="size-4" />
+                  Lihat cover
+                </a>
+              ) : null}
             </div>
           </div>
         ) : null}

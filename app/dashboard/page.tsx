@@ -486,7 +486,7 @@ function VerificationQueuePanel({
 
 function VerificationItem({ item }: { item: CollectionItem }) {
   const Icon = item.type === "book" ? BookOpen : GraduationCap;
-  const author = item.type === "book" ? item.author : item.authorName;
+  const author = item.type === "book" ? item.author : item.studentName;
 
   return (
     <div className="group flex flex-col gap-3 rounded-2xl border border-slate-200 bg-slate-50/70 p-4 transition hover:-translate-y-0.5 hover:border-emerald-200 hover:bg-white hover:shadow-sm sm:flex-row sm:items-center sm:justify-between">
@@ -558,7 +558,7 @@ function LatestThesesPanel() {
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="line-clamp-2 font-semibold text-slate-950">{item.title}</p>
-                <p className="mt-1 text-sm text-slate-500">{item.authorName} · {item.graduationYear}</p>
+                <p className="mt-1 text-sm text-slate-500">{item.studentName} · {item.year}</p>
               </div>
               <ArrowUpRight className="size-4 shrink-0 text-slate-400 transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-emerald-700" />
             </div>
