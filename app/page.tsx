@@ -1,226 +1,183 @@
 import Link from "next/link";
-import type { ComponentType, ReactNode } from "react";
+import type { ComponentType } from "react";
 import {
   ArrowRight,
-  BarChart3,
-  BookMarked,
+  BookOpen,
+  Building2,
   CalendarCheck,
   Clock3,
   GraduationCap,
   LibraryBig,
   Mail,
   MapPin,
-  MessageCircle,
-  QrCode,
   Search,
-  Sigma,
+  ShieldCheck,
   Sparkles,
+  Users,
 } from "lucide-react";
+import { HomeGlobalSearch } from "@/components/home-global-search";
 import { PublicNav } from "@/components/public-nav";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { books, theses, visitorMetrics } from "@/lib/mock-data";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { createSupabaseAdminClient } from "@/lib/supabase-admin";
+import { hasValidSupabaseConfig } from "@/lib/supabase-config";
+import { fetchCatalogData } from "@/lib/supabase";
+import type { Book, Thesis } from "@/lib/types";
+import { formatDate } from "@/lib/utils";
 
-export default function HomePage() {
-  const totalVisits = visitorMetrics.reduce((sum, item) => sum + item.visits, 0);
-  const availableBooks = books.reduce((sum, item) => sum + item.available, 0);
-  const visitIncrease = 18;
+export const dynamic = "force-dynamic";
+
+const heroImage =
+  "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=2200&q=85";
+
+export default async function HomePage() {
+  const { books, theses } = await fetchCatalogData({ visibility: "public" });
+  const staffCount = await fetchStaffCount();
+  const latestBooks = books.slice(0, 3);
+  const latestTheses = theses.slice(0, 3);
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 text-slate-950">
       <PublicNav />
       <main>
-        <section className="relative isolate overflow-hidden bg-gradient-to-b from-slate-50 via-emerald-50/60 to-white">
-          <div className="mx-auto grid max-w-6xl gap-12 px-5 py-12 sm:px-6 sm:py-14 lg:grid-cols-[0.98fr_0.82fr] lg:items-stretch lg:py-16">
-            <div className="flex max-w-2xl flex-col justify-center space-y-8">
-              <Badge className="rounded-full border-emerald-100 bg-white/85 px-3 py-1 text-emerald-700 shadow-sm" variant="outline">
-                <Sparkles className="mr-1 size-3" />
-                Ruang Baca Pendidikan Matematika
-              </Badge>
-              <div className="space-y-5">
-                <h1 className="max-w-2xl text-4xl font-semibold leading-[1.08] tracking-normal text-slate-950 sm:text-5xl lg:text-6xl">
-                  Referensi akademik yang <span className="gradient-text">cepat, rapi, dan mudah ditemukan.</span>
-                </h1>
-                <p className="max-w-xl text-base leading-8 text-slate-600 sm:text-[17px]">
-                  Portal modern untuk mahasiswa Pendidikan Matematika: cari buku, jelajahi skripsi kakak tingkat, dan lakukan presensi kunjungan tanpa formulir panjang.
-                </p>
-              </div>
-              <div className="grid gap-3 pt-1 sm:flex sm:flex-wrap">
-                <Button asChild size="lg" className="h-11 rounded-xl px-5 shadow-md shadow-emerald-900/10">
-                  <Link href="/katalog?tab=books">
-                    <BookMarked />
-                    Cari Buku
-                    <ArrowRight className="ml-1" />
-                  </Link>
-                </Button>
-                <Button asChild size="lg" variant="secondary" className="h-11 rounded-xl px-5">
-                  <Link href="/katalog?tab=theses">
-                    <GraduationCap />
-                    Cari Skripsi
-                  </Link>
-                </Button>
-                <Button asChild size="lg" variant="ghost" className="h-11 rounded-xl px-5 text-slate-700">
-                  <Link href="/presensi">
-                    <QrCode />
-                    Presensi
-                  </Link>
-                </Button>
-              </div>
+        <section className="relative isolate overflow-hidden">
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: `url(${heroImage})` }}
+            aria-hidden="true"
+          />
+          <div className="absolute inset-0 bg-slate-950/70" aria-hidden="true" />
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(15,118,110,0.45),rgba(15,23,42,0.82))]" aria-hidden="true" />
+
+          <div className="relative mx-auto flex min-h-[calc(100vh-4.75rem)] max-w-6xl flex-col items-center justify-center px-4 py-16 text-center text-white sm:px-6 lg:py-20">
+            <Badge className="rounded-full border-white/20 bg-white/10 px-4 py-1.5 text-white backdrop-blur hover:bg-white/10">
+              <Sparkles className="mr-1 size-3.5" />
+              Digital Library Prodi
+            </Badge>
+            <h1 className="mt-6 max-w-5xl text-4xl font-semibold leading-[1.05] tracking-normal sm:text-6xl lg:text-7xl">
+              Ruang Baca Pendidikan Matematika
+            </h1>
+            <p className="mt-6 max-w-3xl text-base leading-8 text-slate-100 sm:text-lg">
+              Portal referensi akademik modern untuk menemukan buku, skripsi, lokasi koleksi,
+              dan informasi ruang baca dengan pencarian cepat berbasis data Supabase.
+            </p>
+
+            <div className="mt-9 w-full">
+              <HomeGlobalSearch books={books} theses={theses} />
             </div>
 
-            <div className="relative h-full">
-              <HeroPanel
-                availableBooks={availableBooks}
-                thesisCount={theses.length}
-                totalVisits={totalVisits}
-              />
+            <div className="mt-10 grid w-full gap-3 sm:grid-cols-3">
+              <HeroMetric icon={BookOpen} label="Total buku" value={books.length} />
+              <HeroMetric icon={GraduationCap} label="Total skripsi" value={theses.length} />
+              <HeroMetric icon={Users} label="Total petugas" value={staffCount} />
             </div>
           </div>
         </section>
 
-        <LandingSection className="mx-auto max-w-6xl px-5 py-10 sm:px-6 sm:py-12">
-          <div className="mx-auto mb-8 max-w-3xl text-center">
-            <p className="text-sm font-semibold text-primary">Fitur Utama</p>
-            <h2 className="mt-2 text-2xl font-semibold leading-tight text-slate-950 sm:text-3xl">
-              Semua kebutuhan ruang baca dalam satu portal
-            </h2>
-            <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
-              Cari buku, telusuri skripsi, lakukan presensi, dan pantau kunjungan dengan lebih mudah.
-            </p>
+        <section className="border-b border-slate-200 bg-white">
+          <div className="mx-auto grid max-w-6xl gap-4 px-4 py-7 sm:grid-cols-3 sm:px-6">
+            <InfoStrip icon={Search} title="Pencarian realtime" description="Debounce cepat untuk judul, penulis, kategori, topik, dan pembimbing." />
+            <InfoStrip icon={ShieldCheck} title="Koleksi terverifikasi" description="Data publik hanya menampilkan buku dan skripsi yang sudah disetujui admin." />
+            <InfoStrip icon={CalendarCheck} title="Siap untuk layanan" description="Terhubung dengan presensi dan dashboard operasional ruang baca." />
           </div>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            <FeatureCard icon={LibraryBig} title="Katalog Buku" description="Temukan buku berdasarkan judul, penulis, kategori, stok, dan lokasi rak." />
-            <FeatureCard icon={GraduationCap} title="Repositori Skripsi" description="Telusuri skripsi kakak tingkat berdasarkan topik, tahun, dan pembimbing." />
-            <FeatureCard icon={QrCode} title="Presensi QR" description="Catat kunjungan ruang baca lebih cepat melalui QR atau input NIM." />
-            <FeatureCard icon={BarChart3} title="Statistik Kunjungan" description="Pantau tren pengunjung untuk kebutuhan laporan dan evaluasi ruang baca." />
-          </div>
-        </LandingSection>
+        </section>
 
-        <LandingSection className="border-y border-emerald-100/70 bg-white/70">
-          <div className="mx-auto max-w-6xl px-5 py-14 sm:px-6 sm:py-16">
-            <div className="grid gap-8 lg:grid-cols-[0.75fr_1.25fr] lg:items-start">
-              <div>
-                <p className="text-sm font-semibold text-primary">Cara Menggunakan</p>
-                <h2 className="mt-2 max-w-md text-2xl font-semibold leading-tight text-slate-950 sm:text-3xl">
-                  Alur singkat dari pencarian sampai koleksi ditemukan.
-                </h2>
-              </div>
-              <div className="relative grid gap-4 sm:grid-cols-3">
-                <div className="absolute left-[16%] right-[16%] top-9 hidden h-px bg-emerald-100 sm:block" />
-                <Step number="01" icon={Search} title="Pilih kebutuhan" description="Masuk ke katalog buku, skripsi, atau halaman presensi." />
-                <Step number="02" icon={Sigma} title="Cari data" description="Gunakan kata kunci, tahun, kategori, atau status koleksi." />
-                <Step number="03" icon={MapPin} title="Datang ke rak" description="Catat kode koleksi dan lokasi fisik untuk mengambil referensi." />
-              </div>
+        <section className="mx-auto grid max-w-6xl gap-6 px-4 py-12 sm:px-6 lg:grid-cols-[1fr_0.9fr] lg:py-16">
+          <div>
+            <SectionHeading
+              eyebrow="Koleksi terbaru"
+              title="Buku terbaru di ruang baca"
+              description="Referensi yang sudah diverifikasi dan siap ditelusuri oleh mahasiswa."
+              actionHref="/katalog?tab=books"
+            />
+            <div className="mt-6 grid gap-4">
+              {latestBooks.length ? (
+                latestBooks.map((book) => <LatestBook key={book.id} book={book} />)
+              ) : (
+                <EmptyPreview label="Belum ada buku publik yang terverifikasi." />
+              )}
             </div>
           </div>
-        </LandingSection>
 
-        <LandingSection className="mx-auto max-w-6xl px-5 py-14 sm:px-6 sm:py-16">
-          <div className="mb-8">
-            <p className="text-sm font-semibold text-primary">Statistik Ruang Baca</p>
-            <h2 className="mt-2 max-w-2xl text-2xl font-semibold leading-tight text-slate-950 sm:text-3xl">
-              Data ringkas untuk presentasi dan evaluasi layanan.
-            </h2>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <PremiumMetric label="Total buku" value={books.length} icon={BookMarked} />
-            <PremiumMetric label="Total skripsi" value={theses.length} icon={GraduationCap} tone="blue" />
-            <PremiumMetric label="Total pengunjung" value={totalVisits} icon={CalendarCheck} tone="amber" />
-            <PremiumMetric label="Peningkatan kunjungan" value={`${visitIncrease}%`} icon={BarChart3} tone="emerald" />
-          </div>
-        </LandingSection>
-
-        <Footer />
-      </main>
-    </div>
-  );
-}
-
-function LandingSection({
-  children,
-  className,
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
-  return <section className={className}>{children}</section>;
-}
-
-function HeroPanel({
-  availableBooks,
-  thesisCount,
-  totalVisits,
-}: {
-  availableBooks: number;
-  thesisCount: number;
-  totalVisits: number;
-}) {
-  return (
-    <div className="relative flex h-full flex-col rounded-3xl bg-white p-6 shadow-md shadow-slate-900/5 ring-1 ring-slate-200/70">
-      <div className="mb-7 flex items-center gap-4">
-        <div className="flex size-14 items-center justify-center rounded-2xl bg-emerald-700 text-white shadow-sm">
-          <LibraryBig className="size-7" />
-        </div>
-        <div>
-          <p className="text-sm font-semibold text-primary">Aktivitas Ruang Baca</p>
-          <h2 className="mt-1 text-xl font-semibold text-slate-950">Ringkasan Hari Ini</h2>
-        </div>
-      </div>
-      <div className="mb-5 rounded-2xl bg-slate-50 p-4">
-        <div className="flex items-center justify-between gap-5">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-              Koleksi terkurasi
-            </p>
-            <p className="mt-2 text-xl font-semibold text-slate-950">
-              Buku, skripsi, presensi
-            </p>
-            <p className="mt-2 text-sm leading-6 text-slate-600">
-              Satu pintu untuk menemukan referensi dan memantau aktivitas kunjungan.
-            </p>
+            <SectionHeading
+              eyebrow="Repositori skripsi"
+              title="Skripsi terbaru"
+              description="Karya akhir mahasiswa yang sudah lolos verifikasi admin."
+              actionHref="/katalog?tab=theses"
+            />
+            <div className="mt-6 grid gap-4">
+              {latestTheses.length ? (
+                latestTheses.map((thesis) => <LatestThesis key={thesis.id} thesis={thesis} />)
+              ) : (
+                <EmptyPreview label="Belum ada skripsi publik yang terverifikasi." />
+              )}
+            </div>
           </div>
-        </div>
-      </div>
-      <div className="grid gap-3">
-        <Metric label="Buku tersedia" value={availableBooks} icon={BookMarked} trend="+8 koleksi" />
-        <Metric label="Skripsi terdata" value={thesisCount} icon={GraduationCap} trend="Topik aktif" />
-        <Metric label="Kunjungan pekan ini" value={totalVisits} icon={CalendarCheck} trend="+18%" />
-      </div>
-      <p className="mt-5 rounded-2xl bg-emerald-50 p-3.5 text-sm leading-6 text-emerald-900">
-        Mode pratinjau: data masih contoh untuk validasi alur.
-      </p>
+        </section>
+
+        <section className="border-y border-emerald-100 bg-emerald-950 text-white">
+          <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:px-6 lg:grid-cols-[1fr_auto] lg:items-center">
+            <div>
+              <p className="text-sm font-semibold text-emerald-200">Akses internal</p>
+              <h2 className="mt-2 text-3xl font-semibold tracking-normal sm:text-4xl">
+                Kelola koleksi, verifikasi data, dan pantau layanan dari dashboard admin.
+              </h2>
+              <p className="mt-4 max-w-2xl text-sm leading-7 text-emerald-50">
+                Dashboard dirancang untuk petugas dan admin prodi dengan statistik, tabel data,
+                modal edit, notifikasi toast, serta alur verifikasi yang tetap aman.
+              </p>
+            </div>
+            <Button asChild size="lg" className="h-12 rounded-2xl bg-white px-6 text-emerald-950 hover:bg-emerald-50">
+              <Link href="/login?redirectTo=/dashboard">
+                Login Admin
+                <ArrowRight />
+              </Link>
+            </Button>
+          </div>
+        </section>
+      </main>
+      <Footer />
     </div>
   );
 }
 
-function Metric({
+async function fetchStaffCount() {
+  if (!hasValidSupabaseConfig()) return 0;
+
+  try {
+    const { count, error } = await createSupabaseAdminClient()
+      .from("profiles")
+      .select("id", { count: "exact", head: true })
+      .in("role", ["admin", "petugas"]);
+
+    if (error) return 0;
+    return count ?? 0;
+  } catch {
+    return 0;
+  }
+}
+
+function HeroMetric({
+  icon: Icon,
   label,
   value,
-  icon: Icon,
-  trend,
 }: {
+  icon: ComponentType<{ className?: string }>;
   label: string;
   value: number;
-  icon: ComponentType<{ className?: string }>;
-  trend: string;
 }) {
   return (
-    <div className="group flex items-center justify-between rounded-2xl bg-white p-3.5 ring-1 ring-slate-200/70 transition hover:-translate-y-0.5 hover:shadow-sm">
-      <div className="flex items-center gap-3">
-        <div className="rounded-full bg-emerald-50 p-2.5 text-primary transition group-hover:scale-105">
-          <Icon className="size-4" />
-        </div>
-        <div>
-          <span className="text-sm font-medium text-slate-600">{label}</span>
-          <p className="mt-1 text-xs font-medium text-emerald-700">{trend}</p>
-        </div>
-      </div>
-      <span className="text-3xl font-semibold text-slate-950">{value}</span>
+    <div className="rounded-[1.5rem] bg-white/12 p-5 text-left shadow-sm ring-1 ring-white/20 backdrop-blur">
+      <Icon className="size-5 text-emerald-200" />
+      <p className="mt-5 text-4xl font-semibold tracking-tight">{value}</p>
+      <p className="mt-1 text-sm font-medium text-slate-200">{label}</p>
     </div>
   );
 }
 
-function FeatureCard({
+function InfoStrip({
   icon: Icon,
   title,
   description,
@@ -230,88 +187,149 @@ function FeatureCard({
   description: string;
 }) {
   return (
-    <div className="group relative overflow-hidden rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200/70 transition hover:-translate-y-0.5 hover:shadow-md">
-      <div className="absolute inset-x-0 top-0 h-0.5 bg-emerald-600/70" />
-      <div className="mb-4 inline-flex rounded-2xl bg-emerald-50 p-2.5 text-emerald-700 ring-1 ring-emerald-100 transition group-hover:scale-105">
-        <Icon className="size-4" />
-      </div>
-      <h3 className="text-[15px] font-semibold text-slate-950">{title}</h3>
-      <p className="mt-2 line-clamp-2 text-[13px] leading-5 text-slate-600">{description}</p>
-    </div>
-  );
-}
-
-function Step({
-  number,
-  icon: Icon,
-  title,
-  description,
-}: {
-  number: string;
-  icon: ComponentType<{ className?: string }>;
-  title: string;
-  description: string;
-}) {
-  return (
-    <div className="relative rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200/70 transition hover:-translate-y-0.5 hover:shadow-md">
-      <div className="relative z-10 mb-5 flex size-14 items-center justify-center rounded-2xl bg-emerald-700 text-white shadow-sm">
-        <Icon className="size-6" />
-      </div>
-      <p className="text-xs font-bold text-primary">{number}</p>
-      <h3 className="mt-2 font-semibold text-slate-950">{title}</h3>
-      <p className="mt-2 text-sm leading-6 text-slate-600">{description}</p>
-    </div>
-  );
-}
-
-function PremiumMetric({
-  label,
-  value,
-  icon: Icon,
-}: {
-  label: string;
-  value: string | number;
-  icon: ComponentType<{ className?: string }>;
-  tone?: "emerald" | "blue" | "amber";
-}) {
-  return (
-    <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200/70 transition hover:-translate-y-0.5 hover:shadow-md">
-      <div className="mb-5 flex size-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100">
+    <div className="flex gap-3 rounded-2xl p-3 transition hover:bg-slate-50">
+      <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100">
         <Icon className="size-5" />
+      </span>
+      <span>
+        <span className="block text-sm font-semibold text-slate-950">{title}</span>
+        <span className="mt-1 block text-sm leading-6 text-slate-600">{description}</span>
+      </span>
+    </div>
+  );
+}
+
+function SectionHeading({
+  eyebrow,
+  title,
+  description,
+  actionHref,
+}: {
+  eyebrow: string;
+  title: string;
+  description: string;
+  actionHref: string;
+}) {
+  return (
+    <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <p className="text-sm font-semibold text-emerald-700">{eyebrow}</p>
+        <h2 className="mt-2 text-2xl font-semibold tracking-normal text-slate-950 sm:text-3xl">
+          {title}
+        </h2>
+        <p className="mt-2 max-w-xl text-sm leading-6 text-slate-600">{description}</p>
       </div>
-      <p className="text-sm font-medium text-slate-500">{label}</p>
-      <p className="mt-2 text-4xl font-semibold tracking-tight text-slate-950">{value}</p>
-      <p className="mt-3 text-xs font-medium text-slate-500">Siap untuk laporan prodi</p>
+      <Button asChild variant="outline" className="w-fit rounded-2xl bg-white">
+        <Link href={actionHref}>
+          Lihat semua
+          <ArrowRight />
+        </Link>
+      </Button>
+    </div>
+  );
+}
+
+function LatestBook({ book }: { book: Book }) {
+  return (
+    <Card className="group overflow-hidden rounded-[1.5rem] border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-lg">
+      <CardContent className="flex gap-4 p-4">
+        <CoverPreview item={book} />
+        <div className="min-w-0 flex-1">
+          <Badge variant="secondary" className="rounded-full">{book.category || "Buku"}</Badge>
+          <h3 className="mt-3 line-clamp-2 font-semibold leading-snug text-slate-950">
+            {book.title}
+          </h3>
+          <p className="mt-2 line-clamp-1 text-sm text-slate-600">{book.author}</p>
+          <p className="mt-2 text-xs font-medium text-slate-500">{book.rackLocation}</p>
+          <Link href={`/books/${book.id}`} className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-emerald-700">
+            Detail buku
+            <ArrowRight className="size-4 transition group-hover:translate-x-0.5" />
+          </Link>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function LatestThesis({ thesis }: { thesis: Thesis }) {
+  return (
+    <Card className="group overflow-hidden rounded-[1.5rem] border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-sky-200 hover:shadow-lg">
+      <CardContent className="flex gap-4 p-4">
+        <CoverPreview item={thesis} />
+        <div className="min-w-0 flex-1">
+          <Badge variant="secondary" className="rounded-full bg-sky-50 text-sky-800">
+            Skripsi {thesis.year}
+          </Badge>
+          <h3 className="mt-3 line-clamp-2 font-semibold leading-snug text-slate-950">
+            {thesis.title}
+          </h3>
+          <p className="mt-2 line-clamp-1 text-sm text-slate-600">{thesis.studentName}</p>
+          <p className="mt-2 text-xs font-medium text-slate-500">{formatDate(thesis.createdAt)}</p>
+          <Link href={`/theses/${thesis.id}`} className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-emerald-700">
+            Detail skripsi
+            <ArrowRight className="size-4 transition group-hover:translate-x-0.5" />
+          </Link>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function CoverPreview({ item }: { item: Book | Thesis }) {
+  return (
+    <div className="relative h-36 w-24 shrink-0 overflow-hidden rounded-2xl bg-emerald-900 text-white shadow-md">
+      {item.coverUrl ? (
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url(${item.coverUrl})` }}
+        />
+      ) : (
+        <div className="absolute inset-0 bg-[linear-gradient(145deg,#0f766e,#0f172a)]" />
+      )}
+      <div className="absolute inset-0 bg-slate-950/20" />
+      <div className="relative flex h-full flex-col justify-between p-3">
+        {item.type === "book" ? <BookOpen className="size-5" /> : <GraduationCap className="size-5" />}
+        <span className="text-xs font-semibold">{item.year}</span>
+      </div>
+    </div>
+  );
+}
+
+function EmptyPreview({ label }: { label: string }) {
+  return (
+    <div className="rounded-[1.5rem] border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-500">
+      {label}
     </div>
   );
 }
 
 function Footer() {
   return (
-    <footer className="border-t border-slate-200 bg-slate-950 text-slate-300">
-      <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-2 lg:grid-cols-4">
+    <footer className="bg-slate-950 text-slate-300">
+      <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-2 sm:px-6 lg:grid-cols-4">
         <div>
           <div className="flex items-center gap-3">
-            <div className="flex size-11 items-center justify-center rounded-2xl bg-emerald-500 text-white">
-              <BookMarked className="size-5" />
-            </div>
+            <span className="flex size-11 items-center justify-center rounded-2xl bg-emerald-600 text-white">
+              <LibraryBig className="size-5" />
+            </span>
             <div>
               <p className="font-bold text-white">Ruang Baca PMat</p>
               <p className="text-xs text-slate-400">Pendidikan Matematika</p>
             </div>
           </div>
           <p className="mt-4 text-sm leading-6 text-slate-400">
-            Mode pratinjau: data contoh untuk presentasi dan validasi alur.
+            Digital library modern untuk katalog, repositori skripsi, presensi, dan manajemen ruang baca.
           </p>
         </div>
-        <div>
-          <h3 className="font-semibold text-white">Navigasi Cepat</h3>
-          <div className="mt-4 grid gap-2 text-sm">
-            <Link href="/katalog?tab=books" className="hover:text-white">Cari Buku</Link>
-            <Link href="/katalog?tab=theses" className="hover:text-white">Cari Skripsi</Link>
-            <Link href="/presensi" className="hover:text-white">Presensi</Link>
-          </div>
-        </div>
+        <FooterColumn
+          title="Navigasi"
+          links={[
+            ["Katalog Buku", "/katalog?tab=books"],
+            ["Cari Skripsi", "/katalog?tab=theses"],
+            ["Presensi", "/presensi"],
+            ["Login Admin", "/login?redirectTo=/dashboard"],
+          ]}
+        />
         <div>
           <h3 className="font-semibold text-white">Informasi</h3>
           <div className="mt-4 grid gap-3 text-sm text-slate-400">
@@ -321,20 +339,31 @@ function Footer() {
           </div>
         </div>
         <div>
-          <h3 className="font-semibold text-white">Terhubung</h3>
-          <div className="mt-4 flex gap-2">
-            <span className="flex size-10 items-center justify-center rounded-full bg-white/10 text-slate-300">
-              <MessageCircle className="size-4" />
-            </span>
-            <span className="flex size-10 items-center justify-center rounded-full bg-white/10 text-slate-300">
-              <Mail className="size-4" />
-            </span>
+          <h3 className="font-semibold text-white">Institusi</h3>
+          <div className="mt-4 rounded-2xl bg-white/5 p-4 text-sm leading-6 text-slate-400 ring-1 ring-white/10">
+            <Building2 className="mb-3 size-5 text-emerald-400" />
+            Program Studi Pendidikan Matematika, portal ruang baca berbasis Supabase.
           </div>
         </div>
       </div>
       <div className="border-t border-white/10 px-4 py-4 text-center text-xs text-slate-500">
-        © 2026 Ruang Baca Pendidikan Matematika. Tampilan pratinjau untuk kebutuhan presentasi.
+        © 2026 Ruang Baca Pendidikan Matematika. Semua koleksi publik melalui proses verifikasi admin.
       </div>
     </footer>
+  );
+}
+
+function FooterColumn({ title, links }: { title: string; links: Array<[string, string]> }) {
+  return (
+    <div>
+      <h3 className="font-semibold text-white">{title}</h3>
+      <div className="mt-4 grid gap-2 text-sm text-slate-400">
+        {links.map(([label, href]) => (
+          <Link key={href} href={href} className="transition hover:text-white">
+            {label}
+          </Link>
+        ))}
+      </div>
+    </div>
   );
 }

@@ -597,8 +597,15 @@ function matchesSearch(item: Book | Thesis, normalizedQuery: string) {
 
   const searchableFields =
     item.type === "book"
-      ? [item.title, item.author]
-      : [item.title, item.studentName, item.supervisor1, item.supervisor2];
+      ? [item.title, item.author, item.category, item.publisher, item.isbn, ...item.keywords]
+      : [
+          item.title,
+          item.studentName,
+          item.topic,
+          item.supervisor1,
+          item.supervisor2,
+          ...item.keywords,
+        ];
 
   return searchableFields
     .join(" ")

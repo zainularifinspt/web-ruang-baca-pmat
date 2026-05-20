@@ -84,17 +84,17 @@ function DashboardShell({ children }: { children: ReactNode }) {
   const PrimaryActionIcon = primaryAction.icon;
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <aside className="fixed inset-y-0 left-0 hidden w-[19rem] border-r border-slate-200/80 bg-white p-4 shadow-sm lg:block">
+    <div className="min-h-screen bg-[#f5f8fa]">
+      <aside className="fixed inset-y-0 left-0 hidden w-[19rem] border-r border-slate-200/80 bg-white/95 p-4 shadow-sm backdrop-blur lg:block">
         <SidebarContent />
       </aside>
       <div className="w-full lg:pl-[19rem]">
-        <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
-          <div className="mx-auto flex min-h-20 w-full max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
+        <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 backdrop-blur">
+          <div className="mx-auto flex min-h-20 w-full max-w-7xl items-center justify-between gap-3 px-4 sm:px-6">
             <div className="flex min-w-0 items-center gap-2">
               <Dialog open={open} onOpenChange={setOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" size="icon" className="shrink-0 rounded-xl bg-white lg:hidden">
+                  <Button variant="outline" size="icon" className="shrink-0 rounded-2xl bg-white lg:hidden">
                     <Menu />
                     <span className="sr-only">Buka menu</span>
                   </Button>
@@ -104,12 +104,12 @@ function DashboardShell({ children }: { children: ReactNode }) {
                 </DialogContent>
               </Dialog>
               <div className="min-w-0">
-                <p className="truncate text-xs font-medium text-slate-500">{currentPage.breadcrumb}</p>
-                <h1 className="truncate text-lg font-bold text-slate-950 sm:text-xl">{currentPage.title}</h1>
+                <p className="truncate text-xs font-semibold text-emerald-700">{currentPage.breadcrumb}</p>
+                <h1 className="truncate text-xl font-semibold tracking-normal text-slate-950 sm:text-2xl">{currentPage.title}</h1>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button asChild className="hidden rounded-xl sm:inline-flex" size="sm">
+              <Button asChild className="hidden rounded-2xl shadow-sm sm:inline-flex" size="sm">
                 <Link href={primaryAction.href}>
                   <PrimaryActionIcon />
                   {primaryAction.label}
@@ -119,7 +119,7 @@ function DashboardShell({ children }: { children: ReactNode }) {
             </div>
           </div>
         </header>
-        <main className="mx-auto w-full max-w-6xl p-4 sm:p-6 lg:p-8">{children}</main>
+        <main className="mx-auto w-full max-w-7xl p-4 sm:p-6 lg:p-8">{children}</main>
       </div>
     </div>
   );
@@ -131,9 +131,9 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const visibleItems = navItems.filter((item) => item.roles.includes(role));
 
   return (
-    <div className="flex h-full flex-col gap-6 p-4 lg:p-0">
-      <Link href="/" className="flex items-center gap-3" onClick={onNavigate}>
-        <div className="flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-500 text-primary-foreground shadow-sm">
+    <div className="flex h-full flex-col gap-6 rounded-[1.5rem] bg-white p-4 lg:p-0">
+      <Link href="/" className="flex items-center gap-3 rounded-2xl p-2 transition hover:bg-slate-50" onClick={onNavigate}>
+        <div className="flex size-12 items-center justify-center rounded-2xl bg-emerald-700 text-primary-foreground shadow-sm shadow-emerald-950/15">
           <Home className="size-5" />
         </div>
         <div>
@@ -145,6 +145,12 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         <NavGroup title="Menu Utama" items={visibleItems.filter((item) => item.group === "utama")} role={role} pathname={pathname} onNavigate={onNavigate} />
         <NavGroup title="Manajemen" items={visibleItems.filter((item) => item.group === "manajemen")} role={role} pathname={pathname} onNavigate={onNavigate} />
       </nav>
+      <div className="mt-auto rounded-[1.35rem] border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-950">
+        <p className="font-semibold">Dashboard internal</p>
+        <p className="mt-1 leading-6 text-emerald-900/80">
+          Akses mengikuti akun login dan tidak dapat diganti manual.
+        </p>
+      </div>
     </div>
   );
 }
@@ -169,7 +175,7 @@ function NavGroup({
       <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
         {title}
       </p>
-      <div className="grid gap-1">
+      <div className="grid gap-1.5">
         {items.map((item) => {
           const active = pathname === item.href;
           const Icon = item.icon;
@@ -180,11 +186,18 @@ function NavGroup({
               href={item.href}
               onClick={onNavigate}
               className={cn(
-                "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-950",
-                active && "bg-emerald-50 text-emerald-700 shadow-sm ring-1 ring-emerald-100",
+                "flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-950",
+                active && "bg-emerald-50 text-emerald-800 shadow-sm ring-1 ring-emerald-100",
               )}
             >
-              <Icon className="size-4" />
+              <span
+                className={cn(
+                  "flex size-8 items-center justify-center rounded-xl bg-white text-slate-500 ring-1 ring-slate-200",
+                  active && "bg-emerald-700 text-white ring-emerald-700",
+                )}
+              >
+                <Icon className="size-4" />
+              </span>
               {label}
             </Link>
           );
