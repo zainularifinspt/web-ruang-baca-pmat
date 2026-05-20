@@ -12,7 +12,7 @@ export default async function CatalogPage({
   searchParams: Promise<{ q?: string; tab?: string }>;
 }) {
   const { q, tab } = await searchParams;
-  const initialTab = tab === "theses" ? "theses" : "books";
+  const initialTab = tab === "books" || tab === "theses" ? tab : "all";
   const { books, theses, error } = await fetchCatalogData({ visibility: "public" });
 
   return (

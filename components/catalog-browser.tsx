@@ -2,11 +2,26 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { ArrowUpDown, Search, SlidersHorizontal, X } from "lucide-react";
-import { CollectionCard } from "@/components/collection-card";
+import {
+  ArrowLeft,
+  ArrowRight,
+  ArrowUpDown,
+  BookMarked,
+  Calendar,
+  Eye,
+  GraduationCap,
+  MapPin,
+  Search,
+  SlidersHorizontal,
+  UserRound,
+  X,
+} from "lucide-react";
+import { CollectionDetailContent } from "@/components/collection-detail";
 import { EmptyState } from "@/components/empty-state";
+import { AvailabilityBadge } from "@/components/status-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -15,28 +30,29 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getSupabaseClient } from "@/lib/supabase";
 import type { Book, Thesis, VerificationStatus } from "@/lib/types";
-import { valueToUIStatus } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 type CatalogTab = "all" | "books" | "theses";
 type SortValue = "newest" | "oldest" | "title";
 type VerificationFilter = VerificationStatus | "all";
 type CollectionItem = Book | Thesis;
+type PageSize = 10 | 25 | 50;
 type FilterOption = {
   label: string;
   value: string;
 };
+
 const SEARCH_DEBOUNCE_MS = 350;
 
 export function CatalogBrowser({
   books,
   theses,
-  initialTab = "books",
+  initialTab = "all",
   initialQuery = "",
   initialVerificationStatus = "all",
-  showAllTab = false,
+  showAllTab = true,
   itemActions,
   enableRealtime = true,
 }: {
@@ -52,21 +68,17 @@ export function CatalogBrowser({
   const router = useRouter();
   const [query, setQuery] = useState(initialQuery);
   const [debouncedQuery, setDebouncedQuery] = useState(initialQuery);
-  const [tab, setTab] = useState<CatalogTab>(initialTab);
+  const [collectionType, setCollectionType] = useState<CatalogTab>(initialTab);
   const [sort, setSort] = useState<SortValue>("newest");
-  const [verificationStatus, setVerificationStatus] =
-    useState<VerificationFilter>(initialVerificationStatus);
+  const [yearFilter, setYearFilter] = useState("all");
+  const [subjectFilter, setSubjectFilter] = useState("all");
+  const [locationAdvisorFilter, setLocationAdvisorFilter] = useState("all");
+  const [bookAvailability, setBookAvailability] = useState("all");
   const [isFilterLoading, setIsFilterLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<PageSize>(10);
   const loadingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const [bookCategory, setBookCategory] = useState("all");
-  const [bookLocation, setBookLocation] = useState("all");
-  const [bookAvailability, setBookAvailability] = useState("all");
-
-  const [thesisYear, setThesisYear] = useState("all");
-  const [thesisTopic, setThesisTopic] = useState("all");
-  const [thesisAdvisor, setThesisAdvisor] = useState("all");
 
   useEffect(() => {
     return () => {
@@ -79,11 +91,11 @@ export function CatalogBrowser({
     if (searchTimer.current) clearTimeout(searchTimer.current);
 
     const normalizedInput = query.trim();
-
     if (normalizedInput === debouncedQuery.trim()) return;
 
     searchTimer.current = setTimeout(() => {
       setDebouncedQuery(query);
+      setPage(1);
     }, SEARCH_DEBOUNCE_MS);
 
     return () => {
@@ -129,91 +141,92 @@ export function CatalogBrowser({
 
   const normalizedQuery = useMemo(() => debouncedQuery.trim().toLowerCase(), [debouncedQuery]);
 
-  const filteredBooks = useMemo(() => {
-    const result = books.filter((item) => {
+  const baseItems = useMemo(() => {
+    const items: CollectionItem[] =
+      collectionType === "books"
+        ? books
+        : collectionType === "theses"
+          ? theses
+          : [...books, ...theses];
+
+    return items.filter((item) => matchesVerificationStatus(item, initialVerificationStatus));
+  }, [books, collectionType, initialVerificationStatus, theses]);
+
+  const filteredItems = useMemo(() => {
+    const result = baseItems.filter((item) => {
       const matchesQuery = matchesSearch(item, normalizedQuery);
-      const matchesStatus = matchesVerificationStatus(item, verificationStatus);
-      const matchesCategory = bookCategory === "all" || item.category === bookCategory;
-      const matchesLocation = bookLocation === "all" || item.rackLocation === bookLocation;
-      const availability = getAvailabilityValue(item);
+      const matchesYear = yearFilter === "all" || String(item.year) === yearFilter;
+      const matchesSubject =
+        subjectFilter === "all" ||
+        (item.type === "book"
+          ? item.category === subjectFilter || item.keywords.includes(subjectFilter)
+          : item.topic === subjectFilter || item.keywords.includes(subjectFilter));
+      const matchesLocationAdvisor =
+        locationAdvisorFilter === "all" ||
+        (item.type === "book"
+          ? item.rackLocation === locationAdvisorFilter || item.location === locationAdvisorFilter
+          : item.supervisor1 === locationAdvisorFilter ||
+            item.supervisor2 === locationAdvisorFilter ||
+            item.physicalLocation === locationAdvisorFilter);
       const matchesAvailability =
-        bookAvailability === "all" || availability === bookAvailability;
-      return matchesQuery && matchesStatus && matchesCategory && matchesLocation && matchesAvailability;
-    });
-    return sortCollections(result, sort);
-  }, [books, normalizedQuery, verificationStatus, bookCategory, bookLocation, bookAvailability, sort]);
+        item.type !== "book" ||
+        bookAvailability === "all" ||
+        getAvailabilityValue(item) === bookAvailability;
 
-  const filteredTheses = useMemo(() => {
-    const result = theses.filter((item) => {
-      const matchesQuery = matchesSearch(item, normalizedQuery);
-      const matchesStatus = matchesVerificationStatus(item, verificationStatus);
-      const matchesYear = thesisYear === "all" || String(item.year) === thesisYear;
-      const matchesTopic = thesisTopic === "all" || item.keywords.includes(thesisTopic);
-      const matchesAdvisor =
-        thesisAdvisor === "all" ||
-        item.supervisor1 === thesisAdvisor ||
-        item.supervisor2 === thesisAdvisor;
-      return matchesQuery && matchesStatus && matchesYear && matchesTopic && matchesAdvisor;
+      return matchesQuery && matchesYear && matchesSubject && matchesLocationAdvisor && matchesAvailability;
     });
-    return sortCollections(result, sort);
-  }, [theses, normalizedQuery, verificationStatus, thesisYear, thesisTopic, thesisAdvisor, sort]);
 
-  const filteredAll = useMemo(
-    () => sortCollections([...filteredBooks, ...filteredTheses], sort),
-    [filteredBooks, filteredTheses, sort],
+    return sortCollections(result, sort);
+  }, [baseItems, bookAvailability, locationAdvisorFilter, normalizedQuery, sort, subjectFilter, yearFilter]);
+
+  const yearOptions = useMemo(() => unique(baseItems.map((item) => String(item.year))), [baseItems]);
+  const subjectOptions = useMemo(
+    () =>
+      unique(
+        baseItems.flatMap((item) =>
+          item.type === "book" ? [item.category, ...item.keywords] : [item.topic, ...item.keywords],
+        ),
+      ),
+    [baseItems],
+  );
+  const locationAdvisorOptions = useMemo(
+    () =>
+      unique(
+        baseItems.flatMap((item) =>
+          item.type === "book"
+            ? [item.rackLocation, item.location]
+            : [item.supervisor1, item.supervisor2, item.physicalLocation],
+        ),
+      ),
+    [baseItems],
   );
 
-  const bookCategories = useMemo(() => unique(books.map((item) => item.category)), [books]);
-  const bookLocations = useMemo(() => unique(books.map((item) => item.rackLocation)), [books]);
-  const thesisYears = useMemo(() => unique(theses.map((item) => String(item.year))), [theses]);
-  const thesisTopics = useMemo(() => unique(theses.flatMap((item) => item.keywords)), [theses]);
-  const thesisAdvisors = useMemo(
-    () => unique(theses.flatMap((item) => [item.supervisor1, item.supervisor2])),
-    [theses],
-  );
-
-  const activeChips =
-    tab === "books"
-      ? [
-          chip("Status", verificationStatusLabel(verificationStatus), () => setVerificationStatus("all"), verificationStatus),
-          chip("Kategori", bookCategory, () => setBookCategory("all")),
-          chip("Lokasi", bookLocation, () => setBookLocation("all")),
-          chip("Ketersediaan", availabilityLabel(bookAvailability), () => setBookAvailability("all"), bookAvailability),
-        ]
-      : tab === "theses"
-        ? [
-          chip("Status", verificationStatusLabel(verificationStatus), () => setVerificationStatus("all"), verificationStatus),
-          chip("Tahun", thesisYear, () => setThesisYear("all")),
-          chip("Topik", thesisTopic, () => setThesisTopic("all")),
-          chip("Pembimbing", thesisAdvisor, () => setThesisAdvisor("all")),
-        ]
-        : [
-          chip("Status", verificationStatusLabel(verificationStatus), () => setVerificationStatus("all"), verificationStatus),
-        ];
+  const activeChips = [
+    chip("Jenis", collectionTypeLabel(collectionType), () => setCollectionType("all"), collectionType),
+    chip("Tahun", yearFilter, () => setYearFilter("all")),
+    chip("Kategori/topik", subjectFilter, () => setSubjectFilter("all")),
+    chip("Lokasi/pembimbing", locationAdvisorFilter, () => setLocationAdvisorFilter("all")),
+    chip("Ketersediaan", availabilityLabel(bookAvailability), () => setBookAvailability("all"), bookAvailability),
+  ];
 
   const resetCurrentFilters = () => {
     triggerLoading();
-    setVerificationStatus(initialVerificationStatus);
-    if (tab === "books") {
-      setBookCategory("all");
-      setBookLocation("all");
-      setBookAvailability("all");
-    } else {
-      setThesisYear("all");
-      setThesisTopic("all");
-      setThesisAdvisor("all");
-    }
+    setCollectionType(showAllTab ? "all" : initialTab);
+    setYearFilter("all");
+    setSubjectFilter("all");
+    setLocationAdvisorFilter("all");
+    setBookAvailability("all");
+    setPage(1);
   };
 
-  const currentCount =
-    tab === "all"
-      ? filteredAll.length
-      : tab === "books"
-        ? filteredBooks.length
-        : filteredTheses.length;
   const hasQuery = query.trim().length > 0;
   const isSearchLoading = query.trim() !== debouncedQuery.trim();
   const isLoading = isFilterLoading || isSearchLoading;
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const startItem = filteredItems.length ? (safePage - 1) * pageSize + 1 : 0;
+  const endItem = Math.min(safePage * pageSize, filteredItems.length);
+  const paginatedItems = filteredItems.slice((safePage - 1) * pageSize, safePage * pageSize);
 
   return (
     <div className="space-y-6">
@@ -226,7 +239,7 @@ export function CatalogBrowser({
             </h2>
           </div>
           <Badge variant="secondary" className="w-fit rounded-full">
-            {isLoading ? "Mencari..." : `${currentCount} hasil ditemukan`}
+            {isLoading ? "Mencari..." : `${filteredItems.length} hasil ditemukan`}
           </Badge>
         </div>
 
@@ -246,6 +259,7 @@ export function CatalogBrowser({
               onClick={() => {
                 setQuery("");
                 setDebouncedQuery("");
+                setPage(1);
               }}
               className="absolute right-3 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-200/70 hover:text-slate-700"
               aria-label="Kosongkan pencarian"
@@ -256,30 +270,109 @@ export function CatalogBrowser({
         </div>
       </div>
 
-      <Tabs
-        value={tab}
-        onValueChange={(value) => {
-          setTab(value === "theses" ? "theses" : "books");
-          triggerLoading();
-        }}
-      >
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <TabsList
-            className={
-              showAllTab
-                ? "grid h-12 w-full grid-cols-3 rounded-2xl bg-white p-1 shadow-sm ring-1 ring-slate-200/70 sm:w-[32rem]"
-                : "grid h-12 w-full grid-cols-2 rounded-2xl bg-white p-1 shadow-sm ring-1 ring-slate-200/70 sm:w-96"
-            }
-          >
-            {showAllTab ? <TabsTrigger value="all">Semua</TabsTrigger> : null}
-            <TabsTrigger value="books">Buku</TabsTrigger>
-            <TabsTrigger value="theses">Skripsi</TabsTrigger>
-          </TabsList>
-          <Select value={sort} onValueChange={(value) => {
-            setSort(value as SortValue);
-            triggerLoading();
+      <div className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/70">
+        <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-700">
+          <SlidersHorizontal className="size-4 text-primary" />
+          Filter koleksi
+        </div>
+        <div className="grid gap-3 lg:grid-cols-5">
+          <CollectionTypeFilter
+            value={collectionType}
+            showAll={showAllTab || initialTab === "all"}
+            onValueChange={(value) => {
+              setCollectionType(value);
+              if (value !== "books") setBookAvailability("all");
+              setPage(1);
+              triggerLoading();
+            }}
+          />
+          <FilterSelect
+            label="Tahun"
+            value={yearFilter}
+            onValueChange={(value) => {
+              setYearFilter(value);
+              setPage(1);
+              triggerLoading();
+            }}
+            options={yearOptions.map(toOption)}
+            placeholder="Semua tahun"
+          />
+          <FilterSelect
+            label="Kategori / topik"
+            value={subjectFilter}
+            onValueChange={(value) => {
+              setSubjectFilter(value);
+              setPage(1);
+              triggerLoading();
+            }}
+            options={subjectOptions.map(toOption)}
+            placeholder="Semua kategori/topik"
+          />
+          <FilterSelect
+            label="Lokasi / pembimbing"
+            value={locationAdvisorFilter}
+            onValueChange={(value) => {
+              setLocationAdvisorFilter(value);
+              setPage(1);
+              triggerLoading();
+            }}
+            options={locationAdvisorOptions.map(toOption)}
+            placeholder="Semua lokasi/pembimbing"
+          />
+          <FilterSelect
+            label="Ketersediaan"
+            value={bookAvailability}
+            onValueChange={(value) => {
+              setBookAvailability(value);
+              setPage(1);
+              triggerLoading();
+            }}
+            placeholder="Semua ketersediaan"
+            options={[
+              { label: "Tersedia", value: "available" },
+              { label: "Terbatas", value: "limited" },
+              { label: "Tidak tersedia", value: "empty" },
+            ]}
+            disabled={collectionType === "theses"}
+          />
+        </div>
+        <FilterChips chips={activeChips} onReset={resetCurrentFilters} />
+      </div>
+
+      <div className="flex flex-col gap-3 rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/70 sm:flex-row sm:items-center sm:justify-between">
+        <div className="text-sm text-slate-500">
+          {filteredItems.length ? (
+            <>
+              Menampilkan <span className="font-semibold text-slate-800">{startItem}-{endItem}</span> dari{" "}
+              <span className="font-semibold text-slate-800">{filteredItems.length}</span> koleksi
+            </>
+          ) : (
+            "Tidak ada koleksi yang cocok dengan filter."
+          )}
+        </div>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <Select value={String(pageSize)} onValueChange={(value) => {
+            setPageSize(Number(value) as PageSize);
+            setPage(1);
           }}>
-            <SelectTrigger className="h-11 w-full rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/70 sm:w-56">
+            <SelectTrigger className="h-11 rounded-2xl bg-slate-50 sm:w-36">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="10">10 baris</SelectItem>
+              <SelectItem value="25">25 baris</SelectItem>
+              <SelectItem value="50">50 baris</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select
+            value={sort}
+            onValueChange={(value) => {
+              setSort(value as SortValue);
+              setPage(1);
+              triggerLoading();
+            }}
+          >
+            <SelectTrigger className="h-11 rounded-2xl bg-slate-50 sm:w-44">
               <div className="flex items-center gap-2">
                 <ArrowUpDown className="size-4 text-slate-500" />
                 <SelectValue />
@@ -292,257 +385,48 @@ export function CatalogBrowser({
             </SelectContent>
           </Select>
         </div>
+      </div>
 
-        <div className="mt-5 rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/70">
-          <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-700">
-            <SlidersHorizontal className="size-4 text-primary" />
-            Filter koleksi
-          </div>
+      {isLoading ? (
+        <CatalogSkeleton />
+      ) : (
+        <CollectionRows
+          items={paginatedItems}
+          itemActions={itemActions}
+          empty="Koleksi tidak ditemukan."
+          description="Coba gunakan kata kunci lain, ubah filter, atau reset pilihan yang aktif."
+        />
+      )}
 
-          <TabsContent value="all" className="m-0">
-            <VerificationStatusFilter
-              value={verificationStatus}
-              onValueChange={(value) => {
-                setVerificationStatus(value);
-                triggerLoading();
-              }}
-            />
-          </TabsContent>
-
-          <TabsContent value="books" className="m-0">
-            <div className="grid gap-3 xl:grid-cols-[220px_1fr]">
-              <VerificationStatusFilter
-                value={verificationStatus}
-                onValueChange={(value) => {
-                  setVerificationStatus(value);
-                  triggerLoading();
-                }}
-              />
-              <BookFilters
-                categories={bookCategories}
-                locations={bookLocations}
-                category={bookCategory}
-                location={bookLocation}
-                availability={bookAvailability}
-                onCategory={(value) => {
-                  setBookCategory(value);
-                  triggerLoading();
-                }}
-                onLocation={(value) => {
-                  setBookLocation(value);
-                  triggerLoading();
-                }}
-                onAvailability={(value) => {
-                  setBookAvailability(value);
-                  triggerLoading();
-                }}
-              />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="theses" className="m-0">
-            <div className="grid gap-3 xl:grid-cols-[220px_1fr]">
-              <VerificationStatusFilter
-                value={verificationStatus}
-                onValueChange={(value) => {
-                  setVerificationStatus(value);
-                  triggerLoading();
-                }}
-              />
-              <ThesisFilters
-                years={thesisYears}
-                topics={thesisTopics}
-                advisors={thesisAdvisors}
-                year={thesisYear}
-                topic={thesisTopic}
-                advisor={thesisAdvisor}
-                onYear={(value) => {
-                  setThesisYear(value);
-                  triggerLoading();
-                }}
-                onTopic={(value) => {
-                  setThesisTopic(value);
-                  triggerLoading();
-                }}
-                onAdvisor={(value) => {
-                  setThesisAdvisor(value);
-                  triggerLoading();
-                }}
-              />
-            </div>
-          </TabsContent>
-
-          <FilterChips chips={activeChips} onReset={resetCurrentFilters} />
-        </div>
-
-        {showAllTab ? (
-          <TabsContent value="all" className="mt-6">
-            {isLoading ? (
-              <CatalogSkeleton />
-            ) : (
-              <CollectionGrid
-                items={filteredAll}
-                itemActions={itemActions}
-                empty="Koleksi tidak ditemukan."
-                description="Coba gunakan kata kunci lain, ubah status verifikasi, atau reset filter yang aktif."
-              />
-            )}
-          </TabsContent>
-        ) : null}
-
-        <TabsContent value="books" className="mt-6">
-          {isLoading ? (
-            <CatalogSkeleton />
-          ) : (
-            <CollectionGrid
-              items={filteredBooks}
-              itemActions={itemActions}
-              empty={
-                books.length
-                  ? "Buku tidak ditemukan."
-                  : "Belum ada data buku dari Supabase."
-              }
-              description={
-                books.length
-                  ? "Coba gunakan kata kunci lain, ubah filter, atau reset pilihan yang aktif."
-                  : "Katalog buku akan tampil otomatis setelah tabel books memiliki data."
-              }
-            />
-          )}
-        </TabsContent>
-        <TabsContent value="theses" className="mt-6">
-          {isLoading ? (
-            <CatalogSkeleton />
-          ) : (
-            <CollectionGrid
-              items={filteredTheses}
-              itemActions={itemActions}
-              empty={
-                theses.length
-                  ? "Skripsi tidak ditemukan."
-                  : "Belum ada data skripsi dari Supabase."
-              }
-              description={
-                theses.length
-                  ? "Coba gunakan kata kunci lain, ubah filter, atau reset pilihan yang aktif."
-                  : "Repositori skripsi akan tampil otomatis setelah tabel theses memiliki data."
-              }
-            />
-          )}
-        </TabsContent>
-      </Tabs>
-    </div>
-  );
-}
-
-function BookFilters({
-  categories,
-  locations,
-  category,
-  location,
-  availability,
-  onCategory,
-  onLocation,
-  onAvailability,
-}: {
-  categories: string[];
-  locations: string[];
-  category: string;
-  location: string;
-  availability: string;
-  onCategory: (value: string) => void;
-  onLocation: (value: string) => void;
-  onAvailability: (value: string) => void;
-}) {
-  const categoryOptions: FilterOption[] = categories.map((cat) => ({
-    label: cat,
-    value: cat,
-  }));
-  const locationOptions: FilterOption[] = locations.map((loc) => ({
-    label: loc,
-    value: loc,
-  }));
-  const availabilityOptions: FilterOption[] = [
-    { label: "Tersedia", value: "available" },
-    { label: "Terbatas", value: "limited" },
-    { label: "Tidak tersedia", value: "empty" },
-  ];
-
-  return (
-    <div className="grid gap-3 md:grid-cols-3">
-      <FilterSelect label="Kategori" value={category} onValueChange={onCategory} options={categoryOptions} placeholder="Semua kategori" />
-      <FilterSelect label="Lokasi rak" value={location} onValueChange={onLocation} options={locationOptions} placeholder="Semua lokasi" />
-      <FilterSelect
-        label="Ketersediaan"
-        value={availability}
-        onValueChange={onAvailability}
-        placeholder="Semua ketersediaan"
-        options={availabilityOptions}
+      <PaginationControls
+        page={safePage}
+        totalPages={totalPages}
+        disabled={!filteredItems.length}
+        onPageChange={setPage}
       />
     </div>
   );
 }
 
-function ThesisFilters({
-  years,
-  topics,
-  advisors,
-  year,
-  topic,
-  advisor,
-  onYear,
-  onTopic,
-  onAdvisor,
-}: {
-  years: string[];
-  topics: string[];
-  advisors: string[];
-  year: string;
-  topic: string;
-  advisor: string;
-  onYear: (value: string) => void;
-  onTopic: (value: string) => void;
-  onAdvisor: (value: string) => void;
-}) {
-  const yearOptions: FilterOption[] = years.map((y) => ({
-    label: y,
-    value: y,
-  }));
-  const topicOptions: FilterOption[] = topics.map((t) => ({
-    label: t,
-    value: t,
-  }));
-  const advisorOptions: FilterOption[] = advisors.map((a) => ({
-    label: a,
-    value: a,
-  }));
-  
-  return (
-    <div className="grid gap-3 md:grid-cols-3">
-      <FilterSelect label="Tahun" value={year} onValueChange={onYear} options={yearOptions} placeholder="Semua tahun" />
-      <FilterSelect label="Topik" value={topic} onValueChange={onTopic} options={topicOptions} placeholder="Semua topik" />
-      <FilterSelect label="Dosen pembimbing" value={advisor} onValueChange={onAdvisor} options={advisorOptions} placeholder="Semua pembimbing" />
-    </div>
-  );
-}
-
-function VerificationStatusFilter({
+function CollectionTypeFilter({
   value,
+  showAll,
   onValueChange,
 }: {
-  value: VerificationFilter;
-  onValueChange: (value: VerificationFilter) => void;
+  value: CatalogTab;
+  showAll: boolean;
+  onValueChange: (value: CatalogTab) => void;
 }) {
   return (
     <FilterSelect
-      label="Status verifikasi"
+      label="Jenis koleksi"
       value={value}
-      onValueChange={(nextValue) => onValueChange(nextValue as VerificationFilter)}
-      placeholder="Semua status"
+      onValueChange={(nextValue) => onValueChange(nextValue as CatalogTab)}
+      placeholder="Semua koleksi"
       options={[
-        { label: "Disetujui", value: "approved" },
-        { label: "Menunggu Verifikasi", value: "pending" },
-        { label: "Ditolak", value: "rejected" },
+        ...(showAll ? [{ label: "Semua koleksi", value: "all" }] : []),
+        { label: "Buku", value: "books" },
+        { label: "Skripsi", value: "theses" },
       ]}
     />
   );
@@ -554,27 +438,31 @@ function FilterSelect({
   onValueChange,
   options,
   placeholder,
+  disabled = false,
 }: {
   label: string;
   value: string;
   onValueChange: (value: string) => void;
   options: FilterOption[];
   placeholder: string;
+  disabled?: boolean;
 }) {
   return (
     <div className="space-y-2">
       <p className="text-xs font-medium text-slate-500">{label}</p>
-      <Select value={value} onValueChange={onValueChange}>
+      <Select value={value} onValueChange={onValueChange} disabled={disabled}>
         <SelectTrigger className="h-11 rounded-2xl border-slate-200 bg-slate-50">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">{placeholder}</SelectItem>
-          {options.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
-              {option.label}
-            </SelectItem>
-          ))}
+          {options
+            .filter((option) => option.value !== "all")
+            .map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
         </SelectContent>
       </Select>
     </div>
@@ -611,7 +499,7 @@ function FilterChips({
   );
 }
 
-function CollectionGrid({
+function CollectionRows({
   items,
   itemActions,
   empty,
@@ -632,39 +520,155 @@ function CollectionGrid({
   }
 
   return (
-    <div className="grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-4">
-      {items.map((item) => {
-        const actions = itemActions?.(item);
-
-        return (
-          <div key={item.id} className="min-w-0 space-y-2">
-            <CollectionCard item={item} />
-            {actions ? <div className="flex flex-wrap gap-2">{actions}</div> : null}
-          </div>
-        );
-      })}
+    <div className="space-y-3">
+      {items.map((item) => (
+        <CollectionRow
+          key={`${item.type}-${item.id}`}
+          item={item}
+          actions={itemActions?.(item)}
+        />
+      ))}
     </div>
+  );
+}
+
+function CollectionRow({
+  item,
+  actions,
+}: {
+  item: CollectionItem;
+  actions?: ReactNode;
+}) {
+  const isBook = item.type === "book";
+  const Icon = isBook ? BookMarked : GraduationCap;
+  const subtitle = isBook ? item.author : item.studentName;
+  const descriptor = isBook ? item.category : item.topic;
+  const location = isBook ? item.rackLocation : item.physicalLocation;
+
+  return (
+    <Dialog>
+      <div className="grid gap-4 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200/75 transition hover:shadow-md hover:ring-emerald-200 lg:grid-cols-[minmax(0,1.6fr)_minmax(10rem,0.8fr)_7rem_minmax(10rem,0.8fr)_auto] lg:items-center">
+        <div className="flex min-w-0 items-start gap-3">
+          <span
+            className={cn(
+              "flex size-11 shrink-0 items-center justify-center rounded-2xl ring-1",
+              isBook
+                ? "bg-emerald-700 text-white ring-emerald-700"
+                : "bg-slate-900 text-emerald-200 ring-slate-900",
+            )}
+          >
+            <Icon className="size-5" />
+          </span>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="secondary" className="rounded-full">
+                {isBook ? "Buku" : "Skripsi"}
+              </Badge>
+              <span className="line-clamp-1 text-xs font-semibold text-slate-500">
+                {descriptor || "-"}
+              </span>
+            </div>
+            <h3 className="mt-2 line-clamp-2 text-base font-semibold leading-snug text-slate-950">
+              {item.title}
+            </h3>
+            <MetaLine icon={UserRound} value={subtitle} className="mt-2" />
+          </div>
+        </div>
+
+        <div className="grid gap-1.5 text-sm text-slate-600">
+          <p className="text-xs font-medium text-slate-500">Lokasi</p>
+          <MetaLine icon={MapPin} value={location} />
+        </div>
+
+        <div className="grid gap-1.5 text-sm text-slate-600">
+          <p className="text-xs font-medium text-slate-500">Tahun</p>
+          <MetaLine icon={Calendar} value={String(item.year)} />
+        </div>
+
+        <div className="grid gap-1.5 text-sm text-slate-600">
+          <p className="text-xs font-medium text-slate-500">{isBook ? "Ketersediaan" : "Pembimbing"}</p>
+          {isBook ? (
+            <AvailabilityBadge available={item.available} stock={item.stock} />
+          ) : (
+            <p className="line-clamp-2 text-sm text-slate-700">
+              {[item.supervisor1, item.supervisor2].filter(Boolean).join(", ") || "-"}
+            </p>
+          )}
+        </div>
+
+        <div className="flex flex-wrap gap-2 lg:justify-end">
+          <DialogTrigger asChild>
+            <Button variant="outline" size="sm" className="rounded-xl">
+              <Eye className="size-4" />
+              Detail
+            </Button>
+          </DialogTrigger>
+          {actions}
+        </div>
+      </div>
+      <CollectionDetailContent item={item} />
+    </Dialog>
   );
 }
 
 function CatalogSkeleton() {
   return (
-    <div className="grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-4">
+    <div className="space-y-3">
       {Array.from({ length: 10 }).map((_, index) => (
         <div
           key={index}
-          className="h-[230px] animate-pulse rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200/70"
+          className="h-28 animate-pulse rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200/70"
         >
-          <div className="h-14 rounded-xl bg-slate-100" />
-          <div className="mt-5 h-4 w-4/5 rounded bg-slate-100" />
+          <div className="h-4 w-4/5 rounded bg-slate-100" />
           <div className="mt-3 h-4 w-3/5 rounded bg-slate-100" />
-          <div className="mt-6 grid gap-3">
-            <div className="h-3 rounded bg-slate-100" />
-            <div className="h-3 rounded bg-slate-100" />
-            <div className="h-3 w-2/3 rounded bg-slate-100" />
-          </div>
+          <div className="mt-5 h-3 rounded bg-slate-100" />
         </div>
       ))}
+    </div>
+  );
+}
+
+function PaginationControls({
+  page,
+  totalPages,
+  disabled,
+  onPageChange,
+}: {
+  page: number;
+  totalPages: number;
+  disabled: boolean;
+  onPageChange: (page: number) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-3 rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/70 sm:flex-row sm:items-center sm:justify-between">
+      <p className="text-sm text-slate-500">
+        Halaman <span className="font-semibold text-slate-800">{page}</span> dari{" "}
+        <span className="font-semibold text-slate-800">{totalPages}</span>
+      </p>
+      <div className="flex gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="rounded-xl"
+          disabled={disabled || page <= 1}
+          onClick={() => onPageChange(Math.max(1, page - 1))}
+        >
+          <ArrowLeft className="size-4" />
+          Sebelumnya
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="rounded-xl"
+          disabled={disabled || page >= totalPages}
+          onClick={() => onPageChange(Math.min(totalPages, page + 1))}
+        >
+          Berikutnya
+          <ArrowRight className="size-4" />
+        </Button>
+      </div>
     </div>
   );
 }
@@ -685,8 +689,13 @@ function availabilityLabel(value: string) {
   return labels[value] ?? value;
 }
 
-function verificationStatusLabel(value: VerificationFilter) {
-  return value === "all" ? "all" : valueToUIStatus(value);
+function collectionTypeLabel(value: CatalogTab) {
+  const labels: Record<CatalogTab, string> = {
+    all: "Semua koleksi",
+    books: "Buku",
+    theses: "Skripsi",
+  };
+  return labels[value];
 }
 
 function sortCollections<T extends Book | Thesis>(items: T[], sort: SortValue) {
@@ -706,13 +715,14 @@ function matchesSearch(item: Book | Thesis, normalizedQuery: string) {
 
   const searchableFields =
     item.type === "book"
-      ? [item.title, item.author, item.category, item.publisher, item.isbn, ...item.keywords]
+      ? [item.title, item.author, item.category, item.publisher, item.isbn, item.rackLocation, ...item.keywords]
       : [
           item.title,
           item.studentName,
           item.topic,
           item.supervisor1,
           item.supervisor2,
+          item.physicalLocation,
           ...item.keywords,
         ];
 
@@ -726,6 +736,10 @@ function unique<T extends string>(values: T[]) {
   return Array.from(new Set(values.filter(Boolean))).sort((a, b) => a.localeCompare(b));
 }
 
+function toOption(value: string) {
+  return { label: value, value };
+}
+
 function chip(
   label: string,
   value: string,
@@ -733,4 +747,21 @@ function chip(
   rawValue = value,
 ) {
   return { label, value, clear, rawValue };
+}
+
+function MetaLine({
+  icon: Icon,
+  value,
+  className,
+}: {
+  icon: typeof UserRound;
+  value: string;
+  className?: string;
+}) {
+  return (
+    <p className={cn("flex min-w-0 items-center gap-2 text-sm text-slate-600", className)}>
+      <Icon className="size-4 shrink-0 text-slate-400" />
+      <span className="truncate">{value || "-"}</span>
+    </p>
+  );
 }
