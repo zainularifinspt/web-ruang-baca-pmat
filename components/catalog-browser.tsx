@@ -632,12 +632,12 @@ function CollectionGrid({
   }
 
   return (
-    <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+    <div className="grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-4">
       {items.map((item) => {
         const actions = itemActions?.(item);
 
         return (
-          <div key={item.id} className="space-y-3">
+          <div key={item.id} className="min-w-0 space-y-2">
             <CollectionCard item={item} />
             {actions ? <div className="flex flex-wrap gap-2">{actions}</div> : null}
           </div>
@@ -649,16 +649,16 @@ function CollectionGrid({
 
 function CatalogSkeleton() {
   return (
-    <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-      {Array.from({ length: 6 }).map((_, index) => (
+    <div className="grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-4">
+      {Array.from({ length: 10 }).map((_, index) => (
         <div
           key={index}
-          className="h-[330px] animate-pulse rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200/70"
+          className="h-[230px] animate-pulse rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200/70"
         >
-          <div className="h-28 rounded-2xl bg-slate-100" />
+          <div className="h-14 rounded-xl bg-slate-100" />
           <div className="mt-5 h-4 w-4/5 rounded bg-slate-100" />
-          <div className="mt-3 h-3 w-3/5 rounded bg-slate-100" />
-          <div className="mt-8 grid gap-3">
+          <div className="mt-3 h-4 w-3/5 rounded bg-slate-100" />
+          <div className="mt-6 grid gap-3">
             <div className="h-3 rounded bg-slate-100" />
             <div className="h-3 rounded bg-slate-100" />
             <div className="h-3 w-2/3 rounded bg-slate-100" />
