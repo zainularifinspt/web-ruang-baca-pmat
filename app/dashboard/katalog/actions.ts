@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireStaffRole } from "@/lib/auth-guards";
+import { writeBookVerificationOverride } from "@/lib/catalog-verification-store";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
 import type {
   BookFormValues,
@@ -114,7 +115,15 @@ export async function updateCollectionVerificationStatus(
         .update({ verification_status: status })
         .eq("id", id);
 
-      return error ? failure(error.message) : success("Status verifikasi buku berhasil diperbarui.");
+      if (error) {
+        if (!isMissingBookVerificationColumn(error.message)) {
+          return failure(error.message);
+        }
+
+        await writeBookVerificationOverride(id, status);
+      }
+
+      return success("Status verifikasi buku berhasil diperbarui.");
     }
 
     const { error } = await createSupabaseAdminClient()
@@ -129,6 +138,10 @@ export async function updateCollectionVerificationStatus(
   revalidatePath("/dashboard/verifikasi");
 
   return result;
+}
+
+function isMissingBookVerificationColumn(message: string) {
+  return message.includes("verification_status") || message.includes("schema cache");
 }
 
 async function insertBook(payload: MutationPayload) {
