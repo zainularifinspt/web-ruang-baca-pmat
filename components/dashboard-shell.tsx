@@ -15,6 +15,7 @@ import {
   Plus,
   QrCode,
   ShieldCheck,
+  UserRound,
   Users,
 } from "lucide-react";
 import { LogoutButton } from "@/app/admin/logout-button";
@@ -47,6 +48,7 @@ const navItems: Array<{
   { href: "/dashboard/presensi", label: "Presensi", icon: ClipboardList, group: "utama", roles: ["admin", "dosen", "petugas"] },
   { href: "/dashboard/laporan", label: "Laporan", icon: FileText, group: "utama", roles: ["admin", "dosen"] },
   { href: "/dashboard/whatsapp", label: "Input WhatsApp", icon: MessageCircle, group: "manajemen", roles: ["admin", "petugas"] },
+  { href: "/dashboard/profil", label: "Profil", icon: UserRound, group: "manajemen", roles: ["admin", "dosen", "petugas"] },
   { href: "/dashboard/pengguna", label: "Pengguna", icon: Users, group: "manajemen", roles: ["admin"] },
   { href: "/dashboard/permissions", label: "Matriks Akses", icon: ShieldCheck, group: "manajemen", roles: ["admin"] },
 ];
@@ -58,6 +60,7 @@ const pageTitles: Record<string, { title: string; breadcrumb: string }> = {
   "/dashboard/presensi": { title: "Data Kunjungan", breadcrumb: "Internal / Presensi" },
   "/dashboard/laporan": { title: "Laporan Pengunjung", breadcrumb: "Internal / Laporan" },
   "/dashboard/whatsapp": { title: "Input WhatsApp", breadcrumb: "Internal / Input WhatsApp" },
+  "/dashboard/profil": { title: "Profil Akun", breadcrumb: "Internal / Profil" },
   "/dashboard/pengguna": { title: "Pengguna dan Peran", breadcrumb: "Internal / Pengguna" },
   "/dashboard/permissions": { title: "Matriks Hak Akses", breadcrumb: "Internal / Hak Akses" },
 };
@@ -65,12 +68,16 @@ const pageTitles: Record<string, { title: string; breadcrumb: string }> = {
 export function DashboardRoot({
   children,
   role,
+  userDisplayName,
+  userEmail,
 }: {
   children: ReactNode;
   role: Role;
+  userDisplayName: string;
+  userEmail: string;
 }) {
   return (
-    <RoleProvider initialRole={role}>
+    <RoleProvider initialRole={role} userDisplayName={userDisplayName} userEmail={userEmail}>
       <DashboardShell>{children}</DashboardShell>
     </RoleProvider>
   );
@@ -129,7 +136,7 @@ function DashboardShell({ children }: { children: ReactNode }) {
 
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
-  const { role } = useRole();
+  const { role, userDisplayName } = useRole();
   const visibleItems = navItems.filter((item) => item.roles.includes(role));
 
   return (
@@ -148,6 +155,10 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         <NavGroup title="Manajemen" items={visibleItems.filter((item) => item.group === "manajemen")} role={role} pathname={pathname} onNavigate={onNavigate} />
       </nav>
       <div className="mt-auto grid gap-3">
+        <div className="rounded-[1.35rem] border border-slate-200 bg-white p-4 text-sm text-slate-700 shadow-sm">
+          <p className="text-xs font-medium text-slate-400">Masuk sebagai</p>
+          <p className="mt-1 truncate font-semibold text-slate-950">{userDisplayName}</p>
+        </div>
         <div className="rounded-[1.35rem] border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-950">
           <p className="font-semibold">Dashboard internal</p>
           <p className="mt-1 leading-6 text-emerald-900/80">

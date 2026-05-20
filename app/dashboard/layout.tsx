@@ -24,7 +24,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   const { data: profile } = await createSupabaseAdminClient()
     .from("profiles")
-    .select("role")
+    .select("role,email,full_name")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -38,5 +38,14 @@ export default async function DashboardLayout({ children }: { children: React.Re
     redirect("/login?redirectTo=/dashboard&error=staff_required");
   }
 
-  return <DashboardRoot role={role}>{children}</DashboardRoot>;
+  const metadata = user.user_metadata ?? {};
+  const userDisplayName =
+    profile?.full_name ??
+    (typeof metadata.full_name === "string" ? metadata.full_name : undefined) ??
+    (typeof metadata.name === "string" ? metadata.name : undefined) ??
+    user.email ??
+    "Pengguna";
+  const userEmail = profile?.email ?? user.email ?? "";
+
+  return <DashboardRoot role={role} userDisplayName={userDisplayName} userEmail={userEmail}>{children}</DashboardRoot>;
 }
