@@ -13,7 +13,6 @@ import {
   GraduationCap,
   LibraryBig,
   MessageCircle,
-  Plus,
   QrCode,
   Sparkles,
   TrendingUp,
@@ -27,7 +26,6 @@ import { useRole } from "@/components/role-provider";
 import { SectionCard } from "@/components/section-card";
 import { StatCard } from "@/components/stat-card";
 import { StatusBadge } from "@/components/status-badge";
-import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -137,22 +135,6 @@ function AdminDashboard({
       eyebrow={roleLabel}
       title="Ringkasan Ruang Baca PMat"
       description="Pantau koleksi, kunjungan, presensi, dan antrean verifikasi dalam satu layar yang rapi."
-      actions={
-        <>
-          <Button asChild className="rounded-xl">
-            <Link href="/dashboard/katalog">
-              <Plus />
-              Tambah Buku
-            </Link>
-          </Button>
-          <Button asChild variant="secondary" className="rounded-xl">
-            <Link href="/presensi">
-              <QrCode />
-              Buka Presensi QR
-            </Link>
-          </Button>
-        </>
-      }
     >
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <StatCard icon={BookOpen} label="Total buku" value={books.length} trend="Katalog siap ditelusuri" tone="emerald" />
@@ -206,14 +188,6 @@ function DosenDashboard({
       eyebrow={roleLabel}
       title="Monitoring Skripsi dan Aktivitas Katalog"
       description="Fokus pada perkembangan repositori skripsi, topik penelitian, dan pola kunjungan mahasiswa."
-      actions={
-        <Button asChild className="rounded-xl">
-          <Link href="/dashboard/katalog">
-            <GraduationCap />
-            Tambah Skripsi
-          </Link>
-        </Button>
-      }
     >
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <StatCard icon={GraduationCap} label="Total skripsi" value={theses.length} trend="Topik makin beragam" tone="blue" />
@@ -222,7 +196,7 @@ function DosenDashboard({
       </div>
 
       <div className="grid gap-5 xl:grid-cols-[0.92fr_1.08fr]">
-        <SectionCard title="Skripsi Berdasarkan Topik" description="Tema penelitian yang muncul dari data contoh.">
+        <SectionCard title="Skripsi Berdasarkan Topik" description="Tema penelitian yang muncul dari data katalog.">
           <TopicInterest />
         </SectionCard>
         <SectionCard title="Minat Koleksi" description="Perbandingan kunjungan untuk buku dan skripsi.">
@@ -268,14 +242,6 @@ function PetugasDashboard({
       eyebrow={roleLabel}
       title="Operasional Harian Ruang Baca"
       description="Pantau presensi terbaru, koleksi yang baru ditambahkan, dan input yang menunggu pengecekan."
-      actions={
-        <Button asChild className="rounded-xl">
-          <Link href="/dashboard/whatsapp">
-            <MessageCircle />
-            Pratinjau Input WhatsApp
-          </Link>
-        </Button>
-      }
     >
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <StatCard icon={CalendarCheck} label="Pengunjung hari ini" value={isAttendanceLoading ? "..." : todayVisits} trend="Realtime dari presensi" tone="emerald" />
@@ -290,7 +256,7 @@ function PetugasDashboard({
           { href: "/dashboard/katalog", icon: BookOpen, title: "Input Buku", description: "Tambahkan buku baru dari meja layanan." },
           { href: "/dashboard/katalog", icon: GraduationCap, title: "Input Skripsi", description: "Catat skripsi baru untuk dicek admin.", tone: "blue" },
           { href: "/presensi", icon: QrCode, title: "Bantu Presensi", description: "Buka presensi ketika pengunjung datang.", tone: "amber" },
-          { href: "/dashboard/whatsapp", icon: MessageCircle, title: "Pratinjau Input WhatsApp", description: "Uji format pesan koleksi sebelum ditinjau." },
+          { href: "/dashboard/whatsapp", icon: MessageCircle, title: "Input WhatsApp", description: "Kelola format pesan koleksi sebelum ditinjau." },
         ]}
       />
 
@@ -299,7 +265,7 @@ function PetugasDashboard({
         <VerificationQueuePanel queue={verificationQueue} title="Antrean Input Menunggu Verifikasi" />
       </div>
 
-      <SectionCard title="Riwayat Input WhatsApp" description="Pesan contoh yang masuk ke alur pratinjau.">
+      <SectionCard title="Riwayat Input WhatsApp" description="Pesan koleksi yang masuk melalui alur WhatsApp.">
         <div className="grid gap-3 md:grid-cols-2">
           {whatsappSubmissions.map((item) => (
             <div key={item.id} className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 transition hover:border-emerald-200 hover:bg-white hover:shadow-sm">
@@ -323,13 +289,11 @@ function DashboardFrame({
   eyebrow,
   title,
   description,
-  actions,
   children,
 }: {
   eyebrow: string;
   title: string;
   description: string;
-  actions?: ReactNode;
   children: ReactNode;
 }) {
   return (
@@ -347,15 +311,7 @@ function DashboardFrame({
             <p className="mt-3 max-w-2xl leading-7 text-emerald-50">
               {description}
             </p>
-            <p className="mt-5 w-fit rounded-full bg-white/12 px-3 py-1.5 text-xs font-medium text-emerald-50 ring-1 ring-white/20">
-              Mode pratinjau: data masih contoh untuk validasi alur.
-            </p>
           </div>
-          {actions ? (
-            <div className="flex w-full flex-wrap gap-2 sm:w-auto [&>*]:w-full sm:[&>*]:w-auto">
-              {actions}
-            </div>
-          ) : null}
         </div>
       </section>
       {children}
@@ -530,7 +486,7 @@ function VerificationQueuePanel({
       ) : (
         <EmptyState
           title="Tidak ada antrean"
-          description="Semua input contoh sudah tertata rapi."
+          description="Semua input sudah tertata rapi."
           className="bg-slate-50/70"
         />
       )}

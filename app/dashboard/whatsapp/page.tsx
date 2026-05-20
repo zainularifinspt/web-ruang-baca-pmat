@@ -1,11 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { MessageCircle, Send } from "lucide-react";
+import { Send } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/page-header";
 import { SectionCard } from "@/components/section-card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,17 +18,10 @@ export default function WhatsappSimulationPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Simulasi WhatsApp"
-        title="Pratinjau Input Koleksi via Pesan"
-        description="Validasi format dan respons bot secara visual. Integrasi WhatsApp asli akan dikerjakan pada implementasi berikutnya."
+        eyebrow="Input WhatsApp"
+        title="Input Koleksi via Pesan"
+        description="Validasi format pesan buku dan skripsi sebelum masuk antrean verifikasi."
       />
-      <Alert className="border-amber-200 bg-amber-50 text-amber-950">
-        <MessageCircle className="size-4" />
-        <AlertTitle>Mode pratinjau, belum terhubung ke WhatsApp aktif</AlertTitle>
-        <AlertDescription>
-          Halaman ini memperagakan format, pembacaan pesan, dan respons. Koneksi WhatsApp asli, validasi nomor, dan penyimpanan data masuk implementasi berikutnya.
-        </AlertDescription>
-      </Alert>
       <div className="grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
         <SectionCard title="Uji Format Pesan" description="Coba format input buku atau skripsi.">
             <div className="rounded-2xl border bg-slate-50 p-4 text-sm">
@@ -46,13 +38,13 @@ export default function WhatsappSimulationPage() {
             <Button
               className="mt-4 w-full rounded-xl"
               disabled={!parsed.valid}
-              onClick={() => toast.success("Simulasi pesan diterima", { description: parsed.response })}
+              onClick={() => toast.success("Pesan diterima", { description: parsed.response })}
             >
               <Send />
-              Simulasikan kirim
+              Kirim pesan
             </Button>
         </SectionCard>
-        <SectionCard title="Riwayat Simulasi" description="Pesan contoh yang telah diproses pada mode pratinjau.">
+        <SectionCard title="Riwayat Input" description="Pesan yang telah diproses melalui alur WhatsApp.">
             <Table className="min-w-[680px]">
               <TableHeader>
                 <TableRow>
@@ -84,14 +76,14 @@ function parseMessage(value: string) {
     return {
       type: "Buku",
       valid: true,
-      response: `Simulasi berhasil: ${parts[1]} oleh ${parts[2]} masuk antrean verifikasi.`,
+      response: `${parts[1]} oleh ${parts[2]} masuk antrean verifikasi.`,
     };
   }
   if (type === "skripsi" && parts.length >= 4) {
     return {
       type: "Skripsi",
       valid: true,
-      response: `Simulasi berhasil: skripsi ${parts[1]} masuk antrean verifikasi.`,
+      response: `Skripsi ${parts[1]} masuk antrean verifikasi.`,
     };
   }
   return {

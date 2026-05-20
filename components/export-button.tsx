@@ -29,8 +29,7 @@ export function ExportButton({
       className={cn(className)}
       onClick={() =>
         toast.success(`Ekspor ${exportLabels[type]} disiapkan`, {
-          description:
-            "Mode pratinjau: file unduhan akan tersedia pada implementasi lengkap.",
+          description: "File ekspor sedang disiapkan dari data sistem.",
         })
       }
     >

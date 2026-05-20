@@ -129,7 +129,7 @@ export default function AttendancePage() {
     }
 
     toast.success("Tautan presensi siap dibagikan", {
-      description: "Aksi ini masih simulasi pada mode pratinjau.",
+      description: "Tautan presensi telah disalin.",
     });
   }
 
@@ -181,9 +181,6 @@ export default function AttendancePage() {
                         </h2>
                       </div>
                     </div>
-                    <Badge variant="secondary" className="w-fit rounded-full bg-white text-slate-600">
-                      Mode pratinjau
-                    </Badge>
                   </div>
                 </div>
 
@@ -342,9 +339,9 @@ function QrModeCard({ onCopy }: { onCopy: () => void }) {
         <div className="rounded-3xl bg-slate-50 p-4 text-sm leading-6 text-slate-600">
           <div className="mb-2 flex items-center gap-2 font-semibold text-slate-900">
             <Sparkles className="size-4 text-emerald-700" />
-            Simulasi antarmuka
+            Presensi ruang baca
           </div>
-          Data masih contoh untuk validasi alur. Kode QR nyata, sesi kunjungan, dan penyimpanan data masuk tahap server.
+          Gunakan tautan ini untuk membagikan form presensi kunjungan ruang baca.
         </div>
 
         <Button variant="outline" className="h-11 w-full rounded-2xl bg-white" onClick={onCopy}>

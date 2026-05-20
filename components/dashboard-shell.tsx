@@ -8,18 +8,15 @@ import {
   CheckCheck,
   ClipboardList,
   FileText,
-  GraduationCap,
   Home,
   Menu,
   MessageCircle,
-  Plus,
-  QrCode,
   ShieldCheck,
   UserRound,
   Users,
 } from "lucide-react";
 import { LogoutButton } from "@/app/admin/logout-button";
-import { useMemo, useState, type ComponentType, type ReactNode } from "react";
+import { useState, type ComponentType, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { RoleProvider, useRole } from "@/components/role-provider";
@@ -86,10 +83,7 @@ export function DashboardRoot({
 function DashboardShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
-  const { role } = useRole();
   const currentPage = pageTitles[pathname] ?? pageTitles["/dashboard"];
-  const primaryAction = useMemo(() => getPrimaryAction(role), [role]);
-  const PrimaryActionIcon = primaryAction.icon;
 
   return (
     <div className="min-h-screen bg-[#f5f8fa]">
@@ -117,12 +111,6 @@ function DashboardShell({ children }: { children: ReactNode }) {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button asChild className="hidden rounded-2xl shadow-sm sm:inline-flex" size="sm">
-                <Link href={primaryAction.href}>
-                  <PrimaryActionIcon />
-                  {primaryAction.label}
-                </Link>
-              </Button>
               <RoleSwitcher />
               <LogoutButton className="hidden h-10 rounded-2xl px-3 shadow-sm sm:inline-flex" />
             </div>
@@ -221,20 +209,4 @@ function NavGroup({
       </div>
     </div>
   );
-}
-
-function getPrimaryAction(role: Role) {
-  if (role === "dosen") {
-    return { href: "/dashboard/katalog", label: "Tambah Skripsi", icon: GraduationCap };
-  }
-
-  if (role === "petugas") {
-    return { href: "/dashboard/presensi", label: "Bantu Presensi", icon: QrCode };
-  }
-
-  if (role === "mahasiswa") {
-    return { href: "/katalog", label: "Buka Katalog", icon: BookOpen };
-  }
-
-  return { href: "/dashboard/katalog", label: "Tambah Koleksi", icon: Plus };
 }
