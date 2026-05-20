@@ -4,138 +4,86 @@ import {
   ArrowRight,
   BookOpen,
   Building2,
-  CalendarCheck,
   Clock3,
   GraduationCap,
   LibraryBig,
   Mail,
   MapPin,
-  Search,
-  ShieldCheck,
   Sparkles,
+  TrendingUp,
   Users,
 } from "lucide-react";
-import { HomeGlobalSearch } from "@/components/home-global-search";
+import { LandingSearchForm } from "@/components/landing-search-form";
 import { PublicNav } from "@/components/public-nav";
+import { RealtimeVisitorChart } from "@/components/realtime-visitor-chart";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
 import { hasValidSupabaseConfig } from "@/lib/supabase-config";
 import { fetchCatalogData } from "@/lib/supabase";
 import type { Book, Thesis } from "@/lib/types";
-import { formatDate } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
-const heroImage =
-  "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=2200&q=85";
+type LatestItem = Book | Thesis;
 
 export default async function HomePage() {
   const { books, theses } = await fetchCatalogData({ visibility: "public" });
   const staffCount = await fetchStaffCount();
-  const latestBooks = books.slice(0, 3);
-  const latestTheses = theses.slice(0, 3);
+  const latestCollections = [...books, ...theses]
+    .sort((first, second) => Date.parse(second.createdAt) - Date.parse(first.createdAt))
+    .slice(0, 3);
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-950">
+    <div className="min-h-screen bg-[#f8fbfa] text-slate-950">
       <PublicNav />
-      <main>
-        <section className="relative isolate overflow-hidden">
-          <div
-            className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: `url(${heroImage})` }}
-            aria-hidden="true"
-          />
-          <div className="absolute inset-0 bg-slate-950/70" aria-hidden="true" />
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(15,118,110,0.45),rgba(15,23,42,0.82))]" aria-hidden="true" />
+      <main className="relative overflow-hidden">
+        <MathBackdrop />
 
-          <div className="relative mx-auto flex min-h-[calc(100vh-4.75rem)] max-w-6xl flex-col items-center justify-center px-4 py-16 text-center text-white sm:px-6 lg:py-20">
-            <Badge className="rounded-full border-white/20 bg-white/10 px-4 py-1.5 text-white backdrop-blur hover:bg-white/10">
-              <Sparkles className="mr-1 size-3.5" />
-              Digital Library Prodi
-            </Badge>
-            <h1 className="mt-6 max-w-5xl text-4xl font-semibold leading-[1.05] tracking-normal sm:text-6xl lg:text-7xl">
-              Ruang Baca Pendidikan Matematika
-            </h1>
-            <p className="mt-6 max-w-3xl text-base leading-8 text-slate-100 sm:text-lg">
-              Portal referensi akademik modern untuk menemukan buku, skripsi, lokasi koleksi,
-              dan informasi ruang baca dengan pencarian cepat berbasis data Supabase.
-            </p>
+        <section className="relative mx-auto max-w-6xl px-4 pb-10 pt-10 text-center sm:px-6 sm:pb-12 sm:pt-14">
+          <Badge className="rounded-full border-emerald-100 bg-emerald-50 px-4 py-1.5 text-emerald-700 hover:bg-emerald-50">
+            <Sparkles className="mr-1 size-3.5" />
+            Digital Library PMat
+          </Badge>
+          <h1 className="mx-auto mt-5 max-w-4xl text-4xl font-semibold leading-[1.04] tracking-normal text-slate-950 sm:text-6xl">
+            Ruang Baca <span className="text-emerald-700">Pendidikan Matematika</span>
+          </h1>
+          <p className="mx-auto mt-5 max-w-3xl text-base leading-8 text-slate-600 sm:text-lg">
+            Portal referensi akademik modern untuk menemukan buku, skripsi, lokasi koleksi,
+            dan informasi ruang baca dengan pencarian cepat berbasis data Supabase.
+          </p>
 
-            <div className="mt-9 w-full">
-              <HomeGlobalSearch books={books} theses={theses} />
-            </div>
-
-            <div className="mt-10 grid w-full gap-3 sm:grid-cols-3">
-              <HeroMetric icon={BookOpen} label="Total buku" value={books.length} />
-              <HeroMetric icon={GraduationCap} label="Total skripsi" value={theses.length} />
-              <HeroMetric icon={Users} label="Total petugas" value={staffCount} />
-            </div>
+          <div className="mt-8">
+            <LandingSearchForm />
           </div>
         </section>
 
-        <section className="border-b border-slate-200 bg-white">
-          <div className="mx-auto grid max-w-6xl gap-4 px-4 py-7 sm:grid-cols-3 sm:px-6">
-            <InfoStrip icon={Search} title="Pencarian realtime" description="Debounce cepat untuk judul, penulis, kategori, topik, dan pembimbing." />
-            <InfoStrip icon={ShieldCheck} title="Koleksi terverifikasi" description="Data publik hanya menampilkan buku dan skripsi yang sudah disetujui admin." />
-            <InfoStrip icon={CalendarCheck} title="Siap untuk layanan" description="Terhubung dengan presensi dan dashboard operasional ruang baca." />
-          </div>
-        </section>
-
-        <section className="mx-auto grid max-w-6xl gap-6 px-4 py-12 sm:px-6 lg:grid-cols-[1fr_0.9fr] lg:py-16">
-          <div>
-            <SectionHeading
-              eyebrow="Koleksi terbaru"
-              title="Buku terbaru di ruang baca"
-              description="Referensi yang sudah diverifikasi dan siap ditelusuri oleh mahasiswa."
-              actionHref="/katalog?tab=books"
-            />
-            <div className="mt-6 grid gap-4">
-              {latestBooks.length ? (
-                latestBooks.map((book) => <LatestBook key={book.id} book={book} />)
-              ) : (
-                <EmptyPreview label="Belum ada buku publik yang terverifikasi." />
-              )}
+        <section className="relative mx-auto max-w-5xl px-4 pb-4 sm:px-6">
+          <div className="rounded-[1.5rem] bg-white p-4 shadow-xl shadow-slate-950/6 ring-1 ring-slate-200/70 sm:p-5">
+            <div className="mb-3 flex items-center justify-between gap-3 border-b border-slate-100 pb-3">
+              <h2 className="text-sm font-semibold text-slate-950">Koleksi terbaru</h2>
+              <p className="text-xs font-semibold text-slate-500">{latestCollections.length} item</p>
             </div>
-          </div>
-
-          <div>
-            <SectionHeading
-              eyebrow="Repositori skripsi"
-              title="Skripsi terbaru"
-              description="Karya akhir mahasiswa yang sudah lolos verifikasi admin."
-              actionHref="/katalog?tab=theses"
-            />
-            <div className="mt-6 grid gap-4">
-              {latestTheses.length ? (
-                latestTheses.map((thesis) => <LatestThesis key={thesis.id} thesis={thesis} />)
+            <div className="grid gap-2">
+              {latestCollections.length ? (
+                latestCollections.map((item) => <LatestCollectionRow key={`${item.type}-${item.id}`} item={item} />)
               ) : (
-                <EmptyPreview label="Belum ada skripsi publik yang terverifikasi." />
+                <div className="rounded-2xl bg-slate-50 p-5 text-sm text-slate-500">
+                  Belum ada koleksi publik yang terverifikasi.
+                </div>
               )}
             </div>
           </div>
         </section>
 
-        <section className="border-y border-emerald-100 bg-emerald-950 text-white">
-          <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:px-6 lg:grid-cols-[1fr_auto] lg:items-center">
-            <div>
-              <p className="text-sm font-semibold text-emerald-200">Akses internal</p>
-              <h2 className="mt-2 text-3xl font-semibold tracking-normal sm:text-4xl">
-                Kelola koleksi, verifikasi data, dan pantau layanan dari dashboard admin.
-              </h2>
-              <p className="mt-4 max-w-2xl text-sm leading-7 text-emerald-50">
-                Dashboard dirancang untuk petugas dan admin prodi dengan statistik, tabel data,
-                modal edit, notifikasi toast, serta alur verifikasi yang tetap aman.
-              </p>
-            </div>
-            <Button asChild size="lg" className="h-12 rounded-2xl bg-white px-6 text-emerald-950 hover:bg-emerald-50">
-              <Link href="/login?redirectTo=/dashboard">
-                Login Admin
-                <ArrowRight />
-              </Link>
-            </Button>
-          </div>
+        <section className="relative mx-auto max-w-6xl px-4 py-4 sm:px-6">
+          <RealtimeVisitorChart />
+        </section>
+
+        <section className="relative mx-auto grid max-w-6xl gap-4 px-4 pb-12 pt-2 sm:grid-cols-2 sm:px-6 lg:grid-cols-4">
+          <StatTile icon={BookOpen} label="Total Buku" value={books.length} description="Koleksi buku tersedia" />
+          <StatTile icon={GraduationCap} label="Total Skripsi" value={theses.length} description="Koleksi skripsi tersedia" tone="sky" />
+          <StatTile icon={Users} label="Total Petugas" value={staffCount} description="Pengelola ruang baca" tone="violet" />
+          <StatTile icon={TrendingUp} label="Total Pengunjung" value="Realtime" description="Dihitung dari presensi" tone="amber" />
         </section>
       </main>
       <Footer />
@@ -159,146 +107,93 @@ async function fetchStaffCount() {
   }
 }
 
-function HeroMetric({
+function LatestCollectionRow({ item }: { item: LatestItem }) {
+  const isBook = item.type === "book";
+  const href = isBook ? `/books/${item.id}` : `/theses/${item.id}`;
+  const Icon = isBook ? BookOpen : GraduationCap;
+  const meta = isBook
+    ? `${item.author || "Penulis"} - ${item.category || "Buku"}`
+    : `${item.studentName || "Mahasiswa"} - ${item.year}`;
+
+  return (
+    <Link
+      href={href}
+      className="group flex items-center gap-3 rounded-2xl p-2.5 transition hover:bg-emerald-50"
+    >
+      <span
+        className={[
+          "flex size-11 shrink-0 items-center justify-center rounded-2xl ring-1",
+          isBook
+            ? "bg-emerald-50 text-emerald-700 ring-emerald-100"
+            : "bg-sky-50 text-sky-700 ring-sky-100",
+        ].join(" ")}
+      >
+        <Icon className="size-5" />
+      </span>
+      <span className="min-w-0 flex-1 text-left">
+        <span className="line-clamp-1 text-sm font-semibold text-slate-950">{item.title}</span>
+        <span className="mt-1 block line-clamp-1 text-xs font-medium text-slate-500">{meta}</span>
+      </span>
+      <span className="hidden rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-100 sm:inline-flex">
+        {isBook ? "Buku" : "Skripsi"}
+      </span>
+      <ArrowRight className="size-4 shrink-0 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-emerald-700" />
+    </Link>
+  );
+}
+
+function StatTile({
   icon: Icon,
   label,
   value,
+  description,
+  tone = "emerald",
 }: {
   icon: ComponentType<{ className?: string }>;
   label: string;
-  value: number;
-}) {
-  return (
-    <div className="rounded-[1.5rem] bg-white/12 p-5 text-left shadow-sm ring-1 ring-white/20 backdrop-blur">
-      <Icon className="size-5 text-emerald-200" />
-      <p className="mt-5 text-4xl font-semibold tracking-tight">{value}</p>
-      <p className="mt-1 text-sm font-medium text-slate-200">{label}</p>
-    </div>
-  );
-}
-
-function InfoStrip({
-  icon: Icon,
-  title,
-  description,
-}: {
-  icon: ComponentType<{ className?: string }>;
-  title: string;
+  value: number | string;
   description: string;
+  tone?: "emerald" | "sky" | "violet" | "amber";
 }) {
+  const tones = {
+    emerald: "bg-emerald-50 text-emerald-700 ring-emerald-100",
+    sky: "bg-sky-50 text-sky-700 ring-sky-100",
+    violet: "bg-violet-50 text-violet-700 ring-violet-100",
+    amber: "bg-amber-50 text-amber-700 ring-amber-100",
+  };
+
   return (
-    <div className="flex gap-3 rounded-2xl p-3 transition hover:bg-slate-50">
-      <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100">
-        <Icon className="size-5" />
+    <div className="flex items-center gap-4 rounded-[1.35rem] bg-white p-5 shadow-sm ring-1 ring-slate-200/70">
+      <span className={`flex size-14 shrink-0 items-center justify-center rounded-full ring-1 ${tones[tone]}`}>
+        <Icon className="size-7" />
       </span>
-      <span>
-        <span className="block text-sm font-semibold text-slate-950">{title}</span>
-        <span className="mt-1 block text-sm leading-6 text-slate-600">{description}</span>
+      <span className="min-w-0 text-left">
+        <span className="block text-3xl font-semibold tracking-tight text-slate-950">{value}</span>
+        <span className="mt-1 block text-sm font-semibold text-slate-700">{label}</span>
+        <span className="mt-1 block text-xs text-slate-500">{description}</span>
       </span>
     </div>
   );
 }
 
-function SectionHeading({
-  eyebrow,
-  title,
-  description,
-  actionHref,
-}: {
-  eyebrow: string;
-  title: string;
-  description: string;
-  actionHref: string;
-}) {
+function MathBackdrop() {
   return (
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-      <div>
-        <p className="text-sm font-semibold text-emerald-700">{eyebrow}</p>
-        <h2 className="mt-2 text-2xl font-semibold tracking-normal text-slate-950 sm:text-3xl">
-          {title}
-        </h2>
-        <p className="mt-2 max-w-xl text-sm leading-6 text-slate-600">{description}</p>
+    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+      <div className="absolute left-[-3rem] top-28 hidden text-[11rem] font-light leading-none text-emerald-100/55 sm:block">
+        ∫
       </div>
-      <Button asChild variant="outline" className="w-fit rounded-2xl bg-white">
-        <Link href={actionHref}>
-          Lihat semua
-          <ArrowRight />
-        </Link>
-      </Button>
-    </div>
-  );
-}
-
-function LatestBook({ book }: { book: Book }) {
-  return (
-    <Card className="group overflow-hidden rounded-[1.5rem] border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-lg">
-      <CardContent className="flex gap-4 p-4">
-        <CoverPreview item={book} />
-        <div className="min-w-0 flex-1">
-          <Badge variant="secondary" className="rounded-full">{book.category || "Buku"}</Badge>
-          <h3 className="mt-3 line-clamp-2 font-semibold leading-snug text-slate-950">
-            {book.title}
-          </h3>
-          <p className="mt-2 line-clamp-1 text-sm text-slate-600">{book.author}</p>
-          <p className="mt-2 text-xs font-medium text-slate-500">{book.rackLocation}</p>
-          <Link href={`/books/${book.id}`} className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-emerald-700">
-            Detail buku
-            <ArrowRight className="size-4 transition group-hover:translate-x-0.5" />
-          </Link>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function LatestThesis({ thesis }: { thesis: Thesis }) {
-  return (
-    <Card className="group overflow-hidden rounded-[1.5rem] border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-sky-200 hover:shadow-lg">
-      <CardContent className="flex gap-4 p-4">
-        <CoverPreview item={thesis} />
-        <div className="min-w-0 flex-1">
-          <Badge variant="secondary" className="rounded-full bg-sky-50 text-sky-800">
-            Skripsi {thesis.year}
-          </Badge>
-          <h3 className="mt-3 line-clamp-2 font-semibold leading-snug text-slate-950">
-            {thesis.title}
-          </h3>
-          <p className="mt-2 line-clamp-1 text-sm text-slate-600">{thesis.studentName}</p>
-          <p className="mt-2 text-xs font-medium text-slate-500">{formatDate(thesis.createdAt)}</p>
-          <Link href={`/theses/${thesis.id}`} className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-emerald-700">
-            Detail skripsi
-            <ArrowRight className="size-4 transition group-hover:translate-x-0.5" />
-          </Link>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function CoverPreview({ item }: { item: Book | Thesis }) {
-  return (
-    <div className="relative h-36 w-24 shrink-0 overflow-hidden rounded-2xl bg-emerald-900 text-white shadow-md">
-      {item.coverUrl ? (
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${item.coverUrl})` }}
-        />
-      ) : (
-        <div className="absolute inset-0 bg-[linear-gradient(145deg,#0f766e,#0f172a)]" />
-      )}
-      <div className="absolute inset-0 bg-slate-950/20" />
-      <div className="relative flex h-full flex-col justify-between p-3">
-        {item.type === "book" ? <BookOpen className="size-5" /> : <GraduationCap className="size-5" />}
-        <span className="text-xs font-semibold">{item.year}</span>
+      <div className="absolute right-[9%] top-24 hidden text-7xl font-semibold text-emerald-100/80 lg:block">
+        Σ
       </div>
-    </div>
-  );
-}
-
-function EmptyPreview({ label }: { label: string }) {
-  return (
-    <div className="rounded-[1.5rem] border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-500">
-      {label}
+      <div className="absolute right-[-2rem] top-40 hidden h-40 w-40 rounded-full bg-emerald-50 lg:block" />
+      <div className="absolute left-[18%] top-20 hidden text-3xl italic text-emerald-100 sm:block">
+        A = πr²
+      </div>
+      <div className="absolute right-[18%] top-20 hidden text-3xl italic text-emerald-100 lg:block">
+        f(x) = x² - 4x + 3
+      </div>
+      <div className="absolute left-[5%] top-48 hidden h-36 w-56 -rotate-12 rounded-[50%] border border-emerald-100/80 sm:block" />
+      <div className="absolute bottom-28 right-[7%] hidden size-32 rotate-45 border border-emerald-100/80 lg:block" />
     </div>
   );
 }

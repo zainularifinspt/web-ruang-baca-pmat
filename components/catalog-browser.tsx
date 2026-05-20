@@ -32,18 +32,20 @@ export function CatalogBrowser({
   books,
   theses,
   initialTab = "books",
+  initialQuery = "",
   itemActions,
   enableRealtime = true,
 }: {
   books: Book[];
   theses: Thesis[];
   initialTab?: CatalogTab;
+  initialQuery?: string;
   itemActions?: (item: CollectionItem) => ReactNode;
   enableRealtime?: boolean;
 }) {
   const router = useRouter();
-  const [query, setQuery] = useState("");
-  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [query, setQuery] = useState(initialQuery);
+  const [debouncedQuery, setDebouncedQuery] = useState(initialQuery);
   const [tab, setTab] = useState<CatalogTab>(initialTab);
   const [sort, setSort] = useState<SortValue>("newest");
   const [isFilterLoading, setIsFilterLoading] = useState(false);

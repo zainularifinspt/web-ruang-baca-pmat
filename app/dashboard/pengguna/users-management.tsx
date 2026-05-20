@@ -5,6 +5,7 @@ import { KeyRound, Pencil, Plus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { InitialAvatar } from "@/components/data-table";
+import { EmptyState } from "@/components/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -110,8 +111,12 @@ export function UsersManagement({ users }: { users: ManagedUser[] }) {
           ))
         ) : (
           <TableRow>
-            <TableCell colSpan={6} className="h-28 text-center text-sm text-slate-500">
-              Belum ada pengguna dari Supabase.
+            <TableCell colSpan={6} className="py-8">
+              <EmptyState
+                title="Belum ada pengguna"
+                description="Pengguna dari Supabase Auth dan tabel profiles akan tampil di sini setelah ditambahkan."
+                className="border-slate-200 bg-slate-50/70"
+              />
             </TableCell>
           </TableRow>
         )}

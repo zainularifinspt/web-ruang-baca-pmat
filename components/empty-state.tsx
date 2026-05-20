@@ -15,14 +15,14 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center rounded-2xl border border-dashed bg-white/70 p-10 text-center",
+        "flex flex-col items-center justify-center rounded-[1.5rem] border border-dashed border-slate-300 bg-white/80 p-10 text-center shadow-sm",
         className,
       )}
     >
-      <div className="mb-4 rounded-2xl bg-slate-100 p-3 text-slate-500">
+      <div className="mb-4 rounded-2xl bg-emerald-50 p-3 text-emerald-700 ring-1 ring-emerald-100">
         <SearchX className="size-6" />
       </div>
-      <h3 className="font-semibold text-slate-950">{title}</h3>
+      <h3 className="text-lg font-semibold text-slate-950">{title}</h3>
       {description ? (
         <p className="mt-2 max-w-md text-sm leading-6 text-muted-foreground">
           {description}

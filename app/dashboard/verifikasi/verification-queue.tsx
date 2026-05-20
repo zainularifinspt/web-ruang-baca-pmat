@@ -6,6 +6,7 @@ import { Check, MessageSquareWarning, X } from "lucide-react";
 import { toast } from "sonner";
 import { updateCollectionVerificationStatus } from "@/app/dashboard/katalog/actions";
 import { CollectionDetail } from "@/components/collection-detail";
+import { EmptyState } from "@/components/empty-state";
 import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -101,8 +102,12 @@ export function VerificationQueue({ items }: { items: CollectionItem[] }) {
           })
         ) : (
           <TableRow>
-            <TableCell colSpan={5} className="h-28 text-center text-sm text-slate-500">
-              Belum ada koleksi yang perlu diverifikasi.
+            <TableCell colSpan={5} className="py-8">
+              <EmptyState
+                title="Tidak ada antrean verifikasi"
+                description="Buku dan skripsi yang sudah ditinjau tidak akan muncul sebagai antrean baru."
+                className="border-slate-200 bg-slate-50/70"
+              />
             </TableCell>
           </TableRow>
         )}

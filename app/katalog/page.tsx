@@ -9,9 +9,9 @@ export const dynamic = "force-dynamic";
 export default async function CatalogPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string }>;
+  searchParams: Promise<{ q?: string; tab?: string }>;
 }) {
-  const { tab } = await searchParams;
+  const { q, tab } = await searchParams;
   const initialTab = tab === "theses" ? "theses" : "books";
   const { books, theses, error } = await fetchCatalogData({ visibility: "public" });
 
@@ -31,7 +31,7 @@ export default async function CatalogPage({
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         ) : null}
-        <CatalogBrowser books={books} theses={theses} initialTab={initialTab} />
+        <CatalogBrowser books={books} theses={theses} initialTab={initialTab} initialQuery={q ?? ""} />
       </main>
     </div>
   );
