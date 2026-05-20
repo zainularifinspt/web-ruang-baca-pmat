@@ -59,7 +59,6 @@ export async function updateOwnProfileName(fullNameInput: string): Promise<Updat
           email: user.email ?? null,
           full_name: fullName,
           role,
-          updated_at: new Date().toISOString(),
         },
         { onConflict: "id" },
       ),
