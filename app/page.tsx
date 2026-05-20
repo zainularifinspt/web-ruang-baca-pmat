@@ -21,15 +21,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { books, theses, visitorMetrics } from "@/lib/mock-data";
 
-const topics = [
-  "Literasi Numerasi",
-  "GeoGebra",
-  "Etnomatematika",
-  "HOTS",
-  "AI dalam Pembelajaran Matematika",
-  "Number Sense",
-];
-
 export default function HomePage() {
   const totalVisits = visitorMetrics.reduce((sum, item) => sum + item.visits, 0);
   const availableBooks = books.reduce((sum, item) => sum + item.available, 0);
@@ -136,30 +127,6 @@ export default function HomePage() {
             <PremiumMetric label="Total skripsi" value={theses.length} icon={GraduationCap} tone="blue" />
             <PremiumMetric label="Total pengunjung" value={totalVisits} icon={CalendarCheck} tone="amber" />
             <PremiumMetric label="Peningkatan kunjungan" value={`${visitIncrease}%`} icon={BarChart3} tone="emerald" />
-          </div>
-        </LandingSection>
-
-        <LandingSection className="mx-auto max-w-6xl px-5 pb-14 sm:px-6 sm:pb-16">
-          <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200/70">
-            <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <p className="text-sm font-semibold text-primary">Topik Skripsi Populer</p>
-                <h2 className="mt-2 text-2xl font-semibold text-slate-950">
-                  Tema penelitian yang sering dicari mahasiswa.
-                </h2>
-              </div>
-              <Badge variant="secondary" className="w-fit rounded-full">Pendidikan Matematika</Badge>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              {topics.map((topic, index) => (
-                <span
-                  key={topic}
-                  className="inline-flex rounded-full bg-emerald-50 px-4 py-2 text-sm font-medium text-slate-700 ring-1 ring-emerald-100 transition hover:-translate-y-0.5"
-                >
-                  #{index + 1} {topic}
-                </span>
-              ))}
-            </div>
           </div>
         </LandingSection>
 
