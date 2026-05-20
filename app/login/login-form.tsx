@@ -61,7 +61,7 @@ export function LoginForm() {
       }
 
       if (roleResult.role === "admin") {
-        router.replace("/admin");
+        router.replace("/dashboard");
         router.refresh();
         return;
       }

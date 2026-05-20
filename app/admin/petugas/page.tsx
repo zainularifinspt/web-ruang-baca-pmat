@@ -33,9 +33,9 @@ export default async function AdminPetugasPage() {
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-8 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:py-10">
           <div>
             <Button asChild variant="outline" size="sm" className="mb-5 rounded-xl bg-white">
-              <Link href="/admin">
+              <Link href="/dashboard">
                 <ArrowLeft />
-                Kembali ke admin
+                Kembali ke dashboard
               </Link>
             </Button>
             <p className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-sm font-medium text-emerald-700 ring-1 ring-emerald-100">
