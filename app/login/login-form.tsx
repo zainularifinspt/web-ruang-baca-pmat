@@ -42,31 +42,27 @@ export function LoginForm() {
         return;
       }
 
-      const user = result.data.user;
-      console.log("LOGIN USER ID:", user.id);
-
       const { data: profile, error } = await supabase
         .from("profiles")
         .select("role")
-        .eq("id", user.id)
-        .single();
+        .eq("id", result.data.user.id)
+        .maybeSingle();
 
-      console.log("PROFILE:", profile);
-      console.log("PROFILE ERROR:", error);
+      const role = profile?.role;
 
-      if (error || !profile?.role) {
+      if (error || !role) {
         await supabase.auth.signOut();
         setFormError("Akun berhasil dikenali, tetapi belum memiliki role admin atau petugas.");
         return;
       }
 
-      if (profile.role === "admin") {
+      if (role === "admin") {
         router.replace("/admin");
         router.refresh();
         return;
       }
 
-      if (profile.role === "petugas") {
+      if (role === "petugas") {
         router.replace("/petugas");
         router.refresh();
         return;

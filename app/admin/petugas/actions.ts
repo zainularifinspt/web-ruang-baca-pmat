@@ -85,7 +85,6 @@ export async function createPetugasAccount(
           email,
           full_name: fullName,
           role: "petugas",
-          updated_at: new Date().toISOString(),
         },
         { onConflict: "id" },
       );
