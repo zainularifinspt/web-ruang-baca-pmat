@@ -35,7 +35,7 @@ export async function updateOwnProfileName(fullNameInput: string): Promise<Updat
     const supabaseAdmin = createSupabaseAdminClient();
     const { data: currentProfile, error: currentProfileError } = await supabaseAdmin
       .from("profiles")
-      .select("role")
+      .select("id,role")
       .eq("id", user.id)
       .maybeSingle();
 
@@ -49,19 +49,21 @@ export async function updateOwnProfileName(fullNameInput: string): Promise<Updat
       name: fullName,
     };
 
+    const profileUpdate = currentProfile
+      ? supabaseAdmin
+          .from("profiles")
+          .update({
+            email: user.email ?? null,
+            full_name: fullName,
+          })
+          .eq("id", user.id)
+      : Promise.resolve({ error: null });
+
     const [{ error: authError }, { error: profileError }] = await Promise.all([
       supabaseAdmin.auth.admin.updateUserById(user.id, {
         user_metadata: metadata,
       }),
-      supabaseAdmin.from("profiles").upsert(
-        {
-          id: user.id,
-          email: user.email ?? null,
-          full_name: fullName,
-          role,
-        },
-        { onConflict: "id" },
-      ),
+      profileUpdate,
     ]);
 
     if (authError) return failure(authError.message);
