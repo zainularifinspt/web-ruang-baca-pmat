@@ -26,6 +26,9 @@ export function DashboardCatalogContent({
     <CatalogBrowser
       books={books}
       theses={theses}
+      initialTab="all"
+      initialVerificationStatus="approved"
+      showAllTab
       itemActions={(item) =>
         canEdit || canDelete ? (
           <>

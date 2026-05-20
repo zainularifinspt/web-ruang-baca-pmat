@@ -17,10 +17,12 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getSupabaseClient } from "@/lib/supabase";
-import type { Book, Thesis } from "@/lib/types";
+import type { Book, Thesis, VerificationStatus } from "@/lib/types";
+import { valueToUIStatus } from "@/lib/utils";
 
-type CatalogTab = "books" | "theses";
+type CatalogTab = "all" | "books" | "theses";
 type SortValue = "newest" | "oldest" | "title";
+type VerificationFilter = VerificationStatus | "all";
 type CollectionItem = Book | Thesis;
 type FilterOption = {
   label: string;
@@ -33,6 +35,8 @@ export function CatalogBrowser({
   theses,
   initialTab = "books",
   initialQuery = "",
+  initialVerificationStatus = "all",
+  showAllTab = false,
   itemActions,
   enableRealtime = true,
 }: {
@@ -40,6 +44,8 @@ export function CatalogBrowser({
   theses: Thesis[];
   initialTab?: CatalogTab;
   initialQuery?: string;
+  initialVerificationStatus?: VerificationFilter;
+  showAllTab?: boolean;
   itemActions?: (item: CollectionItem) => ReactNode;
   enableRealtime?: boolean;
 }) {
@@ -48,6 +54,8 @@ export function CatalogBrowser({
   const [debouncedQuery, setDebouncedQuery] = useState(initialQuery);
   const [tab, setTab] = useState<CatalogTab>(initialTab);
   const [sort, setSort] = useState<SortValue>("newest");
+  const [verificationStatus, setVerificationStatus] =
+    useState<VerificationFilter>(initialVerificationStatus);
   const [isFilterLoading, setIsFilterLoading] = useState(false);
   const loadingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -124,29 +132,36 @@ export function CatalogBrowser({
   const filteredBooks = useMemo(() => {
     const result = books.filter((item) => {
       const matchesQuery = matchesSearch(item, normalizedQuery);
+      const matchesStatus = matchesVerificationStatus(item, verificationStatus);
       const matchesCategory = bookCategory === "all" || item.category === bookCategory;
       const matchesLocation = bookLocation === "all" || item.rackLocation === bookLocation;
       const availability = getAvailabilityValue(item);
       const matchesAvailability =
         bookAvailability === "all" || availability === bookAvailability;
-      return matchesQuery && matchesCategory && matchesLocation && matchesAvailability;
+      return matchesQuery && matchesStatus && matchesCategory && matchesLocation && matchesAvailability;
     });
     return sortCollections(result, sort);
-  }, [books, normalizedQuery, bookCategory, bookLocation, bookAvailability, sort]);
+  }, [books, normalizedQuery, verificationStatus, bookCategory, bookLocation, bookAvailability, sort]);
 
   const filteredTheses = useMemo(() => {
     const result = theses.filter((item) => {
       const matchesQuery = matchesSearch(item, normalizedQuery);
+      const matchesStatus = matchesVerificationStatus(item, verificationStatus);
       const matchesYear = thesisYear === "all" || String(item.year) === thesisYear;
       const matchesTopic = thesisTopic === "all" || item.keywords.includes(thesisTopic);
       const matchesAdvisor =
         thesisAdvisor === "all" ||
         item.supervisor1 === thesisAdvisor ||
         item.supervisor2 === thesisAdvisor;
-      return matchesQuery && matchesYear && matchesTopic && matchesAdvisor;
+      return matchesQuery && matchesStatus && matchesYear && matchesTopic && matchesAdvisor;
     });
     return sortCollections(result, sort);
-  }, [theses, normalizedQuery, thesisYear, thesisTopic, thesisAdvisor, sort]);
+  }, [theses, normalizedQuery, verificationStatus, thesisYear, thesisTopic, thesisAdvisor, sort]);
+
+  const filteredAll = useMemo(
+    () => sortCollections([...filteredBooks, ...filteredTheses], sort),
+    [filteredBooks, filteredTheses, sort],
+  );
 
   const bookCategories = useMemo(() => unique(books.map((item) => item.category)), [books]);
   const bookLocations = useMemo(() => unique(books.map((item) => item.rackLocation)), [books]);
@@ -160,18 +175,25 @@ export function CatalogBrowser({
   const activeChips =
     tab === "books"
       ? [
+          chip("Status", verificationStatusLabel(verificationStatus), () => setVerificationStatus("all"), verificationStatus),
           chip("Kategori", bookCategory, () => setBookCategory("all")),
           chip("Lokasi", bookLocation, () => setBookLocation("all")),
           chip("Ketersediaan", availabilityLabel(bookAvailability), () => setBookAvailability("all"), bookAvailability),
         ]
-      : [
+      : tab === "theses"
+        ? [
+          chip("Status", verificationStatusLabel(verificationStatus), () => setVerificationStatus("all"), verificationStatus),
           chip("Tahun", thesisYear, () => setThesisYear("all")),
           chip("Topik", thesisTopic, () => setThesisTopic("all")),
           chip("Pembimbing", thesisAdvisor, () => setThesisAdvisor("all")),
+        ]
+        : [
+          chip("Status", verificationStatusLabel(verificationStatus), () => setVerificationStatus("all"), verificationStatus),
         ];
 
   const resetCurrentFilters = () => {
     triggerLoading();
+    setVerificationStatus(initialVerificationStatus);
     if (tab === "books") {
       setBookCategory("all");
       setBookLocation("all");
@@ -183,7 +205,12 @@ export function CatalogBrowser({
     }
   };
 
-  const currentCount = tab === "books" ? filteredBooks.length : filteredTheses.length;
+  const currentCount =
+    tab === "all"
+      ? filteredAll.length
+      : tab === "books"
+        ? filteredBooks.length
+        : filteredTheses.length;
   const hasQuery = query.trim().length > 0;
   const isSearchLoading = query.trim() !== debouncedQuery.trim();
   const isLoading = isFilterLoading || isSearchLoading;
@@ -237,7 +264,14 @@ export function CatalogBrowser({
         }}
       >
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <TabsList className="grid h-12 w-full grid-cols-2 rounded-2xl bg-white p-1 shadow-sm ring-1 ring-slate-200/70 sm:w-96">
+          <TabsList
+            className={
+              showAllTab
+                ? "grid h-12 w-full grid-cols-3 rounded-2xl bg-white p-1 shadow-sm ring-1 ring-slate-200/70 sm:w-[32rem]"
+                : "grid h-12 w-full grid-cols-2 rounded-2xl bg-white p-1 shadow-sm ring-1 ring-slate-200/70 sm:w-96"
+            }
+          >
+            {showAllTab ? <TabsTrigger value="all">Semua</TabsTrigger> : null}
             <TabsTrigger value="books">Buku</TabsTrigger>
             <TabsTrigger value="theses">Skripsi</TabsTrigger>
           </TabsList>
@@ -265,53 +299,96 @@ export function CatalogBrowser({
             Filter koleksi
           </div>
 
-          <TabsContent value="books" className="m-0">
-            <BookFilters
-              categories={bookCategories}
-              locations={bookLocations}
-              category={bookCategory}
-              location={bookLocation}
-              availability={bookAvailability}
-              onCategory={(value) => {
-                setBookCategory(value);
-                triggerLoading();
-              }}
-              onLocation={(value) => {
-                setBookLocation(value);
-                triggerLoading();
-              }}
-              onAvailability={(value) => {
-                setBookAvailability(value);
+          <TabsContent value="all" className="m-0">
+            <VerificationStatusFilter
+              value={verificationStatus}
+              onValueChange={(value) => {
+                setVerificationStatus(value);
                 triggerLoading();
               }}
             />
           </TabsContent>
 
+          <TabsContent value="books" className="m-0">
+            <div className="grid gap-3 xl:grid-cols-[220px_1fr]">
+              <VerificationStatusFilter
+                value={verificationStatus}
+                onValueChange={(value) => {
+                  setVerificationStatus(value);
+                  triggerLoading();
+                }}
+              />
+              <BookFilters
+                categories={bookCategories}
+                locations={bookLocations}
+                category={bookCategory}
+                location={bookLocation}
+                availability={bookAvailability}
+                onCategory={(value) => {
+                  setBookCategory(value);
+                  triggerLoading();
+                }}
+                onLocation={(value) => {
+                  setBookLocation(value);
+                  triggerLoading();
+                }}
+                onAvailability={(value) => {
+                  setBookAvailability(value);
+                  triggerLoading();
+                }}
+              />
+            </div>
+          </TabsContent>
+
           <TabsContent value="theses" className="m-0">
-            <ThesisFilters
-              years={thesisYears}
-              topics={thesisTopics}
-              advisors={thesisAdvisors}
-              year={thesisYear}
-              topic={thesisTopic}
-              advisor={thesisAdvisor}
-              onYear={(value) => {
-                setThesisYear(value);
-                triggerLoading();
-              }}
-              onTopic={(value) => {
-                setThesisTopic(value);
-                triggerLoading();
-              }}
-              onAdvisor={(value) => {
-                setThesisAdvisor(value);
-                triggerLoading();
-              }}
-            />
+            <div className="grid gap-3 xl:grid-cols-[220px_1fr]">
+              <VerificationStatusFilter
+                value={verificationStatus}
+                onValueChange={(value) => {
+                  setVerificationStatus(value);
+                  triggerLoading();
+                }}
+              />
+              <ThesisFilters
+                years={thesisYears}
+                topics={thesisTopics}
+                advisors={thesisAdvisors}
+                year={thesisYear}
+                topic={thesisTopic}
+                advisor={thesisAdvisor}
+                onYear={(value) => {
+                  setThesisYear(value);
+                  triggerLoading();
+                }}
+                onTopic={(value) => {
+                  setThesisTopic(value);
+                  triggerLoading();
+                }}
+                onAdvisor={(value) => {
+                  setThesisAdvisor(value);
+                  triggerLoading();
+                }}
+              />
+            </div>
           </TabsContent>
 
           <FilterChips chips={activeChips} onReset={resetCurrentFilters} />
         </div>
+
+        {showAllTab ? (
+          <TabsContent value="all" className="mt-6">
+            {isLoading ? (
+              <CatalogSkeleton />
+            ) : (
+              <CollectionGrid
+                items={filteredAll}
+                itemActions={itemActions}
+                empty="Koleksi tidak ditemukan."
+                description="Coba gunakan kata kunci lain, ubah status verifikasi, atau reset filter yang aktif."
+              />
+            )}
+          </TabsContent>
+        ) : null}
 
         <TabsContent value="books" className="mt-6">
           {isLoading ? (
@@ -446,6 +523,28 @@ function ThesisFilters({
       <FilterSelect label="Topik" value={topic} onValueChange={onTopic} options={topicOptions} placeholder="Semua topik" />
       <FilterSelect label="Dosen pembimbing" value={advisor} onValueChange={onAdvisor} options={advisorOptions} placeholder="Semua pembimbing" />
     </div>
+  );
+}
+
+function VerificationStatusFilter({
+  value,
+  onValueChange,
+}: {
+  value: VerificationFilter;
+  onValueChange: (value: VerificationFilter) => void;
+}) {
+  return (
+    <FilterSelect
+      label="Status verifikasi"
+      value={value}
+      onValueChange={(nextValue) => onValueChange(nextValue as VerificationFilter)}
+      placeholder="Semua status"
+      options={[
+        { label: "Disetujui", value: "approved" },
+        { label: "Menunggu Verifikasi", value: "pending" },
+        { label: "Ditolak", value: "rejected" },
+      ]}
+    />
   );
 }
 
@@ -586,12 +685,20 @@ function availabilityLabel(value: string) {
   return labels[value] ?? value;
 }
 
+function verificationStatusLabel(value: VerificationFilter) {
+  return value === "all" ? "all" : valueToUIStatus(value);
+}
+
 function sortCollections<T extends Book | Thesis>(items: T[], sort: SortValue) {
   return [...items].sort((a, b) => {
     if (sort === "title") return a.title.localeCompare(b.title);
     if (sort === "oldest") return a.year - b.year;
     return b.year - a.year;
   });
+}
+
+function matchesVerificationStatus(item: Book | Thesis, status: VerificationFilter) {
+  return status === "all" || item.verificationStatus === status;
 }
 
 function matchesSearch(item: Book | Thesis, normalizedQuery: string) {
