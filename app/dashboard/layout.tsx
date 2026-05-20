@@ -1,5 +1,41 @@
 import { DashboardRoot } from "@/components/dashboard-shell";
+import { redirect } from "next/navigation";
+import { createSupabaseAdminClient } from "@/lib/supabase-admin";
+import { createSupabaseServerClient } from "@/lib/supabase-auth-server";
+import { hasValidSupabaseConfig } from "@/lib/supabase-config";
+import type { Role } from "@/lib/types";
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  return <DashboardRoot>{children}</DashboardRoot>;
+const dashboardRoles: Role[] = ["admin", "dosen", "petugas"];
+
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  if (!hasValidSupabaseConfig()) {
+    redirect("/login?redirectTo=/dashboard&error=configuration");
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login?redirectTo=/dashboard");
+  }
+
+  const { data: profile } = await createSupabaseAdminClient()
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  const role = profile?.role as Role | undefined;
+
+  if (role === "mahasiswa") {
+    redirect("/katalog");
+  }
+
+  if (!role || !dashboardRoles.includes(role)) {
+    redirect("/login?redirectTo=/dashboard&error=staff_required");
+  }
+
+  return <DashboardRoot role={role}>{children}</DashboardRoot>;
 }

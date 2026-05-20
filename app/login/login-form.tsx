@@ -10,7 +10,7 @@ import { createSupabaseBrowserClient } from "@/lib/supabase-auth-client";
 
 const authErrorMessages: Record<string, string> = {
   admin_required: "Akun ini belum memiliki akses admin.",
-  staff_required: "Akun ini belum memiliki akses petugas.",
+  staff_required: "Akun ini belum memiliki akses dashboard.",
   configuration: "Konfigurasi Supabase belum lengkap.",
 };
 
@@ -48,14 +48,14 @@ export function LoginForm() {
         headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
       });
       const roleResult = (await roleResponse.json()) as {
-        role?: "admin" | "petugas";
+        role?: "admin" | "dosen" | "petugas" | "mahasiswa";
         message?: string;
       };
 
       if (!roleResponse.ok || !roleResult.role) {
         await supabase.auth.signOut();
         setFormError(
-          roleResult.message ?? "Akun berhasil dikenali, tetapi belum memiliki role admin atau petugas.",
+          roleResult.message ?? "Akun berhasil dikenali, tetapi belum memiliki role aplikasi.",
         );
         return;
       }
@@ -72,8 +72,20 @@ export function LoginForm() {
         return;
       }
 
+      if (roleResult.role === "dosen") {
+        router.replace("/dashboard");
+        router.refresh();
+        return;
+      }
+
+      if (roleResult.role === "mahasiswa") {
+        router.replace("/katalog");
+        router.refresh();
+        return;
+      }
+
       await supabase.auth.signOut();
-      setFormError("Akun berhasil dikenali, tetapi belum memiliki role admin atau petugas.");
+      setFormError("Akun berhasil dikenali, tetapi belum memiliki role aplikasi.");
     } catch (error) {
       setFormError(
         error instanceof Error ? error.message : "Login gagal. Silakan coba lagi.",

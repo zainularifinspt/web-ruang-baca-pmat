@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
   BarChart3,
   BookOpen,
@@ -17,7 +17,7 @@ import {
   ShieldCheck,
   Users,
 } from "lucide-react";
-import { useEffect, useMemo, useState, type ComponentType, type ReactNode } from "react";
+import { useMemo, useState, type ComponentType, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { RoleProvider, useRole } from "@/components/role-provider";
@@ -61,9 +61,15 @@ const pageTitles: Record<string, { title: string; breadcrumb: string }> = {
   "/dashboard/permissions": { title: "Matriks Hak Akses", breadcrumb: "Internal / Hak Akses" },
 };
 
-export function DashboardRoot({ children }: { children: ReactNode }) {
+export function DashboardRoot({
+  children,
+  role,
+}: {
+  children: ReactNode;
+  role: Role;
+}) {
   return (
-    <RoleProvider>
+    <RoleProvider initialRole={role}>
       <DashboardShell>{children}</DashboardShell>
     </RoleProvider>
   );
@@ -72,17 +78,10 @@ export function DashboardRoot({ children }: { children: ReactNode }) {
 function DashboardShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
-  const router = useRouter();
   const { role } = useRole();
   const currentPage = pageTitles[pathname] ?? pageTitles["/dashboard"];
   const primaryAction = useMemo(() => getPrimaryAction(role), [role]);
   const PrimaryActionIcon = primaryAction.icon;
-
-  useEffect(() => {
-    if (role === "mahasiswa") {
-      router.replace("/katalog");
-    }
-  }, [role, router]);
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -151,7 +150,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
           <p className="text-xs font-medium text-slate-500">Peran aktif</p>
           <p className="mt-1 font-semibold text-slate-950">{roleLabel}</p>
           <p className="mt-2 text-xs leading-5 text-slate-600">
-            Mode peran dapat diganti untuk mengecek akses fitur.
+            Peran mengikuti akun login dan tidak dapat diganti manual.
           </p>
         </div>
       </div>

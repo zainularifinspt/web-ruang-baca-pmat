@@ -19,7 +19,11 @@ function isProtectedPetugasPath(pathname: string) {
 }
 
 function isProtectedAdminPath(pathname: string) {
-  return pathname === "/admin" || pathname.startsWith("/admin/") || pathname === "/dashboard" || pathname.startsWith("/dashboard/");
+  return pathname === "/admin" || pathname.startsWith("/admin/");
+}
+
+function isProtectedDashboardPath(pathname: string) {
+  return pathname === "/dashboard" || pathname.startsWith("/dashboard/");
 }
 
 export async function proxy(request: NextRequest) {
@@ -80,12 +84,16 @@ export async function proxy(request: NextRequest) {
   const role = profile?.role;
   const pathname = request.nextUrl.pathname;
 
-  if (error || (role !== "admin" && role !== "petugas")) {
-    return redirectToLogin(request, "admin_required");
+  if (error || !role) {
+    return redirectToLogin(request, "staff_required");
   }
 
   if (isProtectedAdminPath(pathname) && role !== "admin") {
     return redirectToLogin(request, "admin_required");
+  }
+
+  if (isProtectedDashboardPath(pathname) && role !== "admin" && role !== "dosen" && role !== "petugas") {
+    return redirectToLogin(request, "staff_required");
   }
 
   if (isProtectedPetugasPath(pathname) && role !== "admin" && role !== "petugas") {

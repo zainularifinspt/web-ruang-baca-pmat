@@ -2,9 +2,9 @@ import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
 import { getSupabaseConfig } from "@/lib/supabase-config";
+import type { Role } from "@/lib/types";
 
-const staffRoles = ["admin", "petugas"] as const;
-type StaffRole = (typeof staffRoles)[number];
+const appRoles: Role[] = ["admin", "dosen", "petugas", "mahasiswa"];
 
 export async function POST(request: Request) {
   try {
@@ -40,9 +40,9 @@ export async function POST(request: Request) {
 
     const role = profile?.role;
 
-    if (profileError || !isStaffRole(role)) {
+    if (profileError || !isAppRole(role)) {
       return NextResponse.json(
-        { message: "Akun berhasil dikenali, tetapi belum memiliki role admin atau petugas." },
+        { message: "Akun berhasil dikenali, tetapi belum memiliki role aplikasi." },
         { status: 403 },
       );
     }
@@ -56,6 +56,6 @@ export async function POST(request: Request) {
   }
 }
 
-function isStaffRole(role: unknown): role is StaffRole {
-  return staffRoles.includes(role as StaffRole);
+function isAppRole(role: unknown): role is Role {
+  return appRoles.includes(role as Role);
 }
