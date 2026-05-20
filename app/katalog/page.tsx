@@ -13,7 +13,7 @@ export default async function CatalogPage({
 }) {
   const { tab } = await searchParams;
   const initialTab = tab === "theses" ? "theses" : "books";
-  const { books, theses, error } = await fetchCatalogData();
+  const { books, theses, error } = await fetchCatalogData({ visibility: "public" });
 
   return (
     <div className="min-h-screen bg-slate-50">

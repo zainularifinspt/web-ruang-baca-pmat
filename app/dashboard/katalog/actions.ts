@@ -3,12 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { requireStaffRole } from "@/lib/auth-guards";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
+import { writeBookVerificationOverride } from "@/lib/catalog-verification-store";
 import type {
   BookFormValues,
   CatalogActionResult,
   ThesisFormValues,
 } from "@/lib/catalog-crud-types";
-import type { Book, Thesis } from "@/lib/types";
+import type { Book, Thesis, VerificationStatus } from "@/lib/types";
 
 type MutationPayload = Record<string, unknown>;
 
@@ -95,6 +96,46 @@ export async function deleteCollection(
   return result;
 }
 
+export async function updateCollectionVerificationStatus(
+  type: Book["type"] | Thesis["type"],
+  id: string,
+  status: VerificationStatus,
+): Promise<CatalogActionResult> {
+  const auth = await requireStaffRole(["admin"]);
+  if (!auth.ok) return failure(auth.message);
+
+  if (!["pending", "approved", "rejected"].includes(status)) {
+    return failure("Status verifikasi tidak valid.");
+  }
+
+  const result = await safelyMutateCatalog(async () => {
+    if (type === "book") {
+      const { error } = await createSupabaseAdminClient()
+        .from("books")
+        .update({ verification_status: status })
+        .eq("id", id);
+
+      if (error) {
+        await writeBookVerificationOverride(id, status);
+      }
+
+      return success("Status verifikasi buku berhasil diperbarui.");
+    }
+
+    const { error } = await createSupabaseAdminClient()
+      .from("theses")
+      .update({ verification_status: status })
+      .eq("id", id);
+
+    return error ? failure(error.message) : success("Status verifikasi skripsi berhasil diperbarui.");
+  });
+
+  revalidateCatalogPaths();
+  revalidatePath("/dashboard/verifikasi");
+
+  return result;
+}
+
 async function insertBook(payload: MutationPayload) {
   const { error } = await createSupabaseAdminClient().from("books").insert(payload);
   return error ? failure(error.message) : success("ok");
@@ -176,6 +217,8 @@ function revalidateCatalogPaths() {
   revalidatePath("/katalog");
   revalidatePath("/dashboard/katalog");
   revalidatePath("/petugas");
+  revalidatePath("/books/[id]");
+  revalidatePath("/theses/[id]");
 }
 
 async function safelyMutateCatalog(

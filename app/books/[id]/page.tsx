@@ -11,7 +11,7 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const { book } = await fetchBookById(id);
+  const { book } = await fetchBookById(id, { visibility: "public" });
 
   return {
     title: book ? `${book.title} | Detail Buku` : "Buku tidak ditemukan",
@@ -24,7 +24,7 @@ export default async function BookDetailRoute({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { book, error } = await fetchBookById(id);
+  const { book, error } = await fetchBookById(id, { visibility: "public" });
 
   if (!book) {
     return <CollectionDetailError type="book" id={id} message={error} />;

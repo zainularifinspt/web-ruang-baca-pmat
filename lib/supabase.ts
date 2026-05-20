@@ -16,6 +16,10 @@ type CatalogData = {
   error?: string;
 };
 
+type CatalogFetchOptions = {
+  visibility?: "public" | "internal";
+};
+
 type AttendanceRow = {
   id: string;
   visitor_name: string;
@@ -95,46 +99,64 @@ export function getSupabaseClient() {
   return cachedClient;
 }
 
-export async function fetchCatalogData(): Promise<CatalogData> {
+export async function fetchCatalogData(options: CatalogFetchOptions = {}): Promise<CatalogData> {
   const [booksResult, thesesResult] = await Promise.all([
     fetchTableRows("books"),
     fetchTableRows("theses"),
   ]);
+  const bookVerificationOverrides = await getBookVerificationOverrides();
 
   const errors = [booksResult.error, thesesResult.error].filter(Boolean);
+  const books = booksResult.rows.map((row) =>
+    mapBookRow(row, bookVerificationOverrides[textValue(row, ["id"])]),
+  );
+  const theses = thesesResult.rows.map(mapThesisRow);
+  const publicOnly = options.visibility === "public";
 
   return {
-    books: sortByNewest(booksResult.rows.map(mapBookRow)),
-    theses: sortByNewest(thesesResult.rows.map(mapThesisRow)),
+    books: sortByNewest(publicOnly ? books.filter(isApproved) : books),
+    theses: sortByNewest(publicOnly ? theses.filter(isApproved) : theses),
     error: errors.length ? errors.join(" ") : undefined,
   };
 }
 
-export async function fetchCollectionById(type: string, id: string) {
+export async function fetchCollectionById(type: string, id: string, options: CatalogFetchOptions = {}) {
   const table = type === "buku" ? "books" : type === "skripsi" ? "theses" : null;
   if (!table) return null;
 
   const { rows } = await fetchTableRows(table);
+  const bookVerificationOverrides = table === "books" ? await getBookVerificationOverrides() : {};
   const mappedRows =
-    table === "books" ? rows.map(mapBookRow) : rows.map(mapThesisRow);
+    table === "books"
+      ? rows.map((row) => mapBookRow(row, bookVerificationOverrides[textValue(row, ["id"])]))
+      : rows.map(mapThesisRow);
 
-  return mappedRows.find((item) => item.id === id) ?? null;
+  const item = mappedRows.find((item) => item.id === id) ?? null;
+
+  if (options.visibility === "public" && item && !isApproved(item)) {
+    return null;
+  }
+
+  return item;
 }
 
-export async function fetchBookById(id: string) {
+export async function fetchBookById(id: string, options: CatalogFetchOptions = {}) {
   const { row, error } = await fetchTableRowById("books", id);
+  const bookVerificationOverrides = await getBookVerificationOverrides();
+  const book = row ? mapBookRow(row, bookVerificationOverrides[textValue(row, ["id"])]) : null;
 
   return {
-    book: row ? mapBookRow(row) : null,
+    book: book && (options.visibility !== "public" || isApproved(book)) ? book : null,
     error,
   };
 }
 
-export async function fetchThesisById(id: string) {
+export async function fetchThesisById(id: string, options: CatalogFetchOptions = {}) {
   const { row, error } = await fetchTableRowById("theses", id);
+  const thesis = row ? mapThesisRow(row) : null;
 
   return {
-    thesis: row ? mapThesisRow(row) : null,
+    thesis: thesis && (options.visibility !== "public" || isApproved(thesis)) ? thesis : null,
     error,
   };
 }
@@ -177,7 +199,7 @@ async function fetchTableRowById(table: "books" | "theses", id: string) {
   }
 }
 
-function mapBookRow(row: UnknownRow): Book {
+function mapBookRow(row: UnknownRow, verificationOverride?: VerificationStatus): Book {
   const stock = numberValue(row, ["stock"]);
   const rackLocation = textValue(
     row,
@@ -186,7 +208,7 @@ function mapBookRow(row: UnknownRow): Book {
   );
 
   return {
-    ...mapBaseRow(row),
+    ...mapBaseRow(row, verificationOverride),
     type: "book",
     author: textValue(row, ["author"]),
     publisher: textValue(row, ["publisher"]),
@@ -229,7 +251,7 @@ function mapThesisRow(row: UnknownRow): Thesis {
   };
 }
 
-function mapBaseRow(row: UnknownRow): CollectionBase {
+function mapBaseRow(row: UnknownRow, verificationOverride?: VerificationStatus): CollectionBase {
   const currentYear = new Date().getFullYear();
 
   return {
@@ -240,7 +262,7 @@ function mapBaseRow(row: UnknownRow): CollectionBase {
     location: textValue(row, ["location", "rack_location", "physical_location"], "-"),
     inputSource: inputSourceValue(row),
     inputBy: textValue(row, ["input_by", "inputBy", "diinput_oleh"], "Supabase"),
-    verificationStatus: verificationStatusValue(row),
+    verificationStatus: verificationOverride ?? verificationStatusValue(row),
     notes: optionalTextValue(row, ["notes", "catatan"]),
     keywords: keywordsValue(row),
     createdAt: textValue(row, ["created_at", "createdAt"], new Date().toISOString()),
@@ -347,4 +369,17 @@ function sortByNewest<T extends { createdAt: string; year: number }>(items: T[])
 
     return b.year - a.year;
   });
+}
+
+function isApproved(item: Book | Thesis) {
+  return item.verificationStatus === "approved";
+}
+
+async function getBookVerificationOverrides() {
+  if (typeof window !== "undefined") {
+    return {};
+  }
+
+  const { readBookVerificationOverrides } = await import("@/lib/catalog-verification-store");
+  return readBookVerificationOverrides();
 }

@@ -15,7 +15,7 @@ export default async function CollectionDetailPage({
   params: Promise<{ type: string; id: string }>;
 }) {
   const { type, id } = await params;
-  const item = await fetchCollectionById(type, id);
+  const item = await fetchCollectionById(type, id, { visibility: "public" });
 
   if (!item) notFound();
 
