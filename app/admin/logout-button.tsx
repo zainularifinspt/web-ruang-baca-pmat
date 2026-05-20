@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createSupabaseBrowserClient } from "@/lib/supabase-auth-client";
+import { cn } from "@/lib/utils";
 
-export function LogoutButton() {
+export function LogoutButton({ className }: { className?: string }) {
   const router = useRouter();
   const [isSigningOut, setIsSigningOut] = useState(false);
 
@@ -27,7 +28,7 @@ export function LogoutButton() {
     <Button
       type="button"
       variant="outline"
-      className="rounded-xl bg-white"
+      className={cn("rounded-xl bg-white", className)}
       onClick={handleLogout}
       disabled={isSigningOut}
     >

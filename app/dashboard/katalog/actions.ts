@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { requireStaffRole } from "@/lib/auth-guards";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
-import { writeBookVerificationOverride } from "@/lib/catalog-verification-store";
 import type {
   BookFormValues,
   CatalogActionResult,
@@ -110,16 +109,12 @@ export async function updateCollectionVerificationStatus(
 
   const result = await safelyMutateCatalog(async () => {
     if (type === "book") {
-      await writeBookVerificationOverride(id, status);
-
       const { error } = await createSupabaseAdminClient()
         .from("books")
         .update({ verification_status: status })
         .eq("id", id);
 
-      return error && !isMissingBookVerificationColumn(error.message)
-        ? failure(error.message)
-        : success("Status verifikasi buku berhasil diperbarui.");
+      return error ? failure(error.message) : success("Status verifikasi buku berhasil diperbarui.");
     }
 
     const { error } = await createSupabaseAdminClient()
@@ -134,10 +129,6 @@ export async function updateCollectionVerificationStatus(
   revalidatePath("/dashboard/verifikasi");
 
   return result;
-}
-
-function isMissingBookVerificationColumn(message: string) {
-  return message.includes("verification_status") || message.includes("schema cache");
 }
 
 async function insertBook(payload: MutationPayload) {

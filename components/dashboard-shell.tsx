@@ -17,6 +17,7 @@ import {
   ShieldCheck,
   Users,
 } from "lucide-react";
+import { LogoutButton } from "@/app/admin/logout-button";
 import { useMemo, useState, type ComponentType, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
@@ -116,6 +117,7 @@ function DashboardShell({ children }: { children: ReactNode }) {
                 </Link>
               </Button>
               <RoleSwitcher />
+              <LogoutButton className="hidden h-10 rounded-2xl px-3 shadow-sm sm:inline-flex" />
             </div>
           </div>
         </header>
@@ -145,11 +147,14 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         <NavGroup title="Menu Utama" items={visibleItems.filter((item) => item.group === "utama")} role={role} pathname={pathname} onNavigate={onNavigate} />
         <NavGroup title="Manajemen" items={visibleItems.filter((item) => item.group === "manajemen")} role={role} pathname={pathname} onNavigate={onNavigate} />
       </nav>
-      <div className="mt-auto rounded-[1.35rem] border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-950">
-        <p className="font-semibold">Dashboard internal</p>
-        <p className="mt-1 leading-6 text-emerald-900/80">
-          Akses mengikuti akun login dan tidak dapat diganti manual.
-        </p>
+      <div className="mt-auto grid gap-3">
+        <div className="rounded-[1.35rem] border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-950">
+          <p className="font-semibold">Dashboard internal</p>
+          <p className="mt-1 leading-6 text-emerald-900/80">
+            Akses mengikuti akun login dan tidak dapat diganti manual.
+          </p>
+        </div>
+        <LogoutButton className="h-11 w-full justify-center rounded-2xl bg-white" />
       </div>
     </div>
   );
