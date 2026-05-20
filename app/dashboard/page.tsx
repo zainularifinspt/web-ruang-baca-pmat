@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import type { ComponentType, ReactNode } from "react";
+import { useMemo, type ComponentType, type ReactNode } from "react";
 import {
   ArrowUpRight,
   BookOpen,
@@ -38,18 +38,20 @@ import {
 } from "@/components/ui/table";
 import {
   allCollections,
-  attendances,
   books,
   theses,
-  visitorMetrics,
   whatsappSubmissions,
 } from "@/lib/mock-data";
+import {
+  countVisitsForLastDays,
+  countVisitsForToday,
+  useRealtimeAttendances,
+} from "@/hooks/use-realtime-attendances";
 import type { Attendance, Book, Thesis } from "@/lib/types";
 import { cn, formatDate, formatShortDate } from "@/lib/utils";
 
 type CollectionItem = Book | Thesis;
 
-const previewDate = "2026-05-18";
 const VisitorBarChart = dynamic(
   () => import("@/components/visitor-chart").then((mod) => mod.VisitorBarChart),
   { loading: () => <ChartPlaceholder /> },
@@ -67,14 +69,13 @@ function ChartPlaceholder() {
 
 export default function DashboardPage() {
   const { role, roleLabel } = useRole();
+  const { attendances, isLoading: isAttendanceLoading } = useRealtimeAttendances();
   const collections = allCollections();
   const verificationQueue = collections.filter(
     (item) => item.verificationStatus !== "approved",
   );
-  const todayVisits = attendances.filter((item) =>
-    item.visitedAt.includes(previewDate),
-  ).length;
-  const weeklyVisits = visitorMetrics.reduce((sum, item) => sum + item.visits, 0);
+  const todayVisits = useMemo(() => countVisitsForToday(attendances), [attendances]);
+  const weeklyVisits = useMemo(() => countVisitsForLastDays(attendances, 7), [attendances]);
   const newBooks = books.filter((item) => item.createdAt >= "2026-05-01").length;
   const newTheses = theses.filter((item) => item.createdAt >= "2026-05-01").length;
 
@@ -84,6 +85,8 @@ export default function DashboardPage() {
         roleLabel={roleLabel}
         weeklyVisits={weeklyVisits}
         verificationQueue={verificationQueue}
+        attendances={attendances}
+        isAttendanceLoading={isAttendanceLoading}
       />
     );
   }
@@ -96,6 +99,8 @@ export default function DashboardPage() {
         newBooks={newBooks}
         newTheses={newTheses}
         verificationQueue={verificationQueue}
+        attendances={attendances}
+        isAttendanceLoading={isAttendanceLoading}
       />
     );
   }
@@ -106,6 +111,8 @@ export default function DashboardPage() {
       todayVisits={todayVisits}
       weeklyVisits={weeklyVisits}
       verificationQueue={verificationQueue}
+      attendances={attendances}
+      isAttendanceLoading={isAttendanceLoading}
     />
   );
 }
@@ -115,11 +122,15 @@ function AdminDashboard({
   todayVisits,
   weeklyVisits,
   verificationQueue,
+  attendances,
+  isAttendanceLoading,
 }: {
   roleLabel: string;
   todayVisits: number;
   weeklyVisits: number;
   verificationQueue: CollectionItem[];
+  attendances: Attendance[];
+  isAttendanceLoading: boolean;
 }) {
   return (
     <DashboardFrame
@@ -146,8 +157,8 @@ function AdminDashboard({
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <StatCard icon={BookOpen} label="Total buku" value={books.length} trend="Katalog siap ditelusuri" tone="emerald" />
         <StatCard icon={GraduationCap} label="Total skripsi" value={theses.length} trend="Repositori aktif" tone="blue" />
-        <StatCard icon={CalendarCheck} label="Pengunjung hari ini" value={todayVisits} trend="+12% dari kemarin" tone="emerald" />
-        <StatCard icon={Users} label="Kunjungan minggu ini" value={weeklyVisits} trend="Aktivitas meningkat" tone="amber" />
+        <StatCard icon={CalendarCheck} label="Pengunjung hari ini" value={isAttendanceLoading ? "..." : todayVisits} trend="Realtime dari presensi" tone="emerald" />
+        <StatCard icon={Users} label="Kunjungan minggu ini" value={isAttendanceLoading ? "..." : weeklyVisits} trend="7 hari terakhir" tone="amber" />
         <StatCard icon={CheckCheck} label="Antrean verifikasi" value={verificationQueue.length} trend="Perlu ditinjau" tone="slate" />
       </div>
 
@@ -170,7 +181,7 @@ function AdminDashboard({
       </div>
 
       <div className="grid gap-5 xl:grid-cols-[0.95fr_1.05fr]">
-        <AttendancePanel />
+        <AttendancePanel attendances={attendances} isLoading={isAttendanceLoading} />
         <VerificationQueuePanel queue={verificationQueue} />
       </div>
     </DashboardFrame>
@@ -181,10 +192,14 @@ function DosenDashboard({
   roleLabel,
   weeklyVisits,
   verificationQueue,
+  attendances,
+  isAttendanceLoading,
 }: {
   roleLabel: string;
   weeklyVisits: number;
   verificationQueue: CollectionItem[];
+  attendances: Attendance[];
+  isAttendanceLoading: boolean;
 }) {
   return (
     <DashboardFrame
@@ -202,7 +217,7 @@ function DosenDashboard({
     >
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <StatCard icon={GraduationCap} label="Total skripsi" value={theses.length} trend="Topik makin beragam" tone="blue" />
-        <StatCard icon={Users} label="Statistik kunjungan" value={weeklyVisits} trend="Pekan berjalan" tone="emerald" />
+        <StatCard icon={Users} label="Statistik kunjungan" value={isAttendanceLoading ? "..." : weeklyVisits} trend="7 hari terakhir" tone="emerald" />
         <StatCard icon={CheckCheck} label="Data perlu ditinjau" value={verificationQueue.filter((item) => item.type === "thesis").length} trend="Prioritas skripsi" tone="slate" />
       </div>
 
@@ -217,9 +232,7 @@ function DosenDashboard({
 
       <div className="grid gap-5 xl:grid-cols-[1.05fr_0.95fr]">
         <LatestThesesPanel />
-        <SectionCard title="Statistik Kunjungan" description="Jumlah kunjungan mahasiswa selama pekan berjalan.">
-          <VisitorBarChart />
-        </SectionCard>
+        <AttendancePanel attendances={attendances} isLoading={isAttendanceLoading} showExport={false} />
       </div>
 
       <QuickActions
@@ -239,12 +252,16 @@ function PetugasDashboard({
   newBooks,
   newTheses,
   verificationQueue,
+  attendances,
+  isAttendanceLoading,
 }: {
   roleLabel: string;
   todayVisits: number;
   newBooks: number;
   newTheses: number;
   verificationQueue: CollectionItem[];
+  attendances: Attendance[];
+  isAttendanceLoading: boolean;
 }) {
   return (
     <DashboardFrame
@@ -261,8 +278,8 @@ function PetugasDashboard({
       }
     >
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-        <StatCard icon={CalendarCheck} label="Pengunjung hari ini" value={todayVisits} trend="Siap dilayani" tone="emerald" />
-        <StatCard icon={ClipboardCheck} label="Presensi terbaru" value={attendances.length} trend="Catatan aktif" tone="blue" />
+        <StatCard icon={CalendarCheck} label="Pengunjung hari ini" value={isAttendanceLoading ? "..." : todayVisits} trend="Realtime dari presensi" tone="emerald" />
+        <StatCard icon={ClipboardCheck} label="Presensi terbaru" value={isAttendanceLoading ? "..." : attendances.length} trend="Catatan aktif" tone="blue" />
         <StatCard icon={BookOpen} label="Buku baru ditambahkan" value={newBooks} trend="Bulan ini" tone="amber" />
         <StatCard icon={GraduationCap} label="Skripsi baru ditambahkan" value={newTheses} trend="Bulan ini" tone="blue" />
         <StatCard icon={CheckCheck} label="Input menunggu verifikasi" value={verificationQueue.length} trend="Perlu dicek" tone="slate" />
@@ -278,7 +295,7 @@ function PetugasDashboard({
       />
 
       <div className="grid gap-5 xl:grid-cols-[0.98fr_1.02fr]">
-        <AttendancePanel showExport={false} />
+        <AttendancePanel attendances={attendances} isLoading={isAttendanceLoading} showExport={false} />
         <VerificationQueuePanel queue={verificationQueue} title="Antrean Input Menunggu Verifikasi" />
       </div>
 
@@ -366,35 +383,55 @@ function QuickActions({
   );
 }
 
-function AttendancePanel({ showExport = true }: { showExport?: boolean }) {
+function AttendancePanel({
+  attendances,
+  isLoading,
+  showExport = true,
+}: {
+  attendances: Attendance[];
+  isLoading: boolean;
+  showExport?: boolean;
+}) {
   return (
     <SectionCard
       title="Presensi Terbaru"
       description="Aktivitas kunjungan terakhir yang tercatat."
       action={showExport ? <ExportButton type="attendance" label="Ekspor" /> : undefined}
     >
-      <div className="hidden overflow-x-auto md:block">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nama</TableHead>
-              <TableHead>Tujuan</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Waktu</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {attendances.map((item) => (
-              <AttendanceRow key={item.id} item={item} />
+      {isLoading ? (
+        <AttendanceSkeleton />
+      ) : attendances.length ? (
+        <>
+          <div className="hidden overflow-x-auto md:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nama</TableHead>
+                  <TableHead>Tujuan</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Waktu</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {attendances.slice(0, 8).map((item) => (
+                  <AttendanceRow key={item.id} item={item} />
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+          <div className="grid gap-3 md:hidden">
+            {attendances.slice(0, 8).map((item) => (
+              <AttendanceCard key={item.id} item={item} />
             ))}
-          </TableBody>
-        </Table>
-      </div>
-      <div className="grid gap-3 md:hidden">
-        {attendances.map((item) => (
-          <AttendanceCard key={item.id} item={item} />
-        ))}
-      </div>
+          </div>
+        </>
+      ) : (
+        <EmptyState
+          title="Belum ada presensi"
+          description="Data presensi dari Supabase akan muncul otomatis setelah pengunjung mengisi presensi."
+          className="bg-slate-50/70"
+        />
+      )}
     </SectionCard>
   );
 }
@@ -438,6 +475,23 @@ function AttendanceCard({ item }: { item: Attendance }) {
           <p className="mt-2 text-xs text-slate-500">{formatDate(item.visitedAt)}</p>
         </div>
       </div>
+    </div>
+  );
+}
+
+function AttendanceSkeleton() {
+  return (
+    <div className="grid gap-3">
+      {Array.from({ length: 4 }).map((_, index) => (
+        <div key={index} className="flex animate-pulse items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+          <div className="size-10 rounded-2xl bg-slate-200" />
+          <div className="flex-1 space-y-2">
+            <div className="h-4 w-40 rounded bg-slate-200" />
+            <div className="h-3 w-28 rounded bg-slate-200" />
+          </div>
+          <div className="h-6 w-20 rounded-full bg-slate-200" />
+        </div>
+      ))}
     </div>
   );
 }

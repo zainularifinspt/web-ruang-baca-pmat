@@ -28,7 +28,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { attendances, visitPurposes, visitorStatuses } from "@/lib/mock-data";
+import { visitPurposes, visitorStatuses } from "@/lib/mock-data";
+import {
+  countVisitsForCurrentMonth,
+  countVisitsForLastDays,
+  countVisitsForToday,
+  useRealtimeAttendances,
+} from "@/hooks/use-realtime-attendances";
 import type { Attendance, VisitPurpose, VisitorStatus } from "@/lib/types";
 import { cn, formatDate } from "@/lib/utils";
 
@@ -42,6 +48,7 @@ export default function AttendanceReportPage() {
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<VisitorStatus | "semua">("semua");
   const [purposeFilter, setPurposeFilter] = useState<VisitPurpose | "semua">("semua");
+  const { attendances, isLoading, error } = useRealtimeAttendances(500);
 
   const filteredAttendances = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -58,15 +65,12 @@ export default function AttendanceReportPage() {
 
       return matchesQuery && matchesStatus && matchesPurpose;
     });
-  }, [purposeFilter, query, statusFilter]);
+  }, [attendances, purposeFilter, query, statusFilter]);
 
-  const todayVisits = attendances.filter((item) =>
-    item.visitedAt.includes("2026-05-18"),
-  ).length;
-  const monthVisits = attendances.filter((item) =>
-    item.visitedAt.startsWith("2026-05"),
-  ).length;
-  const topPurpose = getTopPurpose();
+  const todayVisits = useMemo(() => countVisitsForToday(attendances), [attendances]);
+  const weekVisits = useMemo(() => countVisitsForLastDays(attendances, 7), [attendances]);
+  const monthVisits = useMemo(() => countVisitsForCurrentMonth(attendances), [attendances]);
+  const topPurpose = useMemo(() => getTopPurpose(attendances), [attendances]);
 
   return (
     <div className="space-y-5">
@@ -96,27 +100,27 @@ export default function AttendanceReportPage() {
         <AttendanceStatCard
           icon={CalendarCheck}
           label="Pengunjung hari ini"
-          value={todayVisits}
-          trend="Mode pratinjau"
+          value={isLoading ? "..." : todayVisits}
+          trend="Realtime dari presensi"
         />
         <AttendanceStatCard
           icon={Users}
           label="Pengunjung minggu ini"
-          value={attendances.length}
-          trend="+18% dari pekan lalu"
+          value={isLoading ? "..." : weekVisits}
+          trend="7 hari terakhir"
           tone="blue"
         />
         <AttendanceStatCard
           icon={Clock3}
           label="Pengunjung bulan ini"
-          value={monthVisits}
-          trend="Mei 2026"
+          value={isLoading ? "..." : monthVisits}
+          trend="Bulan berjalan"
           tone="amber"
         />
         <AttendanceStatCard
           icon={Target}
           label="Keperluan terbanyak"
-          value={topPurpose.shortLabel}
+          value={isLoading ? "..." : topPurpose.shortLabel}
           trend={topPurpose.fullLabel}
           tone="slate"
         />
@@ -188,7 +192,14 @@ export default function AttendanceReportPage() {
           </div>
 
           <div className="p-3 sm:p-4">
-            {filteredAttendances.length ? (
+            {isLoading ? (
+              <AttendanceListSkeleton />
+            ) : error ? (
+              <EmptyState
+                title="Gagal memuat presensi"
+                description={error}
+              />
+            ) : filteredAttendances.length ? (
               <>
                 <div className="hidden overflow-x-auto rounded-xl border border-slate-200/70 md:block">
                   <Table className="min-w-[760px]">
@@ -279,6 +290,17 @@ export default function AttendanceReportPage() {
             {attendances.map((item) => (
               <RecentAttendanceItem key={item.id} item={item} />
             ))}
+            {isLoading ? <RecentAttendanceSkeleton /> : null}
+            {!isLoading && !error && attendances.length === 0 ? (
+              <div className="px-3 py-6 text-center text-xs leading-5 text-slate-500">
+                Belum ada presensi yang tercatat.
+              </div>
+            ) : null}
+            {!isLoading && error ? (
+              <div className="px-3 py-6 text-center text-xs leading-5 text-rose-600">
+                {error}
+              </div>
+            ) : null}
           </div>
         </aside>
       </div>
@@ -379,6 +401,40 @@ function MobileAttendanceCard({ item }: { item: Attendance }) {
   );
 }
 
+function AttendanceListSkeleton() {
+  return (
+    <div className="grid gap-2">
+      {Array.from({ length: 5 }).map((_, index) => (
+        <div key={index} className="flex animate-pulse items-center gap-3 rounded-xl border border-slate-200/70 bg-slate-50/70 p-3">
+          <div className="size-9 rounded-xl bg-slate-200" />
+          <div className="flex-1 space-y-2">
+            <div className="h-4 w-44 rounded bg-slate-200" />
+            <div className="h-3 w-32 rounded bg-slate-200" />
+          </div>
+          <div className="hidden h-6 w-24 rounded-md bg-slate-200 sm:block" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function RecentAttendanceSkeleton() {
+  return (
+    <>
+      {Array.from({ length: 4 }).map((_, index) => (
+        <div key={index} className="flex animate-pulse items-start gap-3 rounded-xl px-2 py-3">
+          <div className="size-9 rounded-xl bg-slate-200" />
+          <div className="flex-1 space-y-2">
+            <div className="h-4 w-32 rounded bg-slate-200" />
+            <div className="h-3 w-24 rounded bg-slate-200" />
+            <div className="h-5 w-20 rounded-md bg-slate-200" />
+          </div>
+        </div>
+      ))}
+    </>
+  );
+}
+
 function StatusPill({ status }: { status: VisitorStatus }) {
   return (
     <Badge
@@ -399,7 +455,7 @@ function formatTime(value: string) {
   }).format(new Date(value));
 }
 
-function getTopPurpose() {
+function getTopPurpose(attendances: Attendance[]) {
   const grouped = attendances.reduce<Record<string, number>>((acc, item) => {
     acc[item.purpose] = (acc[item.purpose] ?? 0) + 1;
     return acc;
