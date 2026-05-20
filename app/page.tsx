@@ -42,14 +42,14 @@ export default async function HomePage() {
         <section className="relative mx-auto max-w-6xl px-4 pb-10 pt-10 text-center sm:px-6 sm:pb-12 sm:pt-14">
           <Badge className="rounded-full border-emerald-100 bg-emerald-50 px-4 py-1.5 text-emerald-700 hover:bg-emerald-50">
             <Sparkles className="mr-1 size-3.5" />
-            Digital Library PMat
+            Jurusan Pendidikan Matematika ULM
           </Badge>
           <h1 className="mx-auto mt-5 max-w-4xl text-4xl font-semibold leading-[1.04] tracking-normal text-slate-950 sm:text-6xl">
             Ruang Baca <span className="text-emerald-700">Pendidikan Matematika</span>
           </h1>
           <p className="mx-auto mt-5 max-w-3xl text-base leading-8 text-slate-600 sm:text-lg">
-            Portal referensi akademik modern untuk menemukan buku, skripsi, lokasi koleksi,
-            dan informasi ruang baca dengan pencarian cepat berbasis data Supabase.
+            Portal referensi akademik Jurusan Pendidikan Matematika Universitas Lambung Mangkurat
+            untuk menemukan buku, skripsi, lokasi koleksi, dan informasi ruang baca dengan cepat.
           </p>
 
           <div className="mt-8">
@@ -209,11 +209,12 @@ function Footer() {
             </span>
             <div>
               <p className="font-bold text-white">Ruang Baca PMat</p>
-              <p className="text-xs text-slate-400">Pendidikan Matematika</p>
+              <p className="text-xs text-slate-400">Jurusan Pendidikan Matematika ULM</p>
             </div>
           </div>
           <p className="mt-4 text-sm leading-6 text-slate-400">
-            Digital library modern untuk katalog, repositori skripsi, presensi, dan manajemen ruang baca.
+            Digital library modern untuk katalog, repositori skripsi, presensi, dan manajemen ruang baca
+            Jurusan Pendidikan Matematika Universitas Lambung Mangkurat.
           </p>
         </div>
         <FooterColumn
@@ -229,20 +230,23 @@ function Footer() {
           <h3 className="font-semibold text-white">Informasi</h3>
           <div className="mt-4 grid gap-3 text-sm text-slate-400">
             <p className="flex gap-2"><Clock3 className="size-4 text-emerald-400" /> Senin-Jumat, 08.00-16.00</p>
-            <p className="flex gap-2"><MapPin className="size-4 text-emerald-400" /> Gedung Prodi Pendidikan Matematika</p>
-            <p className="flex gap-2"><Mail className="size-4 text-emerald-400" /> ruangbaca.pmat@example.ac.id</p>
+            <p className="flex gap-2">
+              <MapPin className="mt-0.5 size-4 shrink-0 text-emerald-400" />
+              <span>Jl. Brigjen H. Hasan Basry Kayu Tangi, Banjarmasin, Kalimantan Selatan 70123</span>
+            </p>
+            <p className="flex gap-2"><Mail className="size-4 text-emerald-400" /> edu.mat@ulm.ac.id</p>
           </div>
         </div>
         <div>
           <h3 className="font-semibold text-white">Institusi</h3>
           <div className="mt-4 rounded-2xl bg-white/5 p-4 text-sm leading-6 text-slate-400 ring-1 ring-white/10">
             <Building2 className="mb-3 size-5 text-emerald-400" />
-            Program Studi Pendidikan Matematika, portal ruang baca berbasis Supabase.
+            Jurusan Pendidikan Matematika Universitas Lambung Mangkurat, Fakultas Keguruan dan Ilmu Pendidikan.
           </div>
         </div>
       </div>
       <div className="border-t border-white/10 px-4 py-4 text-center text-xs text-slate-500">
-        © 2026 Ruang Baca Pendidikan Matematika. Semua koleksi publik melalui proses verifikasi admin.
+        © 2026 Ruang Baca Jurusan Pendidikan Matematika Universitas Lambung Mangkurat. Website dibuat oleh M. Zainul Arifin.
       </div>
     </footer>
   );

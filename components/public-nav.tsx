@@ -71,7 +71,7 @@ export function PublicNav() {
           </div>
           <div className="min-w-0">
             <p className="font-bold leading-none text-slate-950">Ruang Baca PMat</p>
-            <p className="mt-1 truncate text-xs text-slate-500">Pendidikan Matematika</p>
+            <p className="mt-1 truncate text-xs text-slate-500">Jurusan Pendidikan Matematika ULM</p>
           </div>
         </Link>
         <NavbarSearch items={searchItems} className="order-3 w-full md:order-none md:w-[min(42vw,28rem)]" />

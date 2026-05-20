@@ -3,9 +3,9 @@ import { Toaster } from "sonner";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Ruang Baca Pendidikan Matematika",
+  title: "Ruang Baca Jurusan Pendidikan Matematika ULM",
   description:
-    "Prototipe antarmuka untuk katalog, presensi, laporan, dan simulasi input WhatsApp Ruang Baca.",
+    "Portal katalog, presensi, dan ruang baca Jurusan Pendidikan Matematika Universitas Lambung Mangkurat.",
 };
 
 export default function RootLayout({
