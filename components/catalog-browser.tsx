@@ -542,12 +542,17 @@ function CollectionRow({
   const isBook = item.type === "book";
   const Icon = isBook ? BookMarked : GraduationCap;
   const subtitle = isBook ? item.author : item.studentName;
-  const descriptor = isBook ? item.category : item.topic;
-  const location = isBook ? item.rackLocation : item.physicalLocation;
 
   return (
     <Dialog>
-      <div className="grid gap-4 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200/75 transition hover:shadow-md hover:ring-emerald-200 lg:grid-cols-[minmax(0,1.6fr)_minmax(10rem,0.8fr)_7rem_minmax(10rem,0.8fr)_auto] lg:items-center">
+      <div
+        className={cn(
+          "grid gap-4 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200/75 transition hover:shadow-md hover:ring-emerald-200 lg:items-center",
+          isBook
+            ? "lg:grid-cols-[minmax(0,1.6fr)_minmax(10rem,0.8fr)_7rem_minmax(10rem,0.8fr)_auto]"
+            : "lg:grid-cols-[minmax(0,1.8fr)_7rem_minmax(14rem,1fr)_auto]",
+        )}
+      >
         <div className="flex min-w-0 items-start gap-3">
           <span
             className={cn(
@@ -560,25 +565,29 @@ function CollectionRow({
             <Icon className="size-5" />
           </span>
           <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="secondary" className="rounded-full">
-                {isBook ? "Buku" : "Skripsi"}
-              </Badge>
-              <span className="line-clamp-1 text-xs font-semibold text-slate-500">
-                {descriptor || "-"}
-              </span>
-            </div>
-            <h3 className="mt-2 line-clamp-2 text-base font-semibold leading-snug text-slate-950">
+            {isBook ? (
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="secondary" className="rounded-full">
+                  Buku
+                </Badge>
+                <span className="line-clamp-1 text-xs font-semibold text-slate-500">
+                  {item.category || "-"}
+                </span>
+              </div>
+            ) : null}
+            <h3 className={cn("line-clamp-2 text-base font-semibold leading-snug text-slate-950", isBook ? "mt-2" : "mt-0.5")}>
               {item.title}
             </h3>
             <MetaLine icon={UserRound} value={subtitle} className="mt-2" />
           </div>
         </div>
 
-        <div className="grid gap-1.5 text-sm text-slate-600">
-          <p className="text-xs font-medium text-slate-500">Lokasi</p>
-          <MetaLine icon={MapPin} value={location} />
-        </div>
+        {isBook ? (
+          <div className="grid gap-1.5 text-sm text-slate-600">
+            <p className="text-xs font-medium text-slate-500">Lokasi</p>
+            <MetaLine icon={MapPin} value={item.rackLocation} />
+          </div>
+        ) : null}
 
         <div className="grid gap-1.5 text-sm text-slate-600">
           <p className="text-xs font-medium text-slate-500">Tahun</p>
@@ -590,9 +599,10 @@ function CollectionRow({
           {isBook ? (
             <AvailabilityBadge available={item.available} stock={item.stock} />
           ) : (
-            <p className="line-clamp-2 text-sm text-slate-700">
-              {[item.supervisor1, item.supervisor2].filter(Boolean).join(", ") || "-"}
-            </p>
+            <div className="grid gap-1 text-sm text-slate-700">
+              <p className="line-clamp-1">{item.supervisor1 || "-"}</p>
+              <p className="line-clamp-1">{item.supervisor2 || "-"}</p>
+            </div>
           )}
         </div>
 
