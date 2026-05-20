@@ -36,10 +36,7 @@ import type {
   CatalogActionResult,
   ThesisFormValues,
 } from "@/lib/catalog-crud-types";
-import type { Book, Thesis, VerificationStatus } from "@/lib/types";
-import { uiStatusToValue, valueToUIStatus, getAllVerificationStatusLabels } from "@/lib/utils";
-
-const verificationStatuses = getAllVerificationStatusLabels();
+import type { Book, Thesis } from "@/lib/types";
 
 const bookStatusOptions: Array<{ label: string; value: BookStatus }> = [
   { label: "Tersedia", value: "tersedia" },
@@ -420,15 +417,6 @@ function ThesisDialog({
                 required
               />
             </Field>
-            <Field label="Status verifikasi">
-              <StatusSelect
-                value={values.verificationStatus}
-                disabled={form.isPending}
-                onValueChange={(verificationStatus) =>
-                  onValuesChange({ ...values, verificationStatus })
-                }
-              />
-            </Field>
             <Field label="Dosen pembimbing 1">
               <Input
                 value={values.supervisor1}
@@ -525,35 +513,6 @@ function useCatalogFormSubmit({
   };
 
   return { isPending, handleSubmit };
-}
-
-function StatusSelect({
-  value,
-  disabled,
-  onValueChange,
-}: {
-  value: VerificationStatus;
-  disabled?: boolean;
-  onValueChange: (value: VerificationStatus) => void;
-}) {
-  return (
-    <Select
-      value={valueToUIStatus(value)}
-      disabled={disabled}
-      onValueChange={(uiLabel) => onValueChange(uiStatusToValue(uiLabel))}
-    >
-      <SelectTrigger className="rounded-xl">
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        {verificationStatuses.map((uiLabel) => (
-          <SelectItem key={uiLabel} value={uiLabel}>
-            {uiLabel}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
-  );
 }
 
 function BookStatusSelect({

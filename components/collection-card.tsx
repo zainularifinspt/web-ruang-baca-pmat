@@ -7,7 +7,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { CollectionDetailContent } from "@/components/collection-detail";
-import { AvailabilityBadge, StatusBadge } from "@/components/status-badge";
+import { AvailabilityBadge } from "@/components/status-badge";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import type { Book, Thesis } from "@/lib/types";
@@ -26,16 +26,14 @@ export function CollectionCard({ item }: { item: CollectionItem }) {
         >
           {isBook ? <BookCover item={item} /> : <ThesisCover item={item} />}
           <div className="flex flex-1 flex-col p-5">
-            <div className="mb-3 flex flex-wrap items-center gap-2">
-              {isBook ? (
+            {isBook ? (
+              <div className="mb-3 flex flex-wrap items-center gap-2">
                 <AvailabilityBadge available={item.available} stock={item.stock} />
-              ) : (
-                <StatusBadge status={item.verificationStatus} />
-              )}
-              <Badge variant="secondary" className="rounded-full">
-                {isBook ? item.category : item.topic}
-              </Badge>
-            </div>
+                <Badge variant="secondary" className="rounded-full">
+                  {item.category}
+                </Badge>
+              </div>
+            ) : null}
 
             <h3 className="line-clamp-2 text-base font-semibold leading-snug text-slate-950">
               {item.title}
@@ -83,10 +81,7 @@ function ThesisCover({ item }: { item: Thesis }) {
       </div>
       <div className="relative flex h-full flex-col justify-between">
         <GraduationCap className="size-7 text-emerald-200" />
-        <div>
-          <p className="text-xs uppercase tracking-wide text-slate-300">{item.code}</p>
-          <p className="mt-1 line-clamp-1 text-sm font-semibold">{item.topic}</p>
-        </div>
+        <p className="text-xs uppercase tracking-wide text-slate-300">{item.code}</p>
       </div>
     </div>
   );

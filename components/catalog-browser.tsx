@@ -17,8 +17,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getSupabaseClient } from "@/lib/supabase";
-import type { Book, Thesis, VerificationStatus } from "@/lib/types";
-import { valueToUIStatus } from "@/lib/utils";
+import type { Book, Thesis } from "@/lib/types";
 
 type CatalogTab = "books" | "theses";
 type SortValue = "newest" | "oldest" | "title";
@@ -58,7 +57,6 @@ export function CatalogBrowser({
   const [thesisYear, setThesisYear] = useState("all");
   const [thesisTopic, setThesisTopic] = useState("all");
   const [thesisAdvisor, setThesisAdvisor] = useState("all");
-  const [thesisStatus, setThesisStatus] = useState<VerificationStatus | "all">("all");
 
   useEffect(() => {
     return () => {
@@ -143,12 +141,10 @@ export function CatalogBrowser({
         thesisAdvisor === "all" ||
         item.supervisor1 === thesisAdvisor ||
         item.supervisor2 === thesisAdvisor;
-      const matchesStatus =
-        thesisStatus === "all" || item.verificationStatus === thesisStatus;
-      return matchesQuery && matchesYear && matchesTopic && matchesAdvisor && matchesStatus;
+      return matchesQuery && matchesYear && matchesTopic && matchesAdvisor;
     });
     return sortCollections(result, sort);
-  }, [theses, normalizedQuery, thesisYear, thesisTopic, thesisAdvisor, thesisStatus, sort]);
+  }, [theses, normalizedQuery, thesisYear, thesisTopic, thesisAdvisor, sort]);
 
   const bookCategories = useMemo(() => unique(books.map((item) => item.category)), [books]);
   const bookLocations = useMemo(() => unique(books.map((item) => item.rackLocation)), [books]);
@@ -158,20 +154,18 @@ export function CatalogBrowser({
     () => unique(theses.flatMap((item) => [item.supervisor1, item.supervisor2])),
     [theses],
   );
-  const thesisStatuses = useMemo(() => unique(theses.map((item) => item.verificationStatus)), [theses]);
 
   const activeChips =
     tab === "books"
       ? [
           chip("Kategori", bookCategory, () => setBookCategory("all")),
           chip("Lokasi", bookLocation, () => setBookLocation("all")),
-          chip("Status", availabilityLabel(bookAvailability), () => setBookAvailability("all"), bookAvailability),
+          chip("Ketersediaan", availabilityLabel(bookAvailability), () => setBookAvailability("all"), bookAvailability),
         ]
       : [
           chip("Tahun", thesisYear, () => setThesisYear("all")),
           chip("Topik", thesisTopic, () => setThesisTopic("all")),
           chip("Pembimbing", thesisAdvisor, () => setThesisAdvisor("all")),
-          chip("Status", thesisStatus === "all" ? thesisStatus : valueToUIStatus(thesisStatus), () => setThesisStatus("all"), thesisStatus),
         ];
 
   const resetCurrentFilters = () => {
@@ -184,7 +178,6 @@ export function CatalogBrowser({
       setThesisYear("all");
       setThesisTopic("all");
       setThesisAdvisor("all");
-      setThesisStatus("all");
     }
   };
 
@@ -297,11 +290,9 @@ export function CatalogBrowser({
               years={thesisYears}
               topics={thesisTopics}
               advisors={thesisAdvisors}
-              statuses={thesisStatuses}
               year={thesisYear}
               topic={thesisTopic}
               advisor={thesisAdvisor}
-              status={thesisStatus}
               onYear={(value) => {
                 setThesisYear(value);
                 triggerLoading();
@@ -312,10 +303,6 @@ export function CatalogBrowser({
               }}
               onAdvisor={(value) => {
                 setThesisAdvisor(value);
-                triggerLoading();
-              }}
-              onStatus={(value) => {
-                setThesisStatus(value);
                 triggerLoading();
               }}
             />
@@ -410,7 +397,7 @@ function BookFilters({
         label="Ketersediaan"
         value={availability}
         onValueChange={onAvailability}
-        placeholder="Semua status"
+        placeholder="Semua ketersediaan"
         options={availabilityOptions}
       />
     </div>
@@ -421,28 +408,22 @@ function ThesisFilters({
   years,
   topics,
   advisors,
-  statuses,
   year,
   topic,
   advisor,
-  status,
   onYear,
   onTopic,
   onAdvisor,
-  onStatus,
 }: {
   years: string[];
   topics: string[];
   advisors: string[];
-  statuses: VerificationStatus[];
   year: string;
   topic: string;
   advisor: string;
-  status: VerificationStatus | "all";
   onYear: (value: string) => void;
   onTopic: (value: string) => void;
   onAdvisor: (value: string) => void;
-  onStatus: (value: VerificationStatus | "all") => void;
 }) {
   const yearOptions: FilterOption[] = years.map((y) => ({
     label: y,
@@ -456,23 +437,12 @@ function ThesisFilters({
     label: a,
     value: a,
   }));
-  const statusOptions: FilterOption[] = statuses.map((s) => ({
-    label: valueToUIStatus(s),
-    value: s,
-  }));
   
   return (
-    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+    <div className="grid gap-3 md:grid-cols-3">
       <FilterSelect label="Tahun" value={year} onValueChange={onYear} options={yearOptions} placeholder="Semua tahun" />
       <FilterSelect label="Topik" value={topic} onValueChange={onTopic} options={topicOptions} placeholder="Semua topik" />
       <FilterSelect label="Dosen pembimbing" value={advisor} onValueChange={onAdvisor} options={advisorOptions} placeholder="Semua pembimbing" />
-      <FilterSelect
-        label="Status"
-        value={status}
-        onValueChange={(value) => onStatus(value as VerificationStatus | "all")}
-        options={statusOptions}
-        placeholder="Semua status"
-      />
     </div>
   );
 }
