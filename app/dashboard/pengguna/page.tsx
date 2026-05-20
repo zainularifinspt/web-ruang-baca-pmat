@@ -1,65 +1,106 @@
-"use client";
-
-import { Pencil } from "lucide-react";
-import { toast } from "sonner";
-import { InitialAvatar } from "@/components/data-table";
+import { redirect } from "next/navigation";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PageHeader } from "@/components/page-header";
 import { SectionCard } from "@/components/section-card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { roleLabels, users } from "@/lib/mock-data";
+import { createSupabaseAdminClient } from "@/lib/supabase-admin";
+import { requireStaffRole } from "@/lib/auth-guards";
+import type { Role } from "@/lib/types";
+import { AddUserButton, UsersManagement, type ManagedUser } from "@/app/dashboard/pengguna/users-management";
 
-export default function UsersPage() {
+export const dynamic = "force-dynamic";
+
+type ProfileRow = {
+  id: string;
+  email: string | null;
+  full_name: string | null;
+  role: Role | null;
+};
+
+export default async function UsersPage() {
+  const auth = await requireStaffRole(["admin"]);
+
+  if (!auth.ok) {
+    redirect("/login?redirectTo=/dashboard/pengguna&error=admin_required");
+  }
+
+  const { users, error } = await fetchManagedUsers();
+
   return (
     <div className="space-y-6">
       <PageHeader
         eyebrow="Pengguna"
         title="Manajemen Peran dan Pengguna"
-        description="Lihat daftar pengguna dan pratinjau pengaturan peran untuk kebutuhan akses ruang baca."
+        description="Tambah akun dosen, mahasiswa, dan petugas ruang baca langsung ke Supabase Auth."
+        action={<AddUserButton />}
       />
-      <SectionCard>
-        <Table className="min-w-[820px]">
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nama</TableHead>
-              <TableHead>NIM/NIP</TableHead>
-              <TableHead>No. WhatsApp</TableHead>
-              <TableHead>Peran</TableHead>
-              <TableHead className="text-right">Aksi</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {users.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell>
-                  <div className="flex items-center gap-3">
-                    <InitialAvatar name={user.name} />
-                    <span className="font-semibold text-slate-950">{user.name}</span>
-                  </div>
-                </TableCell>
-                <TableCell>{user.nimNip}</TableCell>
-                <TableCell>{user.phoneNumber}</TableCell>
-                <TableCell><Badge variant="secondary">{roleLabels[user.role]}</Badge></TableCell>
-                <TableCell className="text-right">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      toast.info("Simulasi ubah peran", {
-                        description: "Perubahan peran akan disimpan pada implementasi lengkap.",
-                      })
-                    }
-                  >
-                    <Pencil />
-                    Ubah peran
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+
+      {error ? (
+        <Alert className="border-red-200 bg-red-50 text-red-800">
+          <AlertTitle>Daftar pengguna belum dapat dimuat</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      ) : null}
+
+      <SectionCard
+        title="Daftar pengguna"
+        description="Role di sini menjadi sumber akses saat pengguna login."
+      >
+        <UsersManagement users={users} />
       </SectionCard>
     </div>
   );
+}
+
+async function fetchManagedUsers() {
+  try {
+    const supabaseAdmin = createSupabaseAdminClient();
+    const [{ data: profiles, error: profilesError }, { data: authUsers, error: authUsersError }] =
+      await Promise.all([
+        supabaseAdmin.from("profiles").select("id,email,full_name,role"),
+        supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 }),
+      ]);
+
+    if (profilesError) {
+      return { users: [] as ManagedUser[], error: profilesError.message };
+    }
+
+    if (authUsersError) {
+      return { users: [] as ManagedUser[], error: authUsersError.message };
+    }
+
+    const authUserById = new Map(authUsers.users.map((user) => [user.id, user]));
+    const users = ((profiles ?? []) as ProfileRow[])
+      .filter((profile) => Boolean(profile.role))
+      .map((profile) => {
+        const authUser = authUserById.get(profile.id);
+        const metadata = authUser?.user_metadata ?? {};
+
+        return {
+          id: profile.id,
+          email: profile.email ?? authUser?.email ?? "",
+          fullName: profile.full_name ?? metadata.full_name ?? metadata.name ?? "",
+          nimNip: textMetadata(metadata, ["nim_nip", "nimNip", "nim", "nip"]),
+          phoneNumber: textMetadata(metadata, ["phone_number", "phoneNumber", "whatsapp", "phone"]),
+          role: profile.role as Role,
+        };
+      });
+
+    return { users, error: undefined };
+  } catch (error) {
+    return {
+      users: [] as ManagedUser[],
+      error: error instanceof Error ? error.message : "Gagal memuat pengguna.",
+    };
+  }
+}
+
+function textMetadata(metadata: Record<string, unknown>, keys: string[]) {
+  for (const key of keys) {
+    const value = metadata[key];
+    if (typeof value === "string" && value.trim()) {
+      return value;
+    }
+  }
+
+  return "";
 }
