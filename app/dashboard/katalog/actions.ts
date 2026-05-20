@@ -110,16 +110,16 @@ export async function updateCollectionVerificationStatus(
 
   const result = await safelyMutateCatalog(async () => {
     if (type === "book") {
+      await writeBookVerificationOverride(id, status);
+
       const { error } = await createSupabaseAdminClient()
         .from("books")
         .update({ verification_status: status })
         .eq("id", id);
 
-      if (error) {
-        await writeBookVerificationOverride(id, status);
-      }
-
-      return success("Status verifikasi buku berhasil diperbarui.");
+      return error && !isMissingBookVerificationColumn(error.message)
+        ? failure(error.message)
+        : success("Status verifikasi buku berhasil diperbarui.");
     }
 
     const { error } = await createSupabaseAdminClient()
@@ -134,6 +134,10 @@ export async function updateCollectionVerificationStatus(
   revalidatePath("/dashboard/verifikasi");
 
   return result;
+}
+
+function isMissingBookVerificationColumn(message: string) {
+  return message.includes("verification_status") || message.includes("schema cache");
 }
 
 async function insertBook(payload: MutationPayload) {

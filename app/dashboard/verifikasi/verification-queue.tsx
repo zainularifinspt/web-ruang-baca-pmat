@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { Check, MessageSquareWarning, X } from "lucide-react";
 import { toast } from "sonner";
 import { updateCollectionVerificationStatus } from "@/app/dashboard/katalog/actions";
@@ -16,6 +16,7 @@ type CollectionItem = Book | Thesis;
 export function VerificationQueue({ items }: { items: CollectionItem[] }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [statusOverrides, setStatusOverrides] = useState<Record<string, VerificationStatus>>({});
 
   function updateStatus(item: CollectionItem, status: VerificationStatus) {
     startTransition(async () => {
@@ -27,6 +28,10 @@ export function VerificationQueue({ items }: { items: CollectionItem[] }) {
       }
 
       toast.success(result.message);
+      setStatusOverrides((current) => ({
+        ...current,
+        [item.id]: status,
+      }));
       router.refresh();
     });
   }
@@ -44,51 +49,56 @@ export function VerificationQueue({ items }: { items: CollectionItem[] }) {
       </TableHeader>
       <TableBody>
         {items.length ? (
-          items.map((item) => (
-            <TableRow key={`${item.type}-${item.id}`}>
-              <TableCell className="max-w-sm font-medium">{item.title}</TableCell>
-              <TableCell>{item.type === "book" ? "Buku" : "Skripsi"}</TableCell>
-              <TableCell>{item.inputSource}</TableCell>
-              <TableCell>
-                <StatusBadge status={item.verificationStatus} />
-              </TableCell>
-              <TableCell>
-                <div className="flex justify-end gap-2">
-                  <CollectionDetail item={item} />
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="rounded-xl text-emerald-700 hover:text-emerald-800"
-                    disabled={isPending}
-                    onClick={() => updateStatus(item, "approved")}
-                  >
-                    <Check />
-                    <span className="sr-only">Setujui koleksi</span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="rounded-xl text-amber-700 hover:text-amber-800"
-                    disabled={isPending}
-                    onClick={() => updateStatus(item, "pending")}
-                  >
-                    <MessageSquareWarning />
-                    <span className="sr-only">Tandai menunggu verifikasi</span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="rounded-xl text-rose-700 hover:text-rose-800"
-                    disabled={isPending}
-                    onClick={() => updateStatus(item, "rejected")}
-                  >
-                    <X />
-                    <span className="sr-only">Tolak koleksi</span>
-                  </Button>
-                </div>
-              </TableCell>
-            </TableRow>
-          ))
+          items.map((item) => {
+            const currentStatus = statusOverrides[item.id] ?? item.verificationStatus;
+            const itemWithStatus = { ...item, verificationStatus: currentStatus } as CollectionItem;
+
+            return (
+              <TableRow key={`${item.type}-${item.id}`}>
+                <TableCell className="max-w-sm font-medium">{item.title}</TableCell>
+                <TableCell>{item.type === "book" ? "Buku" : "Skripsi"}</TableCell>
+                <TableCell>{item.inputSource}</TableCell>
+                <TableCell>
+                  <StatusBadge status={currentStatus} />
+                </TableCell>
+                <TableCell>
+                  <div className="flex justify-end gap-2">
+                    <CollectionDetail item={itemWithStatus} />
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="rounded-xl text-emerald-700 hover:text-emerald-800"
+                      disabled={isPending || currentStatus === "approved"}
+                      onClick={() => updateStatus(item, "approved")}
+                    >
+                      <Check />
+                      <span className="sr-only">Setujui koleksi</span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="rounded-xl text-amber-700 hover:text-amber-800"
+                      disabled={isPending || currentStatus === "pending"}
+                      onClick={() => updateStatus(item, "pending")}
+                    >
+                      <MessageSquareWarning />
+                      <span className="sr-only">Tandai menunggu verifikasi</span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="rounded-xl text-rose-700 hover:text-rose-800"
+                      disabled={isPending || currentStatus === "rejected"}
+                      onClick={() => updateStatus(item, "rejected")}
+                    >
+                      <X />
+                      <span className="sr-only">Tolak koleksi</span>
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            );
+          })
         ) : (
           <TableRow>
             <TableCell colSpan={5} className="h-28 text-center text-sm text-slate-500">
