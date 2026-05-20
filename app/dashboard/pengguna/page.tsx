@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/page-header";
 import { SectionCard } from "@/components/section-card";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
 import { requireStaffRole } from "@/lib/auth-guards";
+import { getUserAppRole } from "@/lib/app-roles";
 import type { Role } from "@/lib/types";
 import { AddUserButton, UsersManagement, type ManagedUser } from "@/app/dashboard/pengguna/users-management";
 
@@ -30,7 +31,7 @@ export default async function UsersPage() {
       <PageHeader
         eyebrow="Pengguna"
         title="Manajemen Peran dan Pengguna"
-        description="Tambah akun dosen, mahasiswa, dan petugas ruang baca langsung ke Supabase Auth."
+        description="Tambah akun, ubah role, hapus pengguna, dan reset password pengguna langsung dari dashboard admin."
         action={<AddUserButton />}
       />
 
@@ -43,7 +44,7 @@ export default async function UsersPage() {
 
       <SectionCard
         title="Daftar pengguna"
-        description="Role di sini menjadi sumber akses saat pengguna login."
+        description="Role aplikasi dan tombol reset password pengguna tersedia untuk setiap akun non-admin."
       >
         <UsersManagement users={users} />
       </SectionCard>
@@ -70,10 +71,12 @@ async function fetchManagedUsers() {
 
     const authUserById = new Map(authUsers.users.map((user) => [user.id, user]));
     const users = ((profiles ?? []) as ProfileRow[])
-      .filter((profile) => Boolean(profile.role))
       .map((profile) => {
         const authUser = authUserById.get(profile.id);
         const metadata = authUser?.user_metadata ?? {};
+        const role = authUser ? getUserAppRole(authUser, profile.role) : profile.role;
+
+        if (!role) return null;
 
         return {
           id: profile.id,
@@ -81,9 +84,10 @@ async function fetchManagedUsers() {
           fullName: profile.full_name ?? metadata.full_name ?? metadata.name ?? "",
           nimNip: textMetadata(metadata, ["nim_nip", "nimNip", "nim", "nip"]),
           phoneNumber: textMetadata(metadata, ["phone_number", "phoneNumber", "whatsapp", "phone"]),
-          role: profile.role as Role,
+          role,
         };
-      });
+      })
+      .filter((user): user is ManagedUser => Boolean(user));
 
     return { users, error: undefined };
   } catch (error) {

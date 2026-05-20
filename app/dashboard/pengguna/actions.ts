@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireStaffRole } from "@/lib/auth-guards";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
+import { getUserAppRole } from "@/lib/app-roles";
 import type { Role } from "@/lib/types";
 
 export type ManagedUserRole = Extract<Role, "dosen" | "mahasiswa" | "petugas">;
@@ -24,6 +25,11 @@ export type SaveUserResult = {
 };
 
 const managedRoles: ManagedUserRole[] = ["dosen", "mahasiswa", "petugas"];
+const profileSafeRole: Record<ManagedUserRole, "petugas"> = {
+  dosen: "petugas",
+  mahasiswa: "petugas",
+  petugas: "petugas",
+};
 
 export async function saveManagedUser(input: SaveUserInput): Promise<SaveUserResult> {
   const auth = await requireStaffRole(["admin"]);
@@ -61,6 +67,7 @@ export async function saveManagedUser(input: SaveUserInput): Promise<SaveUserRes
 
     const metadata = {
       ...(existingUser?.user_metadata ?? {}),
+      app_role: role,
       full_name: fullName,
       nim_nip: nimNip,
       phone_number: phoneNumber,
@@ -95,8 +102,10 @@ export async function saveManagedUser(input: SaveUserInput): Promise<SaveUserRes
       .eq("id", user.id)
       .maybeSingle();
 
+    const currentRole = getUserAppRole(user, currentProfile?.role);
+
     if (currentProfileError) return failure(currentProfileError.message);
-    if (currentProfile?.role === "admin") {
+    if (currentRole === "admin") {
       return failure("Akun admin tidak dapat diubah melalui form pengguna umum.");
     }
 
@@ -116,7 +125,7 @@ export async function saveManagedUser(input: SaveUserInput): Promise<SaveUserRes
           id: user.id,
           email,
           full_name: fullName,
-          role,
+          role: profileSafeRole[role],
         },
         { onConflict: "id" },
       );
@@ -129,6 +138,93 @@ export async function saveManagedUser(input: SaveUserInput): Promise<SaveUserRes
     return success(isEditing ? "Data pengguna berhasil diperbarui." : "Pengguna berhasil ditambahkan.");
   } catch (error) {
     return failure(error instanceof Error ? error.message : "Gagal menyimpan pengguna.");
+  }
+}
+
+export async function resetManagedUserPassword(input: {
+  userId: string;
+  password: string;
+  confirmPassword: string;
+}): Promise<SaveUserResult> {
+  const auth = await requireStaffRole(["admin"]);
+  if (!auth.ok) return failure(auth.message);
+
+  const userId = input.userId.trim();
+  const password = input.password;
+  const confirmPassword = input.confirmPassword;
+
+  if (!userId) return failure("Pengguna tidak valid.");
+  if (password.length < 6) return failure("Password minimal 6 karakter.");
+  if (password !== confirmPassword) return failure("Konfirmasi password tidak sama.");
+
+  try {
+    const supabaseAdmin = createSupabaseAdminClient();
+    const [
+      { data: profile, error: profileError },
+      {
+        data: { user },
+        error: userError,
+      },
+    ] = await Promise.all([
+      supabaseAdmin.from("profiles").select("role").eq("id", userId).maybeSingle(),
+      supabaseAdmin.auth.admin.getUserById(userId),
+    ]);
+
+    if (profileError) return failure(profileError.message);
+    if (userError) return failure(userError.message);
+    if (user && getUserAppRole(user, profile?.role) === "admin") {
+      return failure("Password admin tidak dapat direset dari halaman ini.");
+    }
+
+    const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+      password,
+    });
+
+    if (error) return failure(error.message);
+
+    revalidatePath("/dashboard/pengguna");
+    return success("Password pengguna berhasil direset.");
+  } catch (error) {
+    return failure(error instanceof Error ? error.message : "Gagal mereset password pengguna.");
+  }
+}
+
+export async function deleteManagedUser(userId: string): Promise<SaveUserResult> {
+  const auth = await requireStaffRole(["admin"]);
+  if (!auth.ok) return failure(auth.message);
+
+  const normalizedUserId = userId.trim();
+  if (!normalizedUserId) return failure("Pengguna tidak valid.");
+
+  try {
+    const supabaseAdmin = createSupabaseAdminClient();
+    const [
+      { data: profile, error: profileError },
+      {
+        data: { user },
+        error: userError,
+      },
+    ] = await Promise.all([
+      supabaseAdmin.from("profiles").select("role").eq("id", normalizedUserId).maybeSingle(),
+      supabaseAdmin.auth.admin.getUserById(normalizedUserId),
+    ]);
+
+    if (profileError) return failure(profileError.message);
+    if (userError) return failure(userError.message);
+    if (user && getUserAppRole(user, profile?.role) === "admin") {
+      return failure("Akun admin tidak dapat dihapus dari halaman ini.");
+    }
+
+    const { error } = await supabaseAdmin.auth.admin.deleteUser(normalizedUserId);
+    if (error) return failure(error.message);
+
+    await supabaseAdmin.from("profiles").delete().eq("id", normalizedUserId);
+
+    revalidatePath("/dashboard/pengguna");
+    revalidatePath("/admin/petugas");
+    return success("Pengguna berhasil dihapus.");
+  } catch (error) {
+    return failure(error instanceof Error ? error.message : "Gagal menghapus pengguna.");
   }
 }
 

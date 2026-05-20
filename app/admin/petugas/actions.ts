@@ -50,6 +50,7 @@ export async function createPetugasAccount(
           password,
           email_confirm: true,
           user_metadata: {
+            app_role: "petugas",
             full_name: fullName,
           },
         }).then(({ data, error }) => ({
@@ -69,6 +70,7 @@ export async function createPetugasAccount(
           email_confirm: true,
           user_metadata: {
             ...existingUser.user_metadata,
+            app_role: "petugas",
             full_name: fullName,
           },
         },

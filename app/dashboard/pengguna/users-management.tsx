@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useMemo, useState, useTransition } from "react";
-import { Pencil, Plus } from "lucide-react";
+import { KeyRound, Pencil, Plus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { InitialAvatar } from "@/components/data-table";
@@ -26,7 +26,12 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { roleLabels } from "@/lib/mock-data";
 import type { Role } from "@/lib/types";
-import { saveManagedUser, type ManagedUserRole } from "@/app/dashboard/pengguna/actions";
+import {
+  deleteManagedUser,
+  resetManagedUserPassword,
+  saveManagedUser,
+  type ManagedUserRole,
+} from "@/app/dashboard/pengguna/actions";
 
 export type ManagedUser = {
   id: string;
@@ -67,9 +72,9 @@ export function UsersManagement({ users }: { users: ManagedUser[] }) {
           <TableHead>Nama</TableHead>
           <TableHead>Email</TableHead>
           <TableHead>NIM/NIP</TableHead>
-          <TableHead>No. WhatsApp</TableHead>
-          <TableHead>Peran</TableHead>
-          <TableHead className="text-right">Aksi</TableHead>
+              <TableHead>No. WhatsApp</TableHead>
+              <TableHead>Peran</TableHead>
+              <TableHead className="w-[360px] text-right">Aksi</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -94,7 +99,11 @@ export function UsersManagement({ users }: { users: ManagedUser[] }) {
                     Admin
                   </Button>
                 ) : (
-                  <UserDialog user={user} />
+                  <div className="flex justify-end gap-2">
+                    <UserDialog user={user} />
+                    <ResetPasswordDialog user={user} />
+                    <DeleteUserButton user={user} />
+                  </div>
                 )}
               </TableCell>
             </TableRow>
@@ -171,7 +180,7 @@ function UserDialog({ user }: { user?: ManagedUser }) {
         <DialogHeader>
           <DialogTitle>{isEditing ? "Ubah pengguna" : "Tambah pengguna"}</DialogTitle>
           <DialogDescription>
-            Simpan akun ke Supabase Auth dan tetapkan role di tabel profiles.
+            Simpan akun ke Supabase Auth dan tetapkan role aplikasi pengguna.
           </DialogDescription>
         </DialogHeader>
 
@@ -227,24 +236,28 @@ function UserDialog({ user }: { user?: ManagedUser }) {
                 </SelectContent>
               </Select>
             </Field>
-            <Field label={isEditing ? "Password baru (opsional)" : "Password"}>
-              <Input
-                type="password"
-                value={values.password}
-                onChange={(event) => setValues({ ...values, password: event.target.value })}
-                placeholder="Minimal 6 karakter"
-                required={!isEditing}
-              />
-            </Field>
-            <Field label={isEditing ? "Konfirmasi password baru" : "Konfirmasi password"}>
-              <Input
-                type="password"
-                value={values.confirmPassword}
-                onChange={(event) => setValues({ ...values, confirmPassword: event.target.value })}
-                placeholder="Ulangi password"
-                required={!isEditing || Boolean(values.password)}
-              />
-            </Field>
+            {!isEditing ? (
+              <>
+                <Field label="Password">
+                  <Input
+                    type="password"
+                    value={values.password}
+                    onChange={(event) => setValues({ ...values, password: event.target.value })}
+                    placeholder="Minimal 6 karakter"
+                    required
+                  />
+                </Field>
+                <Field label="Konfirmasi password">
+                  <Input
+                    type="password"
+                    value={values.confirmPassword}
+                    onChange={(event) => setValues({ ...values, confirmPassword: event.target.value })}
+                    placeholder="Ulangi password"
+                    required
+                  />
+                </Field>
+              </>
+            ) : null}
           </div>
 
           <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
@@ -256,6 +269,132 @@ function UserDialog({ user }: { user?: ManagedUser }) {
             </Button>
           </div>
         </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function ResetPasswordDialog({ user }: { user: ManagedUser }) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    startTransition(async () => {
+      const result = await resetManagedUserPassword({
+        userId: user.id,
+        password,
+        confirmPassword,
+      });
+
+      if (!result.ok) {
+        toast.error("Gagal reset password pengguna", { description: result.message });
+        return;
+      }
+
+      toast.success(result.message);
+      setOpen(false);
+      setPassword("");
+      setConfirmPassword("");
+      router.refresh();
+    });
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button size="sm" variant="outline" className="rounded-xl">
+          <KeyRound />
+          Reset password pengguna
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-md rounded-2xl">
+        <DialogHeader>
+          <DialogTitle>Reset password pengguna</DialogTitle>
+          <DialogDescription>
+            Atur password baru untuk {user.fullName || user.email}.
+          </DialogDescription>
+        </DialogHeader>
+        <form className="grid gap-4" onSubmit={handleSubmit}>
+          <Field label="Password baru">
+            <Input
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="Minimal 6 karakter"
+              required
+            />
+          </Field>
+          <Field label="Konfirmasi password baru">
+            <Input
+              type="password"
+              value={confirmPassword}
+              onChange={(event) => setConfirmPassword(event.target.value)}
+              placeholder="Ulangi password"
+              required
+            />
+          </Field>
+          <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
+            <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={isPending}>
+              Batal
+            </Button>
+            <Button type="submit" disabled={isPending}>
+              {isPending ? "Mereset..." : "Reset password pengguna"}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function DeleteUserButton({ user }: { user: ManagedUser }) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
+
+  function handleDelete() {
+    startTransition(async () => {
+      const result = await deleteManagedUser(user.id);
+
+      if (!result.ok) {
+        toast.error("Gagal menghapus pengguna", { description: result.message });
+        return;
+      }
+
+      toast.success(result.message);
+      setOpen(false);
+      router.refresh();
+    });
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button size="sm" variant="destructive" className="rounded-xl">
+          <Trash2 />
+          Hapus
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-md rounded-2xl">
+        <DialogHeader>
+          <DialogTitle>Hapus pengguna?</DialogTitle>
+          <DialogDescription>
+            Akun {user.fullName || user.email} akan dihapus dari Supabase Auth.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
+          <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={isPending}>
+            Batal
+          </Button>
+          <Button type="button" variant="destructive" onClick={handleDelete} disabled={isPending}>
+            {isPending ? "Menghapus..." : "Hapus pengguna"}
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );

@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/auth-helpers-nextjs";
 import { createClient } from "@supabase/supabase-js";
 import { type NextRequest, NextResponse } from "next/server";
 import { hasValidSupabaseConfig } from "@/lib/supabase-config";
+import { getUserAppRole } from "@/lib/app-roles";
 
 function redirectToLogin(request: NextRequest, error?: string) {
   const loginUrl = new URL("/login", request.url);
@@ -81,7 +82,7 @@ export async function proxy(request: NextRequest) {
     .eq("id", user.id)
     .maybeSingle();
 
-  const role = profile?.role;
+  const role = getUserAppRole(user, profile?.role);
   const pathname = request.nextUrl.pathname;
 
   if (error || !role) {

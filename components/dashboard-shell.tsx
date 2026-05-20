@@ -127,7 +127,7 @@ function DashboardShell({ children }: { children: ReactNode }) {
 
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
-  const { role, roleLabel } = useRole();
+  const { role } = useRole();
   const visibleItems = navItems.filter((item) => item.roles.includes(role));
 
   return (
@@ -145,15 +145,6 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         <NavGroup title="Menu Utama" items={visibleItems.filter((item) => item.group === "utama")} role={role} pathname={pathname} onNavigate={onNavigate} />
         <NavGroup title="Manajemen" items={visibleItems.filter((item) => item.group === "manajemen")} role={role} pathname={pathname} onNavigate={onNavigate} />
       </nav>
-      <div className="mt-auto space-y-3">
-        <div className="rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-sky-50 p-4 text-sm shadow-sm">
-          <p className="text-xs font-medium text-slate-500">Peran aktif</p>
-          <p className="mt-1 font-semibold text-slate-950">{roleLabel}</p>
-          <p className="mt-2 text-xs leading-5 text-slate-600">
-            Peran mengikuti akun login dan tidak dapat diganti manual.
-          </p>
-        </div>
-      </div>
     </div>
   );
 }
