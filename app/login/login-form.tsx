@@ -42,27 +42,31 @@ export function LoginForm() {
         return;
       }
 
-      const { data: profile, error } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", result.data.user.id)
-        .maybeSingle();
+      const accessToken = result.data.session?.access_token;
+      const roleResponse = await fetch("/api/auth/role", {
+        method: "POST",
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+      });
+      const roleResult = (await roleResponse.json()) as {
+        role?: "admin" | "petugas";
+        message?: string;
+      };
 
-      const role = profile?.role;
-
-      if (error || !role) {
+      if (!roleResponse.ok || !roleResult.role) {
         await supabase.auth.signOut();
-        setFormError("Akun berhasil dikenali, tetapi belum memiliki role admin atau petugas.");
+        setFormError(
+          roleResult.message ?? "Akun berhasil dikenali, tetapi belum memiliki role admin atau petugas.",
+        );
         return;
       }
 
-      if (role === "admin") {
+      if (roleResult.role === "admin") {
         router.replace("/admin");
         router.refresh();
         return;
       }
 
-      if (role === "petugas") {
+      if (roleResult.role === "petugas") {
         router.replace("/petugas");
         router.refresh();
         return;

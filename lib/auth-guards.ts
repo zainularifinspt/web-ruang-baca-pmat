@@ -1,5 +1,6 @@
 import type { User } from "@supabase/supabase-js";
 import { createSupabaseServerClient } from "@/lib/supabase-auth-server";
+import { createSupabaseAdminClient } from "@/lib/supabase-admin";
 import { hasValidSupabaseConfig } from "@/lib/supabase-config";
 
 export type StaffRole = "admin" | "petugas";
@@ -23,7 +24,7 @@ export async function requireStaffRole(allowedRoles: StaffRole[]): Promise<RoleC
     return { ok: false, message: "Sesi login tidak ditemukan." };
   }
 
-  const { data: profile, error: profileError } = await supabase
+  const { data: profile, error: profileError } = await createSupabaseAdminClient()
     .from("profiles")
     .select("role")
     .eq("id", user.id)

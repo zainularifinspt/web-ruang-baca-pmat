@@ -13,6 +13,7 @@ import { LogoutButton } from "@/app/admin/logout-button";
 import { Button } from "@/components/ui/button";
 import { hasValidSupabaseConfig } from "@/lib/supabase-config";
 import { createSupabaseServerClient } from "@/lib/supabase-auth-server";
+import { createSupabaseAdminClient } from "@/lib/supabase-admin";
 
 export const dynamic = "force-dynamic";
 
@@ -63,7 +64,7 @@ export default async function AdminPage() {
     redirect("/login?redirectTo=/admin");
   }
 
-  const { data: profile } = await supabase
+  const { data: profile } = await createSupabaseAdminClient()
     .from("profiles")
     .select("role")
     .eq("id", user.id)

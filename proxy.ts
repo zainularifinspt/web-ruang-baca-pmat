@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/auth-helpers-nextjs";
+import { createClient } from "@supabase/supabase-js";
 import { type NextRequest, NextResponse } from "next/server";
 import { hasValidSupabaseConfig } from "@/lib/supabase-config";
 
@@ -24,8 +25,9 @@ function isProtectedAdminPath(pathname: string) {
 export async function proxy(request: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  if (!hasValidSupabaseConfig() || !supabaseUrl || !supabaseAnonKey) {
+  if (!hasValidSupabaseConfig() || !supabaseUrl || !supabaseAnonKey || !supabaseServiceRoleKey) {
     return redirectToLogin(request, "configuration");
   }
 
@@ -62,7 +64,14 @@ export async function proxy(request: NextRequest) {
     return redirectToLogin(request);
   }
 
-  const { data: profile, error } = await supabase
+  const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+
+  const { data: profile, error } = await supabaseAdmin
     .from("profiles")
     .select("role")
     .eq("id", user.id)
