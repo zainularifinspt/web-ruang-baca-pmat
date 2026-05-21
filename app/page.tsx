@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { ComponentType } from "react";
 import {
   ArrowRight,
@@ -9,7 +10,6 @@ import {
   LibraryBig,
   Mail,
   MapPin,
-  Sparkles,
   TrendingUp,
   Users,
 } from "lucide-react";
@@ -41,7 +41,7 @@ export default async function HomePage() {
 
         <section className="relative mx-auto max-w-6xl px-4 pb-12 pt-12 text-center sm:px-6 sm:pb-14 sm:pt-16 lg:pb-16 lg:pt-20">
           <Badge className="rounded-full border-white/70 bg-white/65 px-4 py-1.5 text-emerald-700 shadow-sm shadow-emerald-950/5 backdrop-blur-xl hover:bg-white/80">
-            <Sparkles className="mr-1 size-3.5" />
+            <Image src="/ulm-logo.png" alt="Logo Universitas Lambung Mangkurat" width={22} height={22} className="mr-1.5 size-5 object-contain" priority />
             Jurusan Pendidikan Matematika ULM
           </Badge>
           <h1 className="mx-auto mt-6 max-w-4xl text-4xl font-bold leading-[1.03] tracking-tight text-slate-950 sm:text-6xl lg:text-7xl">
@@ -216,6 +216,9 @@ function Footer() {
             <span className="flex size-11 items-center justify-center rounded-2xl bg-emerald-600 text-white">
               <LibraryBig className="size-5" />
             </span>
+            <span className="flex size-11 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-white/10">
+              <Image src="/ulm-logo.png" alt="Logo Universitas Lambung Mangkurat" width={34} height={34} className="size-8 object-contain" />
+            </span>
             <div>
               <p className="font-bold text-white">Ruang Baca PMat</p>
               <p className="text-xs text-slate-400">Jurusan Pendidikan Matematika ULM</p>
@@ -249,7 +252,12 @@ function Footer() {
         <div>
           <h3 className="font-semibold text-white">Institusi</h3>
           <div className="mt-4 rounded-2xl bg-white/5 p-4 text-sm leading-6 text-slate-400 ring-1 ring-white/10">
-            <Building2 className="mb-3 size-5 text-emerald-400" />
+            <div className="mb-3 flex items-center gap-3">
+              <span className="flex size-10 items-center justify-center rounded-2xl bg-white">
+                <Image src="/ulm-logo.png" alt="Logo Universitas Lambung Mangkurat" width={32} height={32} className="size-8 object-contain" />
+              </span>
+              <Building2 className="size-5 text-emerald-400" />
+            </div>
             Jurusan Pendidikan Matematika Universitas Lambung Mangkurat, Fakultas Keguruan dan Ilmu Pendidikan.
           </div>
         </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -143,8 +144,13 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <div className="flex h-full flex-col gap-6 rounded-3xl bg-white/75 p-4 backdrop-blur-xl lg:bg-transparent lg:p-0">
       <Link href="/" className="group flex items-center gap-3 rounded-2xl p-2 transition hover:bg-white/80 hover:shadow-sm" onClick={onNavigate}>
-        <div className="flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-600 via-cyan-600 to-violet-600 text-primary-foreground shadow-lg shadow-emerald-950/20 transition group-hover:scale-105">
-          <Home className="size-5" />
+        <div className="flex shrink-0 items-center -space-x-2">
+          <div className="flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-600 via-cyan-600 to-violet-600 text-primary-foreground shadow-lg shadow-emerald-950/20 transition group-hover:scale-105">
+            <Home className="size-5" />
+          </div>
+          <span className="flex size-10 items-center justify-center rounded-full border border-white bg-white shadow-sm ring-1 ring-slate-200">
+            <Image src="/ulm-logo.png" alt="Logo Universitas Lambung Mangkurat" width={32} height={32} className="size-8 object-contain" priority />
+          </span>
         </div>
         <div>
           <p className="font-bold leading-none text-slate-950">Ruang Baca</p>

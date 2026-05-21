@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Suspense } from "react";
 import { ArrowLeft, BookOpenCheck, ShieldCheck, Sparkles } from "lucide-react";
 import { LoginForm } from "@/app/login/login-form";
@@ -19,8 +20,13 @@ export default function LoginPage() {
             <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.055)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.055)_1px,transparent_1px)] bg-[size:36px_36px] opacity-35" />
 
             <Link href="/" className="relative inline-flex items-center gap-3">
-              <span className="flex size-11 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 via-cyan-500 to-violet-500 text-white shadow-lg shadow-cyan-950/30">
-                <BookOpenCheck className="size-5" />
+              <span className="flex items-center -space-x-2">
+                <span className="flex size-11 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 via-cyan-500 to-violet-500 text-white shadow-lg shadow-cyan-950/30">
+                  <BookOpenCheck className="size-5" />
+                </span>
+                <span className="flex size-10 items-center justify-center rounded-full border border-white/20 bg-white shadow-sm">
+                  <Image src="/ulm-logo.png" alt="Logo Universitas Lambung Mangkurat" width={32} height={32} className="size-8 object-contain" priority />
+                </span>
               </span>
               <span>
                 <span className="block font-semibold leading-none">Ruang Baca</span>
@@ -55,8 +61,13 @@ export default function LoginPage() {
             <div className="mx-auto flex max-w-md flex-col justify-center py-8 lg:min-h-[34rem]">
               <div className="mb-8 flex items-center justify-between gap-4 lg:hidden">
                 <Link href="/" className="inline-flex min-w-0 items-center gap-3">
-                  <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-600 via-cyan-600 to-violet-600 text-white shadow-lg shadow-emerald-950/15">
-                    <BookOpenCheck className="size-5" />
+                  <span className="flex shrink-0 items-center -space-x-2">
+                    <span className="flex size-11 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-600 via-cyan-600 to-violet-600 text-white shadow-lg shadow-emerald-950/15">
+                      <BookOpenCheck className="size-5" />
+                    </span>
+                    <span className="flex size-10 items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm">
+                      <Image src="/ulm-logo.png" alt="Logo Universitas Lambung Mangkurat" width={32} height={32} className="size-8 object-contain" />
+                    </span>
                   </span>
                   <span className="min-w-0">
                     <span className="block font-semibold leading-none text-slate-950">Ruang Baca</span>

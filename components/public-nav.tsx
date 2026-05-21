@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -65,8 +66,13 @@ export function PublicNav() {
     >
       <div className="mx-auto flex min-h-18 max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
         <Link href="/" className="group flex min-w-0 items-center gap-3">
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#047857,#0891b2_55%,#7c3aed)] text-primary-foreground shadow-lg shadow-emerald-950/15 transition duration-300 group-hover:scale-105 sm:size-11">
-            <BookOpen className="size-5" />
+          <div className="flex shrink-0 items-center -space-x-2">
+            <div className="flex size-10 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#047857,#0891b2_55%,#7c3aed)] text-primary-foreground shadow-lg shadow-emerald-950/15 transition duration-300 group-hover:scale-105 sm:size-11">
+              <BookOpen className="size-5" />
+            </div>
+            <span className="flex size-9 items-center justify-center rounded-full border border-white bg-white shadow-sm ring-1 ring-slate-200 sm:size-10">
+              <Image src="/ulm-logo.png" alt="Logo Universitas Lambung Mangkurat" width={30} height={30} className="size-7 object-contain sm:size-8" priority />
+            </span>
           </div>
           <div className="min-w-0">
             <p className="font-bold leading-none tracking-tight text-slate-950">Ruang Baca PMat</p>
