@@ -4,6 +4,7 @@ import {
   normalizePhoneNumber,
   parseWhatsappDraftMessage,
 } from "@/lib/whatsapp-drafts";
+import { sendWhatsappSubmissionNotification } from "@/lib/whatsapp-notifications";
 
 type IncomingWhatsappTextMessage = {
   senderPhone: string;
@@ -174,6 +175,23 @@ async function saveIncomingMessage(message: IncomingWhatsappTextMessage) {
     parsingError,
     unknownSender,
   });
+
+  const notificationResult = await sendWhatsappSubmissionNotification({
+    senderPhone: message.senderPhone,
+    senderName: message.senderName || null,
+    type: parsed.type,
+    title: parsed.title || null,
+    author: parsed.author || null,
+    parsingError,
+    unknownSender,
+  });
+
+  if (!notificationResult.ok) {
+    console.error("[whatsapp-webhook] Submission saved but notification failed", {
+      senderPhone: message.senderPhone,
+      message: notificationResult.message,
+    });
+  }
 
   return { ok: true, message: "saved" };
 }
