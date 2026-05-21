@@ -20,6 +20,11 @@ type CatalogFetchOptions = {
   visibility?: "public" | "internal";
 };
 
+type CatalogInputOverride = {
+  source: CollectionBase["inputSource"];
+  inputBy: string;
+};
+
 type AttendanceRow = {
   id: string;
   visitor_name: string;
@@ -106,13 +111,22 @@ export async function fetchCatalogData(options: CatalogFetchOptions = {}): Promi
   ]);
   const bookVerificationOverrides = await getBookVerificationOverrides();
   const thesisVerificationOverrides = await getThesisVerificationOverrides();
+  const inputOverrides = await getCatalogInputOverrides();
 
   const errors = [booksResult.error, thesesResult.error].filter(Boolean);
   const books = booksResult.rows.map((row) =>
-    mapBookRow(row, bookVerificationOverrides[textValue(row, ["id"])]),
+    mapBookRow(
+      row,
+      bookVerificationOverrides[textValue(row, ["id"])],
+      inputOverrides[`book:${textValue(row, ["id"])}`],
+    ),
   );
   const theses = thesesResult.rows.map((row) =>
-    mapThesisRow(row, thesisVerificationOverrides[textValue(row, ["id"])]),
+    mapThesisRow(
+      row,
+      thesisVerificationOverrides[textValue(row, ["id"])],
+      inputOverrides[`thesis:${textValue(row, ["id"])}`],
+    ),
   );
   const publicOnly = options.visibility === "public";
 
@@ -130,10 +144,23 @@ export async function fetchCollectionById(type: string, id: string, options: Cat
   const { rows } = await fetchTableRows(table);
   const bookVerificationOverrides = table === "books" ? await getBookVerificationOverrides() : {};
   const thesisVerificationOverrides = table === "theses" ? await getThesisVerificationOverrides() : {};
+  const inputOverrides = await getCatalogInputOverrides();
   const mappedRows =
     table === "books"
-      ? rows.map((row) => mapBookRow(row, bookVerificationOverrides[textValue(row, ["id"])]))
-      : rows.map((row) => mapThesisRow(row, thesisVerificationOverrides[textValue(row, ["id"])]));
+      ? rows.map((row) =>
+          mapBookRow(
+            row,
+            bookVerificationOverrides[textValue(row, ["id"])],
+            inputOverrides[`book:${textValue(row, ["id"])}`],
+          ),
+        )
+      : rows.map((row) =>
+          mapThesisRow(
+            row,
+            thesisVerificationOverrides[textValue(row, ["id"])],
+            inputOverrides[`thesis:${textValue(row, ["id"])}`],
+          ),
+        );
 
   const item = mappedRows.find((item) => item.id === id) ?? null;
 
@@ -147,7 +174,14 @@ export async function fetchCollectionById(type: string, id: string, options: Cat
 export async function fetchBookById(id: string, options: CatalogFetchOptions = {}) {
   const { row, error } = await fetchTableRowById("books", id);
   const bookVerificationOverrides = await getBookVerificationOverrides();
-  const book = row ? mapBookRow(row, bookVerificationOverrides[textValue(row, ["id"])]) : null;
+  const inputOverrides = await getCatalogInputOverrides();
+  const book = row
+    ? mapBookRow(
+        row,
+        bookVerificationOverrides[textValue(row, ["id"])],
+        inputOverrides[`book:${textValue(row, ["id"])}`],
+      )
+    : null;
 
   return {
     book: book && (options.visibility !== "public" || isApproved(book)) ? book : null,
@@ -158,7 +192,14 @@ export async function fetchBookById(id: string, options: CatalogFetchOptions = {
 export async function fetchThesisById(id: string, options: CatalogFetchOptions = {}) {
   const { row, error } = await fetchTableRowById("theses", id);
   const thesisVerificationOverrides = await getThesisVerificationOverrides();
-  const thesis = row ? mapThesisRow(row, thesisVerificationOverrides[textValue(row, ["id"])]) : null;
+  const inputOverrides = await getCatalogInputOverrides();
+  const thesis = row
+    ? mapThesisRow(
+        row,
+        thesisVerificationOverrides[textValue(row, ["id"])],
+        inputOverrides[`thesis:${textValue(row, ["id"])}`],
+      )
+    : null;
 
   return {
     thesis: thesis && (options.visibility !== "public" || isApproved(thesis)) ? thesis : null,
@@ -204,7 +245,11 @@ async function fetchTableRowById(table: "books" | "theses", id: string) {
   }
 }
 
-function mapBookRow(row: UnknownRow, verificationOverride?: VerificationStatus): Book {
+function mapBookRow(
+  row: UnknownRow,
+  verificationOverride?: VerificationStatus,
+  inputOverride?: CatalogInputOverride,
+): Book {
   const stock = numberValue(row, ["stock"]);
   const rackLocation = textValue(
     row,
@@ -213,7 +258,7 @@ function mapBookRow(row: UnknownRow, verificationOverride?: VerificationStatus):
   );
 
   return {
-    ...mapBaseRow(row, verificationOverride),
+    ...mapBaseRow(row, verificationOverride, inputOverride),
     type: "book",
     author: textValue(row, ["author"]),
     publisher: textValue(row, ["publisher"]),
@@ -228,7 +273,11 @@ function mapBookRow(row: UnknownRow, verificationOverride?: VerificationStatus):
   };
 }
 
-function mapThesisRow(row: UnknownRow, verificationOverride?: VerificationStatus): Thesis {
+function mapThesisRow(
+  row: UnknownRow,
+  verificationOverride?: VerificationStatus,
+  inputOverride?: CatalogInputOverride,
+): Thesis {
   const topic = textValue(row, ["topic"], "Skripsi");
   const physicalLocation = textValue(
     row,
@@ -237,7 +286,7 @@ function mapThesisRow(row: UnknownRow, verificationOverride?: VerificationStatus
   );
 
   return {
-    ...mapBaseRow(row, verificationOverride),
+    ...mapBaseRow(row, verificationOverride, inputOverride),
     type: "thesis",
     studentName: textValue(row, ["student_name"]),
     topic,
@@ -256,7 +305,11 @@ function mapThesisRow(row: UnknownRow, verificationOverride?: VerificationStatus
   };
 }
 
-function mapBaseRow(row: UnknownRow, verificationOverride?: VerificationStatus): CollectionBase {
+function mapBaseRow(
+  row: UnknownRow,
+  verificationOverride?: VerificationStatus,
+  inputOverride?: CatalogInputOverride,
+): CollectionBase {
   const currentYear = new Date().getFullYear();
 
   return {
@@ -265,8 +318,8 @@ function mapBaseRow(row: UnknownRow, verificationOverride?: VerificationStatus):
     year: numberValue(row, ["year", "tahun", "graduation_year", "graduationYear"], currentYear),
     code: textValue(row, ["code", "kode", "collection_code", "kode_koleksi"], "-"),
     location: textValue(row, ["location", "rack_location", "physical_location"], "-"),
-    inputSource: inputSourceValue(row),
-    inputBy: textValue(row, ["input_by", "inputBy", "diinput_oleh"], "Belum tercatat"),
+    inputSource: inputOverride?.source ?? inputSourceValue(row),
+    inputBy: inputOverride?.inputBy ?? textValue(row, ["input_by", "inputBy", "diinput_oleh"], "Belum tercatat"),
     verificationStatus: verificationOverride ?? verificationStatusValue(row),
     notes: optionalTextValue(row, ["notes", "catatan"]),
     keywords: keywordsValue(row),
@@ -396,4 +449,13 @@ async function getThesisVerificationOverrides() {
 
   const { readThesisVerificationOverrides } = await import("@/lib/catalog-verification-store");
   return readThesisVerificationOverrides();
+}
+
+async function getCatalogInputOverrides() {
+  if (typeof window !== "undefined") {
+    return {};
+  }
+
+  const { readCatalogInputOverrides } = await import("@/lib/catalog-verification-store");
+  return readCatalogInputOverrides();
 }

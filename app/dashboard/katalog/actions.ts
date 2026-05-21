@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireStaffRole } from "@/lib/auth-guards";
 import {
+  writeCatalogInputOverride,
   writeBookVerificationOverride,
   writeThesisVerificationOverride,
 } from "@/lib/catalog-verification-store";
@@ -15,6 +16,11 @@ import type {
 import type { Book, Thesis, VerificationStatus } from "@/lib/types";
 
 type MutationPayload = Record<string, unknown>;
+type InsertCatalogOptions = {
+  type: "book" | "thesis";
+  inputBy?: string;
+  verificationStatus?: VerificationStatus;
+};
 
 export async function createBook(values: BookFormValues): Promise<CatalogActionResult> {
   const auth = await requireStaffRole(["admin", "petugas"]);
@@ -24,7 +30,9 @@ export async function createBook(values: BookFormValues): Promise<CatalogActionR
   if (validationError) return failure(validationError);
 
   const inputBy = await getInputActorName(auth.user.id, auth.user.email);
-  const result = await safelyMutateCatalog(() => insertBook(bookPayload(values, inputBy)));
+  const result = await safelyMutateCatalog(() =>
+    insertBook(bookPayload(values, inputBy), { type: "book", inputBy }),
+  );
   revalidateCatalogPaths();
 
   return result.ok
@@ -40,7 +48,13 @@ export async function createThesis(values: ThesisFormValues): Promise<CatalogAct
   if (validationError) return failure(validationError);
 
   const inputBy = await getInputActorName(auth.user.id, auth.user.email);
-  const result = await safelyMutateCatalog(() => insertThesis(thesisPayload(values, inputBy)));
+  const result = await safelyMutateCatalog(() =>
+    insertThesis(thesisPayload(values, inputBy), {
+      type: "thesis",
+      inputBy,
+      verificationStatus: values.verificationStatus,
+    }),
+  );
   revalidateCatalogPaths();
 
   return result.ok
@@ -161,19 +175,31 @@ function isMissingVerificationColumn(message: string) {
   return message.includes("verification_status") || message.includes("schema cache");
 }
 
-async function insertBook(payload: MutationPayload) {
-  const { error } = await createSupabaseAdminClient().from("books").insert(payload);
-  if (!error) return success("ok");
+async function insertBook(payload: MutationPayload, options?: InsertCatalogOptions) {
+  const { data, error } = await createSupabaseAdminClient()
+    .from("books")
+    .insert(payload)
+    .select("id")
+    .single();
+  if (!error) {
+    await writeInputAuditFromInsert(data, options);
+    return success("ok");
+  }
 
   if (!isMissingInputAuditColumn(error.message)) {
     return failure(error.message);
   }
 
   const { input_by: _inputBy, input_source: _inputSource, ...fallbackPayload } = payload;
-  const { error: fallbackError } = await createSupabaseAdminClient()
+  const { data: fallbackData, error: fallbackError } = await createSupabaseAdminClient()
     .from("books")
-    .insert(fallbackPayload);
-  return fallbackError ? failure(fallbackError.message) : success("ok");
+    .insert(fallbackPayload)
+    .select("id")
+    .single();
+  if (fallbackError) return failure(fallbackError.message);
+
+  await writeInputAuditFromInsert(fallbackData, options);
+  return success("ok");
 }
 
 async function updateBookRow(id: string, payload: MutationPayload) {
@@ -181,19 +207,37 @@ async function updateBookRow(id: string, payload: MutationPayload) {
   return error ? failure(error.message) : success("ok");
 }
 
-async function insertThesis(payload: MutationPayload) {
-  const { error } = await createSupabaseAdminClient().from("theses").insert(payload);
-  if (!error) return success("ok");
+async function insertThesis(payload: MutationPayload, options?: InsertCatalogOptions) {
+  const { data, error } = await createSupabaseAdminClient()
+    .from("theses")
+    .insert(payload)
+    .select("id")
+    .single();
+  if (!error) {
+    await writeInputAuditFromInsert(data, options);
+    return success("ok");
+  }
 
-  if (!isMissingInputAuditColumn(error.message)) {
+  if (!isMissingInputAuditColumn(error.message) && !isMissingVerificationColumn(error.message)) {
     return failure(error.message);
   }
 
-  const { input_by: _inputBy, input_source: _inputSource, ...fallbackPayload } = payload;
-  const { error: fallbackError } = await createSupabaseAdminClient()
+  const {
+    input_by: _inputBy,
+    input_source: _inputSource,
+    verification_status: _verificationStatus,
+    ...fallbackPayload
+  } = payload;
+  const { data: fallbackData, error: fallbackError } = await createSupabaseAdminClient()
     .from("theses")
-    .insert(fallbackPayload);
-  return fallbackError ? failure(fallbackError.message) : success("ok");
+    .insert(fallbackPayload)
+    .select("id")
+    .single();
+  if (fallbackError) return failure(fallbackError.message);
+
+  await writeInputAuditFromInsert(fallbackData, options);
+  await writeVerificationOverrideFromInsert(fallbackData, options);
+  return success("ok");
 }
 
 async function updateThesisRow(id: string, payload: MutationPayload) {
@@ -312,4 +356,42 @@ async function getInputActorName(userId: string, fallbackEmail?: string | null) 
 
 function isMissingInputAuditColumn(message: string) {
   return message.includes("input_by") || message.includes("input_source") || message.includes("schema cache");
+}
+
+async function writeInputAuditFromInsert(data: unknown, options?: InsertCatalogOptions) {
+  const id = textId(data);
+  if (!id || !options?.inputBy) return;
+
+  try {
+    await writeCatalogInputOverride(options.type, id, {
+      source: "Dasbor",
+      inputBy: options.inputBy,
+    });
+  } catch (error) {
+    console.error("[catalog-actions] Failed to write input audit override", {
+      type: options.type,
+      id,
+      error: error instanceof Error ? error.message : error,
+    });
+  }
+}
+
+async function writeVerificationOverrideFromInsert(data: unknown, options?: InsertCatalogOptions) {
+  const id = textId(data);
+  if (!id || !options?.verificationStatus || options.type !== "thesis") return;
+
+  try {
+    await writeThesisVerificationOverride(id, options.verificationStatus);
+  } catch (error) {
+    console.error("[catalog-actions] Failed to write thesis verification override", {
+      id,
+      error: error instanceof Error ? error.message : error,
+    });
+  }
+}
+
+function textId(value: unknown) {
+  if (!value || typeof value !== "object") return "";
+  const id = (value as Record<string, unknown>).id;
+  return typeof id === "string" ? id : "";
 }

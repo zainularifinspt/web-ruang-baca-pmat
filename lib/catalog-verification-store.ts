@@ -1,9 +1,15 @@
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
-import type { VerificationStatus } from "@/lib/types";
+import type { CollectionBase, VerificationStatus } from "@/lib/types";
+
+export type CatalogInputAudit = {
+  source: CollectionBase["inputSource"];
+  inputBy: string;
+};
 
 type VerificationStore = {
   books?: Record<string, VerificationStatus>;
   theses?: Record<string, VerificationStatus>;
+  inputs?: Record<string, CatalogInputAudit>;
 };
 
 const bucketName = "ruang-baca-metadata";
@@ -17,6 +23,11 @@ export async function readBookVerificationOverrides() {
 export async function readThesisVerificationOverrides() {
   const store = await readVerificationStore();
   return store.theses ?? {};
+}
+
+export async function readCatalogInputOverrides() {
+  const store = await readVerificationStore();
+  return store.inputs ?? {};
 }
 
 async function readVerificationStore() {
@@ -40,6 +51,26 @@ export async function writeThesisVerificationOverride(id: string, status: Verifi
   await writeVerificationOverride("theses", id, status);
 }
 
+export async function writeCatalogInputOverride(
+  type: "book" | "thesis",
+  id: string,
+  audit: CatalogInputAudit,
+) {
+  await ensureBucket();
+
+  const existing = await readVerificationStore();
+  const key = `${type}:${id}`;
+  const next: VerificationStore = {
+    ...existing,
+    inputs: {
+      ...(existing.inputs ?? {}),
+      [key]: audit,
+    },
+  };
+
+  await writeVerificationStore(next);
+}
+
 async function writeVerificationOverride(
   type: "books" | "theses",
   id: string,
@@ -56,6 +87,10 @@ async function writeVerificationOverride(
     },
   };
 
+  await writeVerificationStore(next);
+}
+
+async function writeVerificationStore(next: VerificationStore) {
   const supabase = createSupabaseAdminClient();
   const body = new Blob([`${JSON.stringify(next, null, 2)}\n`], {
     type: "application/json",
