@@ -216,9 +216,6 @@ function Footer() {
             <span className="flex size-11 items-center justify-center rounded-2xl bg-emerald-600 text-white">
               <LibraryBig className="size-5" />
             </span>
-            <span className="flex size-11 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-white/10">
-              <Image src="/ulm-logo.png" alt="Logo Universitas Lambung Mangkurat" width={34} height={34} className="size-8 object-contain" />
-            </span>
             <div>
               <p className="font-bold text-white">Ruang Baca PMat</p>
               <p className="text-xs text-slate-400">Jurusan Pendidikan Matematika ULM</p>
