@@ -37,8 +37,8 @@ export default async function SubmissionsPage() {
       <div className="space-y-6">
         <PageHeader
           eyebrow="Admin only"
-          title="Verifikasi Kiriman WhatsApp"
-          description="Tinjau, edit, approve, atau reject data buku dan skripsi sebelum tampil di katalog."
+          title="Kiriman WhatsApp"
+          description="Pantau kiriman WhatsApp dan perbaiki data parsing sebelum diproses di antrean verifikasi."
         />
 
         <div className="grid gap-4 sm:grid-cols-3">

@@ -2,7 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { requireStaffRole } from "@/lib/auth-guards";
-import { writeBookVerificationOverride } from "@/lib/catalog-verification-store";
+import {
+  writeBookVerificationOverride,
+  writeThesisVerificationOverride,
+} from "@/lib/catalog-verification-store";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
 import type {
   BookFormValues,
@@ -131,7 +134,15 @@ export async function updateCollectionVerificationStatus(
       .update({ verification_status: status })
       .eq("id", id);
 
-    return error ? failure(error.message) : success("Status verifikasi skripsi berhasil diperbarui.");
+    if (error) {
+      if (!isMissingVerificationColumn(error.message)) {
+        return failure(error.message);
+      }
+
+      await writeThesisVerificationOverride(id, status);
+    }
+
+    return success("Status verifikasi skripsi berhasil diperbarui.");
   });
 
   revalidateCatalogPaths();
@@ -141,6 +152,10 @@ export async function updateCollectionVerificationStatus(
 }
 
 function isMissingBookVerificationColumn(message: string) {
+  return isMissingVerificationColumn(message);
+}
+
+function isMissingVerificationColumn(message: string) {
   return message.includes("verification_status") || message.includes("schema cache");
 }
 

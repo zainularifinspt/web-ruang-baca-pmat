@@ -2,7 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { requireStaffRole } from "@/lib/auth-guards";
-import { writeBookVerificationOverride } from "@/lib/catalog-verification-store";
+import {
+  writeBookVerificationOverride,
+  writeThesisVerificationOverride,
+} from "@/lib/catalog-verification-store";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
 import type { DraftSubmissionType } from "@/lib/whatsapp-drafts";
 
@@ -178,7 +181,7 @@ async function markBookApproved(bookId: string) {
 
   if (!error) return;
 
-  if (isMissingBookVerificationColumn(error.message)) {
+  if (isMissingVerificationColumn(error.message)) {
     console.warn(
       "[draft-submissions] books.verification_status belum ada di schema cache. Using verification override fallback.",
     );
@@ -202,20 +205,61 @@ async function markBookApproved(bookId: string) {
 }
 
 async function insertApprovedThesis(row: DraftSubmissionRow) {
-  const { error } = await createSupabaseAdminClient().from("theses").insert({
-    title: row.title,
-    student_name: row.author,
-    year: row.year ?? new Date().getFullYear(),
-    topic: row.category || "Skripsi",
-    abstract: row.description,
-    supervisor_1: "-",
-    supervisor_2: "-",
-    physical_location: "Ruang Baca",
-    access_note: defaultAccessNote,
-    verification_status: "approved",
-  });
+  const { data, error } = await createSupabaseAdminClient()
+    .from("theses")
+    .insert({
+      title: row.title,
+      student_name: row.author,
+      year: row.year ?? new Date().getFullYear(),
+      topic: row.category || "Skripsi",
+      abstract: row.description,
+      supervisor_1: "-",
+      supervisor_2: "-",
+      physical_location: "Ruang Baca",
+      access_note: defaultAccessNote,
+    })
+    .select("id")
+    .single();
 
-  return error ? failure(error.message) : { ok: true, message: "ok" };
+  if (error) return failure(error.message);
+
+  const thesisId = textId(data);
+  if (thesisId) {
+    await markThesisApproved(thesisId);
+  }
+
+  return { ok: true, message: "ok" };
+}
+
+async function markThesisApproved(thesisId: string) {
+  const { error } = await createSupabaseAdminClient()
+    .from("theses")
+    .update({ verification_status: "approved" })
+    .eq("id", thesisId);
+
+  if (!error) return;
+
+  if (isMissingVerificationColumn(error.message)) {
+    console.warn(
+      "[draft-submissions] theses.verification_status belum ada di schema cache. Using verification override fallback.",
+    );
+
+    try {
+      await writeThesisVerificationOverride(thesisId, "approved");
+    } catch (overrideError) {
+      console.error("[draft-submissions] Failed to write thesis verification override", {
+        thesisId,
+        error: overrideError instanceof Error ? overrideError.message : overrideError,
+      });
+    }
+
+    return;
+  }
+
+  console.error("[draft-submissions] Failed to mark approved thesis verification_status", {
+    thesisId,
+    error: error.message,
+  });
 }
 
 function validateDraftForApproval(row: DraftSubmissionRow) {
@@ -235,7 +279,7 @@ function parseYear(value?: string) {
   return Number.isInteger(parsed) && parsed >= 1900 ? parsed : null;
 }
 
-function isMissingBookVerificationColumn(message: string) {
+function isMissingVerificationColumn(message: string) {
   return message.includes("verification_status") || message.includes("schema cache");
 }
 
@@ -248,6 +292,7 @@ function textId(value: unknown) {
 function revalidateSubmissionPaths() {
   revalidatePath("/admin/submissions");
   revalidatePath("/dashboard/whatsapp");
+  revalidatePath("/dashboard/verifikasi");
 }
 
 function failure(message: string): DraftSubmissionActionResult {

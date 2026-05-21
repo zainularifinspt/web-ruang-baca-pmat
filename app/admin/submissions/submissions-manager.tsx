@@ -2,13 +2,9 @@
 
 import { FormEvent, useState, useTransition } from "react";
 import { toast } from "sonner";
-import { AlertTriangle, Check, Eye, Pencil, X } from "lucide-react";
+import { AlertTriangle, Eye, Pencil } from "lucide-react";
 import { useRouter } from "next/navigation";
-import {
-  approveDraftSubmission,
-  rejectDraftSubmission,
-  updateDraftSubmission,
-} from "@/app/admin/submissions/actions";
+import { updateDraftSubmission } from "@/app/admin/submissions/actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -87,23 +83,6 @@ function SubmissionCard({
   submission: SubmissionRow;
   senderName: string;
 }) {
-  const router = useRouter();
-  const [isPending, startTransition] = useTransition();
-
-  function runAction(action: () => Promise<{ ok: boolean; message: string }>, successTitle: string) {
-    startTransition(async () => {
-      const result = await action();
-
-      if (!result.ok) {
-        toast.error("Aksi gagal", { description: result.message });
-        return;
-      }
-
-      toast.success(successTitle, { description: result.message });
-      router.refresh();
-    });
-  }
-
   return (
     <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -137,27 +116,6 @@ function SubmissionCard({
         <div className="flex flex-wrap gap-2">
           <SubmissionDetailDialog submission={submission} senderName={senderName} />
           <EditSubmissionDialog submission={submission} />
-          <Button
-            type="button"
-            size="sm"
-            className="rounded-xl"
-            disabled={isPending || submission.status === "approved"}
-            onClick={() => runAction(() => approveDraftSubmission(submission.id), "Submission disetujui")}
-          >
-            <Check />
-            Approve
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            variant="destructive"
-            className="rounded-xl"
-            disabled={isPending || submission.status === "rejected"}
-            onClick={() => runAction(() => rejectDraftSubmission(submission.id), "Submission ditolak")}
-          >
-            <X />
-            Reject
-          </Button>
         </div>
       </div>
 

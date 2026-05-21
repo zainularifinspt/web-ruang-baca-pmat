@@ -105,12 +105,15 @@ export async function fetchCatalogData(options: CatalogFetchOptions = {}): Promi
     fetchTableRows("theses"),
   ]);
   const bookVerificationOverrides = await getBookVerificationOverrides();
+  const thesisVerificationOverrides = await getThesisVerificationOverrides();
 
   const errors = [booksResult.error, thesesResult.error].filter(Boolean);
   const books = booksResult.rows.map((row) =>
     mapBookRow(row, bookVerificationOverrides[textValue(row, ["id"])]),
   );
-  const theses = thesesResult.rows.map(mapThesisRow);
+  const theses = thesesResult.rows.map((row) =>
+    mapThesisRow(row, thesisVerificationOverrides[textValue(row, ["id"])]),
+  );
   const publicOnly = options.visibility === "public";
 
   return {
@@ -126,10 +129,11 @@ export async function fetchCollectionById(type: string, id: string, options: Cat
 
   const { rows } = await fetchTableRows(table);
   const bookVerificationOverrides = table === "books" ? await getBookVerificationOverrides() : {};
+  const thesisVerificationOverrides = table === "theses" ? await getThesisVerificationOverrides() : {};
   const mappedRows =
     table === "books"
       ? rows.map((row) => mapBookRow(row, bookVerificationOverrides[textValue(row, ["id"])]))
-      : rows.map(mapThesisRow);
+      : rows.map((row) => mapThesisRow(row, thesisVerificationOverrides[textValue(row, ["id"])]));
 
   const item = mappedRows.find((item) => item.id === id) ?? null;
 
@@ -153,7 +157,8 @@ export async function fetchBookById(id: string, options: CatalogFetchOptions = {
 
 export async function fetchThesisById(id: string, options: CatalogFetchOptions = {}) {
   const { row, error } = await fetchTableRowById("theses", id);
-  const thesis = row ? mapThesisRow(row) : null;
+  const thesisVerificationOverrides = await getThesisVerificationOverrides();
+  const thesis = row ? mapThesisRow(row, thesisVerificationOverrides[textValue(row, ["id"])]) : null;
 
   return {
     thesis: thesis && (options.visibility !== "public" || isApproved(thesis)) ? thesis : null,
@@ -223,7 +228,7 @@ function mapBookRow(row: UnknownRow, verificationOverride?: VerificationStatus):
   };
 }
 
-function mapThesisRow(row: UnknownRow): Thesis {
+function mapThesisRow(row: UnknownRow, verificationOverride?: VerificationStatus): Thesis {
   const topic = textValue(row, ["topic"], "Skripsi");
   const physicalLocation = textValue(
     row,
@@ -232,7 +237,7 @@ function mapThesisRow(row: UnknownRow): Thesis {
   );
 
   return {
-    ...mapBaseRow(row),
+    ...mapBaseRow(row, verificationOverride),
     type: "thesis",
     studentName: textValue(row, ["student_name"]),
     topic,
@@ -382,4 +387,13 @@ async function getBookVerificationOverrides() {
 
   const { readBookVerificationOverrides } = await import("@/lib/catalog-verification-store");
   return readBookVerificationOverrides();
+}
+
+async function getThesisVerificationOverrides() {
+  if (typeof window !== "undefined") {
+    return {};
+  }
+
+  const { readThesisVerificationOverrides } = await import("@/lib/catalog-verification-store");
+  return readThesisVerificationOverrides();
 }

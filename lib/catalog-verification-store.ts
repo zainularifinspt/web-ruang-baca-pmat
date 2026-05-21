@@ -3,32 +3,55 @@ import type { VerificationStatus } from "@/lib/types";
 
 type VerificationStore = {
   books?: Record<string, VerificationStatus>;
+  theses?: Record<string, VerificationStatus>;
 };
 
 const bucketName = "ruang-baca-metadata";
 const fileName = "catalog-verifications.json";
 
 export async function readBookVerificationOverrides() {
+  const store = await readVerificationStore();
+  return store.books ?? {};
+}
+
+export async function readThesisVerificationOverrides() {
+  const store = await readVerificationStore();
+  return store.theses ?? {};
+}
+
+async function readVerificationStore() {
   try {
     const supabase = createSupabaseAdminClient();
     const { data, error } = await supabase.storage.from(bucketName).download(fileName);
 
-    if (error || !data) return {};
+    if (error || !data) return {} as VerificationStore;
 
-    const parsed = JSON.parse(await data.text()) as VerificationStore;
-    return parsed.books ?? {};
+    return JSON.parse(await data.text()) as VerificationStore;
   } catch {
-    return {};
+    return {} as VerificationStore;
   }
 }
 
 export async function writeBookVerificationOverride(id: string, status: VerificationStatus) {
+  await writeVerificationOverride("books", id, status);
+}
+
+export async function writeThesisVerificationOverride(id: string, status: VerificationStatus) {
+  await writeVerificationOverride("theses", id, status);
+}
+
+async function writeVerificationOverride(
+  type: "books" | "theses",
+  id: string,
+  status: VerificationStatus,
+) {
   await ensureBucket();
 
-  const existing = await readBookVerificationOverrides();
+  const existing = await readVerificationStore();
   const next: VerificationStore = {
-    books: {
-      ...existing,
+    ...existing,
+    [type]: {
+      ...(existing[type] ?? {}),
       [id]: status,
     },
   };
