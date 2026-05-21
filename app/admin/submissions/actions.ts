@@ -102,11 +102,7 @@ export async function approveDraftSubmission(id: string): Promise<DraftSubmissio
 
     const { error: updateError } = await supabaseAdmin
       .from("draft_submissions")
-      .update({
-        status: "approved",
-        verified_by: auth.user.id,
-        verified_at: new Date().toISOString(),
-      })
+      .update({ status: "approved" })
       .eq("id", normalizedId);
 
     if (updateError) return failure(updateError.message);
@@ -132,11 +128,7 @@ export async function rejectDraftSubmission(id: string): Promise<DraftSubmission
   try {
     const { error } = await createSupabaseAdminClient()
       .from("draft_submissions")
-      .update({
-        status: "rejected",
-        verified_by: auth.user.id,
-        verified_at: new Date().toISOString(),
-      })
+      .update({ status: "rejected" })
       .eq("id", normalizedId);
 
     if (error) return failure(error.message);
