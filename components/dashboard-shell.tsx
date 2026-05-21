@@ -34,6 +34,7 @@ const navItems: Array<{
   roles: Role[];
 }> = [
   { href: "/dashboard", label: "Dasbor", icon: BarChart3, group: "utama", roles: ["admin", "dosen", "petugas"] },
+  { href: "/petugas", label: "Panel Petugas", icon: BookOpen, group: "utama", roles: ["petugas"] },
   { href: "/dashboard/katalog", label: "Katalog", icon: BookOpen, group: "utama", roles: ["admin", "dosen", "petugas"] },
   {
     href: "/dashboard/verifikasi",
@@ -55,6 +56,7 @@ const navItems: Array<{
 
 const pageTitles: Record<string, { title: string; breadcrumb: string }> = {
   "/dashboard": { title: "Dasbor", breadcrumb: "Internal / Dasbor" },
+  "/petugas": { title: "Panel Petugas", breadcrumb: "Petugas / Katalog" },
   "/dashboard/katalog": { title: "Katalog Koleksi", breadcrumb: "Internal / Katalog" },
   "/dashboard/verifikasi": { title: "Verifikasi Koleksi", breadcrumb: "Internal / Verifikasi" },
   "/dashboard/presensi": { title: "Data Kunjungan", breadcrumb: "Internal / Presensi" },

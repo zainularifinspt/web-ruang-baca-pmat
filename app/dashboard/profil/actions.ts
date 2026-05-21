@@ -79,6 +79,44 @@ export async function updateOwnProfileName(fullNameInput: string): Promise<Updat
   }
 }
 
+export async function updateOwnPassword(
+  passwordInput: string,
+  confirmationInput: string,
+): Promise<UpdateProfileResult> {
+  if (!hasValidSupabaseConfig()) {
+    return failure("Konfigurasi Supabase belum lengkap.");
+  }
+
+  const password = passwordInput.trim();
+  const confirmation = confirmationInput.trim();
+
+  if (password.length < 8) return failure("Password minimal 8 karakter.");
+  if (password !== confirmation) return failure("Konfirmasi password tidak sama.");
+
+  try {
+    const supabase = await createSupabaseServerClient();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      return failure("Sesi login tidak ditemukan.");
+    }
+
+    const { error } = await createSupabaseAdminClient().auth.admin.updateUserById(
+      user.id,
+      { password },
+    );
+
+    if (error) return failure(error.message);
+
+    return { ok: true, message: "Password berhasil diperbarui." };
+  } catch (error) {
+    return failure(error instanceof Error ? error.message : "Gagal memperbarui password.");
+  }
+}
+
 function failure(message: string): UpdateProfileResult {
   return { ok: false, message };
 }
