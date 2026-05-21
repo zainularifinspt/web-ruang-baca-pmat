@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireStaffRole } from "@/lib/auth-guards";
+import { writeBookVerificationOverride } from "@/lib/catalog-verification-store";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
 import type { DraftSubmissionType } from "@/lib/whatsapp-drafts";
 
@@ -145,7 +146,7 @@ export async function rejectDraftSubmission(id: string): Promise<DraftSubmission
 }
 
 async function insertApprovedBook(row: DraftSubmissionRow) {
-  const { error } = await createSupabaseAdminClient().from("books").insert({
+  const payload = {
     title: row.title,
     author: row.author,
     category: row.category || "Buku",
@@ -153,9 +154,46 @@ async function insertApprovedBook(row: DraftSubmissionRow) {
     stock: 1,
     status: "tersedia",
     verification_status: "approved",
-  });
+  };
+  const supabaseAdmin = createSupabaseAdminClient();
+  const { data, error } = await supabaseAdmin
+    .from("books")
+    .insert(payload)
+    .select("id")
+    .single();
 
-  return error ? failure(error.message) : { ok: true, message: "ok" };
+  if (!error) return { ok: true, message: "ok" };
+
+  if (!isMissingBookVerificationColumn(error.message)) {
+    return failure(error.message);
+  }
+
+  console.warn(
+    "[draft-submissions] books.verification_status belum ada di schema cache. Retrying book insert without verification_status.",
+  );
+
+  const { verification_status: _verificationStatus, ...fallbackPayload } = payload;
+  const { data: fallbackData, error: fallbackError } = await supabaseAdmin
+    .from("books")
+    .insert(fallbackPayload)
+    .select("id")
+    .single();
+
+  if (fallbackError) return failure(fallbackError.message);
+
+  const bookId = textId(fallbackData) || textId(data);
+  if (bookId) {
+    try {
+      await writeBookVerificationOverride(bookId, "approved");
+    } catch (overrideError) {
+      console.error("[draft-submissions] Failed to write book verification override", {
+        bookId,
+        error: overrideError instanceof Error ? overrideError.message : overrideError,
+      });
+    }
+  }
+
+  return { ok: true, message: "ok" };
 }
 
 async function insertApprovedThesis(row: DraftSubmissionRow) {
@@ -190,6 +228,16 @@ function parseYear(value?: string) {
   if (!value?.trim()) return null;
   const parsed = Number(value);
   return Number.isInteger(parsed) && parsed >= 1900 ? parsed : null;
+}
+
+function isMissingBookVerificationColumn(message: string) {
+  return message.includes("verification_status") || message.includes("schema cache");
+}
+
+function textId(value: unknown) {
+  if (!value || typeof value !== "object") return "";
+  const id = (value as Record<string, unknown>).id;
+  return typeof id === "string" ? id : "";
 }
 
 function revalidateSubmissionPaths() {

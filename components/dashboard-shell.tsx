@@ -91,11 +91,11 @@ function DashboardShell({ children }: { children: ReactNode }) {
   const currentPage = pageTitles[pathname] ?? pageTitles["/dashboard"];
 
   return (
-    <div className="min-h-screen bg-[#f5f8fa]">
-      <aside className="fixed inset-y-0 left-0 hidden w-[19rem] border-r border-slate-200/80 bg-white/95 p-4 shadow-sm backdrop-blur lg:block">
+    <div className="min-h-screen bg-[#f5f8fa] lg:grid lg:grid-cols-[19rem_minmax(0,1fr)]">
+      <aside className="hidden h-screen border-r border-slate-200/80 bg-white/95 p-4 shadow-sm backdrop-blur lg:sticky lg:top-0 lg:block">
         <SidebarContent />
       </aside>
-      <div className="w-full lg:pl-[19rem]">
+      <div className="min-w-0 w-full">
         <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 backdrop-blur">
           <div className="mx-auto flex min-h-20 w-full max-w-7xl items-center justify-between gap-3 px-4 sm:px-6">
             <div className="flex min-w-0 items-center gap-2">
