@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   BarChart3,
+  BookMarked,
   BookOpen,
   CheckCheck,
   ClipboardList,
@@ -17,7 +18,7 @@ import {
   Users,
 } from "lucide-react";
 import { LogoutButton } from "@/app/admin/logout-button";
-import { useState, type ComponentType, type ReactNode } from "react";
+import { useEffect, useState, type ComponentType, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { RoleProvider, useRole } from "@/components/role-provider";
@@ -36,6 +37,7 @@ const navItems: Array<{
   { href: "/dashboard", label: "Dasbor", icon: BarChart3, group: "utama", roles: ["admin", "dosen", "petugas"] },
   { href: "/petugas", label: "Panel Petugas", icon: BookOpen, group: "utama", roles: ["petugas"] },
   { href: "/dashboard/katalog", label: "Katalog", icon: BookOpen, group: "utama", roles: ["admin", "dosen", "petugas"] },
+  { href: "/admin/peminjaman", label: "Peminjaman", icon: BookMarked, group: "utama", roles: ["admin", "petugas"] },
   {
     href: "/dashboard/verifikasi",
     label: "Verifikasi",
@@ -58,6 +60,8 @@ const pageTitles: Record<string, { title: string; breadcrumb: string }> = {
   "/dashboard": { title: "Dasbor", breadcrumb: "Internal / Dasbor" },
   "/petugas": { title: "Panel Petugas", breadcrumb: "Petugas / Katalog" },
   "/dashboard/katalog": { title: "Katalog Koleksi", breadcrumb: "Internal / Katalog" },
+  "/admin/peminjaman": { title: "Peminjaman Koleksi", breadcrumb: "Manajemen / Peminjaman" },
+  "/admin/loans": { title: "Peminjaman Koleksi", breadcrumb: "Manajemen / Peminjaman" },
   "/dashboard/verifikasi": { title: "Verifikasi Koleksi", breadcrumb: "Internal / Verifikasi" },
   "/dashboard/presensi": { title: "Data Kunjungan", breadcrumb: "Internal / Presensi" },
   "/dashboard/laporan": { title: "Laporan Pengunjung", breadcrumb: "Internal / Laporan" },
@@ -133,6 +137,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const { role, userDisplayName } = useRole();
   const visibleItems = navItems.filter((item) => item.roles.includes(role));
+  const loanSummary = useLoanSummary(visibleItems.some((item) => item.href === "/admin/peminjaman"));
 
   return (
     <div className="flex h-full flex-col gap-6 rounded-[1.5rem] bg-white p-4 lg:p-0">
@@ -146,8 +151,8 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         </div>
       </Link>
       <nav className="grid gap-5">
-        <NavGroup title="Menu Utama" items={visibleItems.filter((item) => item.group === "utama")} role={role} pathname={pathname} onNavigate={onNavigate} />
-        <NavGroup title="Manajemen" items={visibleItems.filter((item) => item.group === "manajemen")} role={role} pathname={pathname} onNavigate={onNavigate} />
+        <NavGroup title="Menu Utama" items={visibleItems.filter((item) => item.group === "utama")} role={role} pathname={pathname} onNavigate={onNavigate} loanSummary={loanSummary} />
+        <NavGroup title="Manajemen" items={visibleItems.filter((item) => item.group === "manajemen")} role={role} pathname={pathname} onNavigate={onNavigate} loanSummary={loanSummary} />
       </nav>
       <div className="mt-auto grid gap-3">
         <div className="rounded-[1.35rem] border border-slate-200 bg-white p-4 text-sm text-slate-700 shadow-sm">
@@ -172,12 +177,14 @@ function NavGroup({
   role,
   pathname,
   onNavigate,
+  loanSummary,
 }: {
   title: string;
   items: typeof navItems;
   role: Role;
   pathname: string;
   onNavigate?: () => void;
+  loanSummary?: { active: number; overdue: number };
 }) {
   if (!items.length) return null;
 
@@ -191,6 +198,7 @@ function NavGroup({
           const active = pathname === item.href;
           const Icon = item.icon;
           const label = item.roleLabels?.[role] ?? item.label;
+          const showLoanBadge = item.href === "/admin/peminjaman" && loanSummary && loanSummary.active + loanSummary.overdue > 0;
           return (
             <Link
               key={item.href}
@@ -210,10 +218,51 @@ function NavGroup({
                 <Icon className="size-4" />
               </span>
               {label}
+              {showLoanBadge ? (
+                <span
+                  className={cn(
+                    "ml-auto rounded-full px-2 py-0.5 text-[11px] font-semibold",
+                    loanSummary.overdue > 0
+                      ? "bg-rose-100 text-rose-700"
+                      : "bg-emerald-100 text-emerald-700",
+                  )}
+                >
+                  {loanSummary.overdue > 0 ? loanSummary.overdue : loanSummary.active}
+                </span>
+              ) : null}
             </Link>
           );
         })}
       </div>
     </div>
   );
+}
+
+function useLoanSummary(enabled: boolean) {
+  const [summary, setSummary] = useState<{ active: number; overdue: number }>();
+
+  useEffect(() => {
+    if (!enabled) return;
+
+    let cancelled = false;
+    fetch("/api/loans/summary")
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data) => {
+        if (!cancelled && data) {
+          setSummary({
+            active: Number(data.active) || 0,
+            overdue: Number(data.overdue) || 0,
+          });
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setSummary({ active: 0, overdue: 0 });
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [enabled]);
+
+  return summary;
 }
