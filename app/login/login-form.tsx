@@ -98,18 +98,20 @@ export function LoginForm() {
   return (
     <form className="space-y-5" onSubmit={handleSubmit}>
       {displayError ? (
-        <Alert className="border-red-200 bg-red-50 text-red-800">
-          <ShieldAlert className="mb-2 size-4" />
-          <AlertDescription>{displayError}</AlertDescription>
+        <Alert className="flex items-start gap-3 rounded-2xl border-red-200 bg-red-50/90 px-4 py-3 text-red-800 shadow-sm">
+          <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-700">
+            <ShieldAlert className="size-4" />
+          </span>
+          <AlertDescription className="pt-1 font-medium leading-6">{displayError}</AlertDescription>
         </Alert>
       ) : null}
 
       <div className="space-y-2">
-        <label htmlFor="email" className="text-sm font-medium text-slate-700">
+        <label htmlFor="email" className="text-sm font-semibold text-slate-700">
           Email
         </label>
         <div className="relative">
-          <Mail className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+          <Mail className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-emerald-600/70" />
           <Input
             id="email"
             name="email"
@@ -118,18 +120,18 @@ export function LoginForm() {
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             placeholder="admin@kampus.ac.id"
-            className="h-12 rounded-xl bg-white pl-10"
+            className="h-12 rounded-2xl border-slate-200 bg-white/90 pl-11 pr-4 text-slate-900 shadow-sm transition placeholder:text-slate-400 focus-visible:border-cyan-300 focus-visible:ring-cyan-500/20"
             required
           />
         </div>
       </div>
 
       <div className="space-y-2">
-        <label htmlFor="password" className="text-sm font-medium text-slate-700">
+        <label htmlFor="password" className="text-sm font-semibold text-slate-700">
           Password
         </label>
         <div className="relative">
-          <LockKeyhole className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+          <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-emerald-600/70" />
           <Input
             id="password"
             name="password"
@@ -138,13 +140,17 @@ export function LoginForm() {
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             placeholder="Masukkan password"
-            className="h-12 rounded-xl bg-white pl-10"
+            className="h-12 rounded-2xl border-slate-200 bg-white/90 pl-11 pr-4 text-slate-900 shadow-sm transition placeholder:text-slate-400 focus-visible:border-cyan-300 focus-visible:ring-cyan-500/20"
             required
           />
         </div>
       </div>
 
-      <Button type="submit" className="h-12 w-full rounded-xl" disabled={isSubmitting}>
+      <Button
+        type="submit"
+        className="h-12 w-full rounded-full bg-gradient-to-r from-emerald-700 via-cyan-700 to-violet-700 font-bold text-white shadow-lg shadow-emerald-950/15 transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-emerald-950/20"
+        disabled={isSubmitting}
+      >
         <LogIn />
         {isSubmitting ? "Memproses..." : "Masuk"}
       </Button>
