@@ -1,14 +1,13 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowLeft, Inbox, ShieldCheck } from "lucide-react";
-import { LogoutButton } from "@/app/admin/logout-button";
+import { Inbox } from "lucide-react";
 import {
   SubmissionsManager,
   type SenderProfile,
   type SubmissionRow,
 } from "@/app/admin/submissions/submissions-manager";
+import { DashboardRoot } from "@/components/dashboard-shell";
+import { PageHeader } from "@/components/page-header";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
 import { requireStaffRole } from "@/lib/auth-guards";
@@ -23,14 +22,25 @@ export default async function SubmissionsPage() {
   }
 
   const { submissions, profilesById, petugasByPhone, error } = await fetchSubmissionsData();
+  const currentProfile = profilesById[auth.user.id];
+  const metadata = auth.user.user_metadata ?? {};
+  const userDisplayName =
+    currentProfile?.full_name ??
+    (typeof metadata.full_name === "string" ? metadata.full_name : undefined) ??
+    (typeof metadata.name === "string" ? metadata.name : undefined) ??
+    auth.user.email ??
+    "Pengguna";
+  const userEmail = currentProfile?.email ?? auth.user.email ?? "";
 
   return (
-    <main className="min-h-screen bg-slate-50">
-      <AdminHeader
-        title="Verifikasi Kiriman WhatsApp"
-        description="Tinjau, edit, approve, atau reject data buku dan skripsi sebelum tampil di katalog."
-      />
-      <section className="mx-auto w-full max-w-6xl space-y-6 px-4 py-8 sm:px-6 lg:py-10">
+    <DashboardRoot role={auth.role} userDisplayName={userDisplayName} userEmail={userEmail}>
+      <div className="space-y-6">
+        <PageHeader
+          eyebrow="Admin only"
+          title="Verifikasi Kiriman WhatsApp"
+          description="Tinjau, edit, approve, atau reject data buku dan skripsi sebelum tampil di katalog."
+        />
+
         <div className="grid gap-4 sm:grid-cols-3">
           <Metric label="Pending" value={submissions.filter((item) => item.status === "pending").length} />
           <Metric label="Approved" value={submissions.filter((item) => item.status === "approved").length} />
@@ -49,42 +59,8 @@ export default async function SubmissionsPage() {
           profilesById={profilesById}
           petugasByPhone={petugasByPhone}
         />
-      </section>
-    </main>
-  );
-}
-
-function AdminHeader({
-  title,
-  description,
-}: {
-  title: string;
-  description: string;
-}) {
-  return (
-    <section className="border-b border-slate-200 bg-white">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-8 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:py-10">
-        <div>
-          <Button asChild variant="outline" size="sm" className="mb-5 rounded-xl bg-white">
-            <Link href="/dashboard">
-              <ArrowLeft />
-              Kembali ke dashboard
-            </Link>
-          </Button>
-          <p className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-sm font-medium text-emerald-700 ring-1 ring-emerald-100">
-            <ShieldCheck className="size-4" />
-            Admin only
-          </p>
-          <h1 className="mt-4 text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
-            {title}
-          </h1>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
-            {description}
-          </p>
-        </div>
-        <LogoutButton />
       </div>
-    </section>
+    </DashboardRoot>
   );
 }
 

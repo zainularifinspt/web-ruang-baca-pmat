@@ -60,6 +60,8 @@ const pageTitles: Record<string, { title: string; breadcrumb: string }> = {
   "/dashboard/presensi": { title: "Data Kunjungan", breadcrumb: "Internal / Presensi" },
   "/dashboard/laporan": { title: "Laporan Pengunjung", breadcrumb: "Internal / Laporan" },
   "/dashboard/whatsapp": { title: "Input WhatsApp", breadcrumb: "Internal / Input WhatsApp" },
+  "/admin/submissions": { title: "Kiriman WhatsApp", breadcrumb: "Manajemen / Kiriman WA" },
+  "/admin/whatsapp-petugas": { title: "Nomor WhatsApp", breadcrumb: "Manajemen / Nomor WA" },
   "/dashboard/profil": { title: "Profil Akun", breadcrumb: "Internal / Profil" },
   "/dashboard/pengguna": { title: "Pengguna dan Peran", breadcrumb: "Internal / Pengguna" },
   "/dashboard/permissions": { title: "Matriks Hak Akses", breadcrumb: "Internal / Hak Akses" },
