@@ -146,43 +146,43 @@ export async function rejectDraftSubmission(id: string): Promise<DraftSubmission
 }
 
 async function insertApprovedBook(row: DraftSubmissionRow) {
-  const payload = {
-    title: row.title,
-    author: row.author,
-    category: row.category || "Buku",
-    rack_location: "Ruang Baca",
-    stock: 1,
-    status: "tersedia",
-    verification_status: "approved",
-  };
   const supabaseAdmin = createSupabaseAdminClient();
   const { data, error } = await supabaseAdmin
     .from("books")
-    .insert(payload)
+    .insert({
+      title: row.title,
+      author: row.author,
+      category: row.category || "Buku",
+      rack_location: "Ruang Baca",
+      stock: 1,
+      status: "tersedia",
+    })
     .select("id")
     .single();
 
-  if (!error) return { ok: true, message: "ok" };
+  if (error) return failure(error.message);
 
-  if (!isMissingBookVerificationColumn(error.message)) {
-    return failure(error.message);
+  const bookId = textId(data);
+  if (bookId) {
+    await markBookApproved(bookId);
   }
 
-  console.warn(
-    "[draft-submissions] books.verification_status belum ada di schema cache. Retrying book insert without verification_status.",
-  );
+  return { ok: true, message: "ok" };
+}
 
-  const { verification_status: _verificationStatus, ...fallbackPayload } = payload;
-  const { data: fallbackData, error: fallbackError } = await supabaseAdmin
+async function markBookApproved(bookId: string) {
+  const { error } = await createSupabaseAdminClient()
     .from("books")
-    .insert(fallbackPayload)
-    .select("id")
-    .single();
+    .update({ verification_status: "approved" })
+    .eq("id", bookId);
 
-  if (fallbackError) return failure(fallbackError.message);
+  if (!error) return;
 
-  const bookId = textId(fallbackData) || textId(data);
-  if (bookId) {
+  if (isMissingBookVerificationColumn(error.message)) {
+    console.warn(
+      "[draft-submissions] books.verification_status belum ada di schema cache. Using verification override fallback.",
+    );
+
     try {
       await writeBookVerificationOverride(bookId, "approved");
     } catch (overrideError) {
@@ -191,9 +191,14 @@ async function insertApprovedBook(row: DraftSubmissionRow) {
         error: overrideError instanceof Error ? overrideError.message : overrideError,
       });
     }
+
+    return;
   }
 
-  return { ok: true, message: "ok" };
+  console.error("[draft-submissions] Failed to mark approved book verification_status", {
+    bookId,
+    error: error.message,
+  });
 }
 
 async function insertApprovedThesis(row: DraftSubmissionRow) {
