@@ -53,7 +53,7 @@ export async function fetchLoansPageData({
     ]);
 
     if (error) {
-      return emptyLoansData(error.message);
+      return emptyLoansData(formatLoanDatabaseError(error.message));
     }
 
     const allLoans = ((data ?? []) as UnknownRow[]).map(mapLoanRow);
@@ -70,7 +70,11 @@ export async function fetchLoansPageData({
       error: catalog.error,
     };
   } catch (error) {
-    return emptyLoansData(error instanceof Error ? error.message : "Gagal memuat data peminjaman.");
+    return emptyLoansData(
+      error instanceof Error
+        ? formatLoanDatabaseError(error.message)
+        : "Gagal memuat data peminjaman.",
+    );
   }
 }
 
@@ -100,7 +104,9 @@ export async function fetchOpenLoanTargets() {
       .in("status", ["active", "overdue"]);
 
     if (error) {
-      console.error("[loans] Failed to load open loan targets", { error: error.message });
+      console.error("[loans] Failed to load open loan targets", {
+        error: formatLoanDatabaseError(error.message),
+      });
       return { bookIds: new Set<string>(), thesisIds: new Set<string>() };
     }
 
@@ -128,6 +134,18 @@ function emptyLoansData(error?: string) {
     availableTheses: [] as LoanCollectionOption[],
     error,
   };
+}
+
+export function formatLoanDatabaseError(message: string) {
+  if (
+    message.includes("public.loans") ||
+    message.includes("public.borrowers") ||
+    message.includes("schema cache")
+  ) {
+    return "Tabel peminjaman belum dibuat di Supabase. Jalankan migration supabase/migrations/20260521_loans.sql terlebih dahulu.";
+  }
+
+  return message;
 }
 
 function filterLoans(loans: LoanListItem[], search: string, status: string) {

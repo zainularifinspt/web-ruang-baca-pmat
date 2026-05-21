@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireStaffRole } from "@/lib/auth-guards";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
+import { formatLoanDatabaseError } from "@/lib/loans";
 import { normalizePhoneNumber } from "@/lib/whatsapp-drafts";
 import { sendLoanSuccessNotification } from "@/lib/whatsapp";
 import type { LoanItemType } from "@/lib/loans";
@@ -73,7 +74,7 @@ export async function createLoan(input: CreateLoanInput): Promise<LoanActionResu
         return failure("Koleksi ini sedang dipinjam dan belum dikembalikan.");
       }
 
-      return failure(loanError.message);
+      return failure(formatLoanDatabaseError(loanError.message));
     }
 
     if (input.itemType === "book") {
@@ -113,7 +114,11 @@ export async function createLoan(input: CreateLoanInput): Promise<LoanActionResu
     console.error("[loans] Failed to create loan", {
       error: error instanceof Error ? error.message : error,
     });
-    return failure("Gagal mencatat peminjaman.");
+    return failure(
+      error instanceof Error
+        ? formatLoanDatabaseError(error.message)
+        : "Gagal mencatat peminjaman.",
+    );
   }
 }
 
@@ -128,7 +133,7 @@ export async function markLoanReturned(id: string): Promise<LoanActionResult> {
     .eq("id", id)
     .maybeSingle();
 
-  if (loanError) return failure(loanError.message);
+  if (loanError) return failure(formatLoanDatabaseError(loanError.message));
   if (!loan) return failure("Data peminjaman tidak ditemukan.");
   if (loan.status === "returned") return failure("Peminjaman sudah ditandai dikembalikan.");
 
@@ -137,7 +142,7 @@ export async function markLoanReturned(id: string): Promise<LoanActionResult> {
     .update({ status: "returned", returned_at: new Date().toISOString() })
     .eq("id", id);
 
-  if (error) return failure(error.message);
+  if (error) return failure(formatLoanDatabaseError(error.message));
 
   if (loan.item_type === "book" && loan.book_id) {
     await supabaseAdmin.from("books").update({ status: "tersedia" }).eq("id", loan.book_id);
@@ -158,7 +163,7 @@ export async function cancelLoan(id: string): Promise<LoanActionResult> {
     .eq("id", id)
     .maybeSingle();
 
-  if (loanError) return failure(loanError.message);
+  if (loanError) return failure(formatLoanDatabaseError(loanError.message));
   if (!loan) return failure("Data peminjaman tidak ditemukan.");
   if (loan.status === "returned") return failure("Peminjaman yang sudah dikembalikan tidak dapat dibatalkan.");
 
@@ -167,7 +172,7 @@ export async function cancelLoan(id: string): Promise<LoanActionResult> {
     .update({ status: "cancelled" })
     .eq("id", id);
 
-  if (error) return failure(error.message);
+  if (error) return failure(formatLoanDatabaseError(error.message));
 
   if (loan.item_type === "book" && loan.book_id) {
     await supabaseAdmin.from("books").update({ status: "tersedia" }).eq("id", loan.book_id);
@@ -187,7 +192,7 @@ async function findOpenLoan(itemType: LoanItemType, itemId: string) {
     .maybeSingle();
 
   if (error) {
-    throw new Error(error.message);
+    throw new Error(formatLoanDatabaseError(error.message));
   }
 
   return data;
@@ -208,7 +213,7 @@ async function findOrCreateBorrower(input: {
     .limit(1)
     .maybeSingle();
 
-  if (existingError) return { ok: false as const, message: existingError.message };
+  if (existingError) return { ok: false as const, message: formatLoanDatabaseError(existingError.message) };
 
   if (existing?.id) {
     const { error } = await supabaseAdmin
@@ -221,7 +226,7 @@ async function findOrCreateBorrower(input: {
       .eq("id", existing.id);
 
     return error
-      ? { ok: false as const, message: error.message }
+      ? { ok: false as const, message: formatLoanDatabaseError(error.message) }
       : { ok: true as const, id: existing.id as string };
   }
 
@@ -237,7 +242,7 @@ async function findOrCreateBorrower(input: {
     .single();
 
   return error
-    ? { ok: false as const, message: error.message }
+    ? { ok: false as const, message: formatLoanDatabaseError(error.message) }
     : { ok: true as const, id: textId(data) };
 }
 
