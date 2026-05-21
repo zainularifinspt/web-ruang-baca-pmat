@@ -26,7 +26,7 @@ export type CreateLoanInput = {
 };
 
 export async function createLoan(input: CreateLoanInput): Promise<LoanActionResult> {
-  const auth = await requireStaffRole(["admin", "petugas"]);
+  const auth = await requireStaffRole(["admin", "dosen", "petugas"]);
   if (!auth.ok) return failure(auth.message);
 
   const validationError = validateLoanInput(input);
@@ -118,7 +118,7 @@ export async function createLoan(input: CreateLoanInput): Promise<LoanActionResu
 }
 
 export async function markLoanReturned(id: string): Promise<LoanActionResult> {
-  const auth = await requireStaffRole(["admin", "petugas"]);
+  const auth = await requireStaffRole(["admin", "dosen", "petugas"]);
   if (!auth.ok) return failure(auth.message);
 
   const supabaseAdmin = createSupabaseAdminClient();
@@ -148,7 +148,7 @@ export async function markLoanReturned(id: string): Promise<LoanActionResult> {
 }
 
 export async function cancelLoan(id: string): Promise<LoanActionResult> {
-  const auth = await requireStaffRole(["admin", "petugas"]);
+  const auth = await requireStaffRole(["admin", "dosen", "petugas"]);
   if (!auth.ok) return failure(auth.message);
 
   const supabaseAdmin = createSupabaseAdminClient();

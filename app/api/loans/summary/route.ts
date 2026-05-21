@@ -5,7 +5,7 @@ import { fetchLoanSummary } from "@/lib/loans";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const auth = await requireStaffRole(["admin", "petugas"]);
+  const auth = await requireStaffRole(["admin", "dosen", "petugas"]);
 
   if (!auth.ok) {
     return NextResponse.json({ active: 0, overdue: 0 }, { status: 401 });

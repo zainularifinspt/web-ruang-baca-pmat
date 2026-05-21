@@ -13,7 +13,7 @@ import { fetchLoansPageData } from "@/lib/loans";
 export const dynamic = "force-dynamic";
 
 export default async function LoansPage() {
-  const auth = await requireStaffRole(["admin", "petugas"]);
+  const auth = await requireStaffRole(["admin", "dosen", "petugas"]);
 
   if (!auth.ok) {
     redirect("/login?redirectTo=/admin/peminjaman&error=staff_required");

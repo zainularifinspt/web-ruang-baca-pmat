@@ -4,7 +4,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase-admin";
 import { hasValidSupabaseConfig } from "@/lib/supabase-config";
 import { getUserAppRole } from "@/lib/app-roles";
 
-export type StaffRole = "admin" | "petugas";
+export type StaffRole = "admin" | "dosen" | "petugas";
 
 type RoleCheckResult =
   | { ok: true; role: StaffRole; user: User }
@@ -33,7 +33,7 @@ export async function requireStaffRole(allowedRoles: StaffRole[]): Promise<RoleC
 
   const role = getUserAppRole(user, profile?.role);
 
-  if (profileError || (role !== "admin" && role !== "petugas")) {
+  if (profileError || (role !== "admin" && role !== "dosen" && role !== "petugas")) {
     return { ok: false, message: "Role akun tidak memiliki akses staf." };
   }
 

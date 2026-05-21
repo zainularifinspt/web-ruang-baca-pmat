@@ -23,6 +23,15 @@ function isProtectedAdminPath(pathname: string) {
   return pathname === "/admin" || pathname.startsWith("/admin/");
 }
 
+function isSharedLoanPath(pathname: string) {
+  return (
+    pathname === "/admin/peminjaman" ||
+    pathname.startsWith("/admin/peminjaman/") ||
+    pathname === "/admin/loans" ||
+    pathname.startsWith("/admin/loans/")
+  );
+}
+
 function isProtectedDashboardPath(pathname: string) {
   return pathname === "/dashboard" || pathname.startsWith("/dashboard/");
 }
@@ -89,7 +98,16 @@ export async function proxy(request: NextRequest) {
     return redirectToLogin(request, "staff_required");
   }
 
-  if (isProtectedAdminPath(pathname) && role !== "admin") {
+  if (
+    isSharedLoanPath(pathname) &&
+    role !== "admin" &&
+    role !== "dosen" &&
+    role !== "petugas"
+  ) {
+    return redirectToLogin(request, "staff_required");
+  }
+
+  if (isProtectedAdminPath(pathname) && !isSharedLoanPath(pathname) && role !== "admin") {
     return redirectToLogin(request, "admin_required");
   }
 

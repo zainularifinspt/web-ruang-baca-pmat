@@ -37,7 +37,7 @@ const navItems: Array<{
   { href: "/dashboard", label: "Dasbor", icon: BarChart3, group: "utama", roles: ["admin", "dosen", "petugas"] },
   { href: "/petugas", label: "Panel Petugas", icon: BookOpen, group: "utama", roles: ["petugas"] },
   { href: "/dashboard/katalog", label: "Katalog", icon: BookOpen, group: "utama", roles: ["admin", "dosen", "petugas"] },
-  { href: "/admin/peminjaman", label: "Peminjaman", icon: BookMarked, group: "utama", roles: ["admin", "petugas"] },
+  { href: "/admin/peminjaman", label: "Peminjaman", icon: BookMarked, group: "utama", roles: ["admin", "dosen", "petugas"] },
   {
     href: "/dashboard/verifikasi",
     label: "Verifikasi",
