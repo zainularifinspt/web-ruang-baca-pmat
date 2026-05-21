@@ -6,13 +6,11 @@ import {
   ArrowLeft,
   CalendarCheck,
   CheckCircle2,
-  Clipboard,
   GraduationCap,
   IdCard,
   LibraryBig,
   QrCode,
   Search,
-  Sparkles,
   UserRound,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -24,7 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { findUserByNimNip, getVisitorStatusFromRole, visitPurposes, visitorStatuses } from "@/lib/mock-data";
 import type { VisitPurpose, VisitorStatus } from "@/lib/types";
-import { cn, formatDate } from "@/lib/utils";
+import { formatDate } from "@/lib/utils";
 
 type SubmittedAttendance = {
   identifier: string;
@@ -123,28 +121,21 @@ export default function AttendancePage() {
     setSubmitted(null);
   }
 
-  function copyAttendanceLink() {
-    if (typeof window !== "undefined") {
-      void navigator.clipboard?.writeText(window.location.href);
-    }
-
-    toast.success("Tautan presensi siap dibagikan", {
-      description: "Tautan presensi telah disalin.",
-    });
-  }
-
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-950">
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-cyan-50 to-emerald-50 text-slate-950">
+      <div className="pointer-events-none absolute -left-28 top-20 size-80 rounded-full bg-cyan-200 opacity-40 blur-3xl" />
+      <div className="pointer-events-none absolute right-0 top-40 size-96 rounded-full bg-emerald-200 opacity-35 blur-3xl" />
+      <div className="pointer-events-none absolute bottom-0 left-1/3 size-80 rounded-full bg-violet-200 opacity-25 blur-3xl" />
       <PublicNav />
-      <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
+      <main className="relative mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
         <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
           <div className="max-w-2xl space-y-3">
-            <Badge className="rounded-full border-emerald-200 bg-white px-3 py-1 text-emerald-700 shadow-sm">
-              <QrCode className="mr-1.5 size-3.5" />
-              Presensi QR Ruang Baca
+            <Badge className="rounded-full border-emerald-100 bg-white/85 px-3 py-1 text-emerald-700 shadow-sm backdrop-blur">
+              <CalendarCheck className="mr-1.5 size-3.5" />
+              Presensi Ruang Baca
             </Badge>
             <div>
-              <h1 className="text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
+              <h1 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
                 Presensi Kunjungan Ruang Baca
               </h1>
               <p className="mt-3 text-base leading-7 text-slate-600">
@@ -152,7 +143,7 @@ export default function AttendancePage() {
               </p>
             </div>
           </div>
-          <Button asChild variant="outline" className="rounded-full bg-white">
+          <Button asChild variant="outline" className="rounded-full border-slate-200 bg-white/90 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700">
             <Link href="/">
               <ArrowLeft className="size-4" />
               Beranda
@@ -163,44 +154,47 @@ export default function AttendancePage() {
         {submitted ? (
           <SuccessState record={submitted} onReset={resetForm} />
         ) : (
-          <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
-            <Card className="overflow-hidden rounded-[2rem] border-emerald-100 bg-white shadow-md shadow-slate-900/5">
+          <div className="mx-auto w-full max-w-5xl">
+            <Card className="overflow-hidden rounded-3xl border-white/80 bg-white/85 shadow-xl shadow-slate-950/10 backdrop-blur">
               <CardContent className="p-0">
-                <div className="border-b border-emerald-100 bg-emerald-50/60 px-5 py-5 sm:px-7">
+                <div className="border-b border-emerald-100 bg-gradient-to-br from-emerald-700 via-teal-700 to-cyan-700 px-5 py-6 text-white sm:px-8">
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-center gap-4">
-                      <div className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-emerald-700 text-white shadow-sm">
+                      <div className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-white/20 text-white shadow-sm ring-1 ring-white/25 backdrop-blur">
                         <QrCode className="size-7" />
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-emerald-700">
+                        <p className="text-sm font-semibold text-emerald-50">
                           Form presensi cepat
                         </p>
-                        <h2 className="text-xl font-semibold tracking-tight text-slate-950">
+                        <h2 className="text-xl font-bold tracking-tight text-white sm:text-2xl">
                           Catat kunjungan dalam satu menit
                         </h2>
+                        <p className="mt-1 text-sm leading-6 text-emerald-50">
+                          Lengkapi identitas kunjungan dengan data yang akurat.
+                        </p>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-5 p-5 sm:p-7">
+                <form onSubmit={handleSubmit} className="space-y-6 p-5 sm:p-8">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-800" htmlFor="identifier">
+                    <label className="text-sm font-semibold text-slate-800" htmlFor="identifier">
                       NIM/NIP
                     </label>
                     <div className="relative">
-                      <Search className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+                      <Search className="absolute left-4 top-1/2 size-4 -translate-y-1/2 text-emerald-600/70" />
                       <Input
                         id="identifier"
                         value={identifier}
                         onChange={(event) => handleIdentifierChange(event.target.value)}
                         placeholder="Contoh: 2311040007"
-                        className="h-12 rounded-2xl border-slate-200 bg-slate-50 pl-10 text-base shadow-none focus-visible:ring-emerald-200"
+                        className="h-12 rounded-2xl border-slate-200 bg-white/90 pl-11 text-base shadow-sm placeholder:text-slate-400 focus-visible:border-cyan-300 focus-visible:ring-cyan-500/20"
                       />
                     </div>
                     {matchedUser ? (
-                      <div className="flex w-fit items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 ring-1 ring-emerald-100">
+                      <div className="flex w-fit items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 shadow-sm ring-1 ring-emerald-100">
                         <CheckCircle2 className="size-3.5" />
                         Data ditemukan
                       </div>
@@ -217,7 +211,7 @@ export default function AttendancePage() {
                         value={name}
                         onChange={(event) => setName(event.target.value)}
                         placeholder="Nama pengunjung"
-                        className="h-12 rounded-2xl border-slate-200 bg-slate-50 shadow-none focus-visible:ring-emerald-200"
+                        className="h-12 rounded-2xl border-slate-200 bg-white/90 shadow-sm placeholder:text-slate-400 focus-visible:border-cyan-300 focus-visible:ring-cyan-500/20"
                       />
                     </Field>
 
@@ -226,7 +220,7 @@ export default function AttendancePage() {
                         value={visitorStatus}
                         onValueChange={(value) => setVisitorStatus(value as VisitorStatus)}
                       >
-                        <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-slate-50">
+                        <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-white/90 shadow-sm focus:ring-cyan-500/20">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -245,13 +239,13 @@ export default function AttendancePage() {
                       value={studyProgram}
                       onChange={(event) => setStudyProgram(event.target.value)}
                       placeholder="Contoh: Pendidikan Matematika"
-                      className="h-12 rounded-2xl border-slate-200 bg-slate-50 shadow-none focus-visible:ring-emerald-200"
+                      className="h-12 rounded-2xl border-slate-200 bg-white/90 shadow-sm placeholder:text-slate-400 focus-visible:border-cyan-300 focus-visible:ring-cyan-500/20"
                     />
                   </Field>
 
                   <Field label="Keperluan kunjungan" icon={LibraryBig}>
                     <Select value={purpose} onValueChange={(value) => setPurpose(value as VisitPurpose)}>
-                      <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-slate-50">
+                      <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-white/90 shadow-sm focus:ring-cyan-500/20">
                         <SelectValue placeholder="Pilih keperluan kunjungan" />
                       </SelectTrigger>
                       <SelectContent>
@@ -265,7 +259,7 @@ export default function AttendancePage() {
                   </Field>
 
                   <Button
-                    className="h-12 w-full rounded-2xl bg-emerald-700 text-base shadow-sm transition hover:-translate-y-0.5 hover:bg-emerald-800"
+                    className="h-12 w-full rounded-full bg-gradient-to-r from-emerald-700 via-teal-700 to-cyan-700 text-base font-bold text-white shadow-lg shadow-emerald-950/15 transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-emerald-950/20 disabled:translate-y-0 disabled:shadow-sm"
                     disabled={!canSubmit || isSubmitting}
                     type="submit"
                   >
@@ -275,8 +269,6 @@ export default function AttendancePage() {
                 </form>
               </CardContent>
             </Card>
-
-            <QrModeCard onCopy={copyAttendanceLink} />
           </div>
         )}
       </main>
@@ -295,61 +287,12 @@ function Field({
 }) {
   return (
     <div className="space-y-2">
-      <label className="flex items-center gap-2 text-sm font-medium text-slate-800">
-        <Icon className="size-4 text-emerald-700" />
+      <label className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+        <Icon className="size-4 text-emerald-600" />
         {label}
       </label>
       {children}
     </div>
-  );
-}
-
-function QrModeCard({ onCopy }: { onCopy: () => void }) {
-  return (
-    <Card className="rounded-[2rem] border-emerald-100 bg-white shadow-md shadow-slate-900/5">
-      <CardContent className="space-y-5 p-5 sm:p-6">
-        <div>
-          <p className="text-sm font-semibold text-emerald-700">Mode QR</p>
-          <h2 className="mt-1 text-xl font-semibold tracking-tight text-slate-950">
-            Tautan presensi siap ditempel
-          </h2>
-          <p className="mt-2 text-sm leading-6 text-slate-600">
-            Tempel QR ini di ruang baca agar pengunjung langsung masuk ke halaman presensi.
-          </p>
-        </div>
-
-        <div className="mx-auto grid aspect-square w-full max-w-56 grid-cols-7 gap-1 rounded-[1.75rem] border border-emerald-100 bg-emerald-50 p-5">
-          {Array.from({ length: 49 }).map((_, index) => (
-            <span
-              key={index}
-              className={cn(
-                "rounded-[4px] bg-white",
-                (index % 3 === 0 || index % 7 === 2 || index === 24 || index === 40) &&
-                  "bg-emerald-800",
-                (index < 16 && index % 4 !== 2) ||
-                  (index > 32 && index % 5 !== 1) ||
-                  (index > 4 && index < 12)
-                  ? "bg-emerald-700"
-                  : "",
-              )}
-            />
-          ))}
-        </div>
-
-        <div className="rounded-3xl bg-slate-50 p-4 text-sm leading-6 text-slate-600">
-          <div className="mb-2 flex items-center gap-2 font-semibold text-slate-900">
-            <Sparkles className="size-4 text-emerald-700" />
-            Presensi ruang baca
-          </div>
-          Gunakan tautan ini untuk membagikan form presensi kunjungan ruang baca.
-        </div>
-
-        <Button variant="outline" className="h-11 w-full rounded-2xl bg-white" onClick={onCopy}>
-          <Clipboard className="size-4" />
-          Salin Tautan Presensi
-        </Button>
-      </CardContent>
-    </Card>
   );
 }
 
@@ -362,14 +305,14 @@ function SuccessState({
 }) {
   return (
     <div className="mx-auto max-w-2xl">
-      <Card className="overflow-hidden rounded-[2rem] border-emerald-100 bg-white shadow-md shadow-slate-900/5">
+      <Card className="overflow-hidden rounded-3xl border-white/80 bg-white/85 shadow-xl shadow-slate-950/10 backdrop-blur">
         <CardContent className="space-y-6 p-6 text-center sm:p-8">
-          <div className="mx-auto flex size-20 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+          <div className="mx-auto flex size-20 items-center justify-center rounded-full bg-gradient-to-br from-emerald-100 to-cyan-100 text-emerald-700 shadow-sm ring-1 ring-emerald-100">
             <CheckCircle2 className="size-10" />
           </div>
 
           <div>
-            <h2 className="text-2xl font-semibold tracking-tight text-slate-950">
+            <h2 className="text-2xl font-bold tracking-tight text-slate-950">
               Presensi berhasil dicatat
             </h2>
             <p className="mt-2 text-sm leading-6 text-slate-600">
@@ -377,17 +320,17 @@ function SuccessState({
             </p>
           </div>
 
-          <div className="grid gap-3 rounded-3xl bg-slate-50 p-4 text-left sm:grid-cols-3">
+          <div className="grid gap-3 rounded-3xl border border-slate-200/70 bg-slate-50/70 p-4 text-left sm:grid-cols-3">
             <SummaryItem label="Nama" value={record.name} />
             <SummaryItem label="Keperluan" value={record.purpose} />
             <SummaryItem label="Waktu presensi" value={formatDate(record.visitedAt)} />
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
-            <Button className="h-11 rounded-2xl bg-emerald-700 hover:bg-emerald-800" onClick={onReset}>
+            <Button className="h-11 rounded-full bg-gradient-to-r from-emerald-700 via-teal-700 to-cyan-700 font-bold text-white shadow-lg shadow-emerald-950/15 transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-emerald-950/20" onClick={onReset}>
               Isi Presensi Lagi
             </Button>
-            <Button asChild variant="outline" className="h-11 rounded-2xl bg-white">
+            <Button asChild variant="outline" className="h-11 rounded-full border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700">
               <Link href="/">Kembali ke Beranda</Link>
             </Button>
           </div>
@@ -399,8 +342,8 @@ function SuccessState({
 
 function SummaryItem({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl bg-white p-4 ring-1 ring-slate-100">
-      <p className="text-xs font-medium uppercase tracking-[0.12em] text-slate-400">
+    <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-100">
+      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">
         {label}
       </p>
       <p className="mt-2 text-sm font-semibold leading-6 text-slate-950">{value}</p>
