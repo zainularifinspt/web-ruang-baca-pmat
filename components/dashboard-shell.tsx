@@ -14,6 +14,7 @@ import {
   MessageCircle,
   Phone,
   ShieldCheck,
+  Sparkles,
   UserRound,
   Users,
 } from "lucide-react";
@@ -97,33 +98,33 @@ function DashboardShell({ children }: { children: ReactNode }) {
   const currentPage = pageTitles[pathname] ?? pageTitles["/dashboard"];
 
   return (
-    <div className="min-h-screen bg-[#f5f8fa] lg:grid lg:grid-cols-[19rem_minmax(0,1fr)]">
-      <aside className="hidden h-screen border-r border-slate-200/80 bg-white/95 p-4 shadow-sm backdrop-blur lg:sticky lg:top-0 lg:block">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-cyan-50 to-emerald-50 lg:grid lg:grid-cols-[19rem_minmax(0,1fr)]">
+      <aside className="hidden h-screen border-r border-white/80 bg-white/80 p-4 shadow-sm backdrop-blur-xl lg:sticky lg:top-0 lg:block">
         <SidebarContent />
       </aside>
       <div className="min-w-0 w-full">
-        <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 backdrop-blur">
+        <header className="sticky top-0 z-30 border-b border-white/80 bg-white/80 shadow-sm shadow-slate-950/5 backdrop-blur-xl">
           <div className="mx-auto flex min-h-20 w-full max-w-7xl items-center justify-between gap-3 px-4 sm:px-6">
             <div className="flex min-w-0 items-center gap-2">
               <Dialog open={open} onOpenChange={setOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" size="icon" className="shrink-0 rounded-2xl bg-white lg:hidden">
+                  <Button variant="outline" size="icon" className="shrink-0 rounded-2xl border-slate-200 bg-white shadow-sm lg:hidden">
                     <Menu />
                     <span className="sr-only">Buka menu</span>
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="left-4 top-4 h-[calc(100vh-2rem)] max-w-80 translate-x-0 translate-y-0 rounded-2xl p-0">
+                <DialogContent className="left-4 top-4 h-[calc(100vh-2rem)] max-w-80 translate-x-0 translate-y-0 rounded-3xl border-white/80 bg-white/90 p-0 shadow-2xl backdrop-blur-xl">
                   <SidebarContent onNavigate={() => setOpen(false)} />
                 </DialogContent>
               </Dialog>
               <div className="min-w-0">
                 <p className="truncate text-xs font-semibold text-emerald-700">{currentPage.breadcrumb}</p>
-                <h1 className="truncate text-xl font-semibold tracking-normal text-slate-950 sm:text-2xl">{currentPage.title}</h1>
+                <h1 className="truncate text-xl font-bold tracking-tight text-slate-950 sm:text-2xl">{currentPage.title}</h1>
               </div>
             </div>
             <div className="flex items-center gap-2">
               <RoleSwitcher />
-              <LogoutButton className="hidden h-10 rounded-2xl px-3 shadow-sm sm:inline-flex" />
+              <LogoutButton className="hidden h-10 rounded-full border-slate-200 px-4 shadow-sm sm:inline-flex" />
             </div>
           </div>
         </header>
@@ -140,9 +141,9 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const loanSummary = useLoanSummary(visibleItems.some((item) => item.href === "/admin/peminjaman"));
 
   return (
-    <div className="flex h-full flex-col gap-6 rounded-[1.5rem] bg-white p-4 lg:p-0">
-      <Link href="/" className="flex items-center gap-3 rounded-2xl p-2 transition hover:bg-slate-50" onClick={onNavigate}>
-        <div className="flex size-12 items-center justify-center rounded-2xl bg-emerald-700 text-primary-foreground shadow-sm shadow-emerald-950/15">
+    <div className="flex h-full flex-col gap-6 rounded-3xl bg-white/75 p-4 backdrop-blur-xl lg:bg-transparent lg:p-0">
+      <Link href="/" className="group flex items-center gap-3 rounded-2xl p-2 transition hover:bg-white/80 hover:shadow-sm" onClick={onNavigate}>
+        <div className="flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-600 via-cyan-600 to-violet-600 text-primary-foreground shadow-lg shadow-emerald-950/20 transition group-hover:scale-105">
           <Home className="size-5" />
         </div>
         <div>
@@ -155,17 +156,20 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         <NavGroup title="Manajemen" items={visibleItems.filter((item) => item.group === "manajemen")} role={role} pathname={pathname} onNavigate={onNavigate} loanSummary={loanSummary} />
       </nav>
       <div className="mt-auto grid gap-3">
-        <div className="rounded-[1.35rem] border border-slate-200 bg-white p-4 text-sm text-slate-700 shadow-sm">
+        <div className="rounded-3xl border border-white/80 bg-white/80 p-4 text-sm text-slate-700 shadow-sm backdrop-blur">
           <p className="text-xs font-medium text-slate-400">Masuk sebagai</p>
           <p className="mt-1 truncate font-semibold text-slate-950">{userDisplayName}</p>
         </div>
-        <div className="rounded-[1.35rem] border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-950">
-          <p className="font-semibold">Dashboard internal</p>
+        <div className="rounded-3xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-cyan-50 p-4 text-sm text-emerald-950 shadow-sm">
+          <p className="inline-flex items-center gap-2 font-semibold">
+            <Sparkles className="size-4 text-emerald-600" />
+            Dashboard internal
+          </p>
           <p className="mt-1 leading-6 text-emerald-900/80">
             Akses mengikuti akun login dan tidak dapat diganti manual.
           </p>
         </div>
-        <LogoutButton className="h-11 w-full justify-center rounded-2xl bg-white" />
+        <LogoutButton className="h-11 w-full justify-center rounded-full border-slate-200 bg-white/90 shadow-sm" />
       </div>
     </div>
   );
@@ -205,26 +209,28 @@ function NavGroup({
               href={item.href}
               onClick={onNavigate}
               className={cn(
-                "flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-950",
-                active && "bg-emerald-50 text-emerald-800 shadow-sm ring-1 ring-emerald-100",
+                "flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-semibold text-slate-600 transition hover:-translate-y-0.5 hover:bg-white/80 hover:text-slate-950 hover:shadow-sm",
+                active && "bg-gradient-to-r from-emerald-600 to-cyan-600 text-white shadow-lg shadow-emerald-950/20 ring-1 ring-white/70",
               )}
             >
               <span
                 className={cn(
-                  "flex size-8 items-center justify-center rounded-xl bg-white text-slate-500 ring-1 ring-slate-200",
-                  active && "bg-emerald-700 text-white ring-emerald-700",
+                  "flex size-8 items-center justify-center rounded-xl bg-white text-slate-500 ring-1 ring-slate-200 transition",
+                  active && "bg-white/20 text-white ring-white/30",
                 )}
               >
                 <Icon className="size-4" />
               </span>
-              {label}
+              <span className="min-w-0 flex-1 truncate">{label}</span>
               {showLoanBadge ? (
                 <span
                   className={cn(
-                    "ml-auto rounded-full px-2 py-0.5 text-[11px] font-semibold",
+                    "rounded-full px-2 py-0.5 text-[11px] font-semibold",
                     loanSummary.overdue > 0
                       ? "bg-rose-100 text-rose-700"
-                      : "bg-emerald-100 text-emerald-700",
+                      : active
+                        ? "bg-white/20 text-white"
+                        : "bg-emerald-100 text-emerald-700",
                   )}
                 >
                   {loanSummary.overdue > 0 ? loanSummary.overdue : loanSummary.active}

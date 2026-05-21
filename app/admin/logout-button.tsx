@@ -28,7 +28,10 @@ export function LogoutButton({ className }: { className?: string }) {
     <Button
       type="button"
       variant="outline"
-      className={cn("rounded-xl bg-white", className)}
+      className={cn(
+        "rounded-full border-slate-200 bg-white/90 font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700",
+        className,
+      )}
       onClick={handleLogout}
       disabled={isSigningOut}
     >

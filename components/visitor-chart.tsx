@@ -8,14 +8,14 @@ export function VisitorBarChart({ metrics }: VisitorChartProps) {
   const max = Math.max(1, ...metrics.map((item) => item.visits));
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+    <div className="rounded-3xl border border-slate-200/70 bg-slate-50/70 p-4">
       <div className="flex h-72 items-end gap-2 sm:gap-3">
         {metrics.map((item) => (
           <div key={item.label} className="flex h-full min-w-0 flex-1 flex-col justify-end gap-2">
             <div className="text-center text-xs font-semibold text-slate-700">{item.visits}</div>
-            <div className="flex flex-1 items-end rounded-t-2xl bg-white/80 px-1 pt-3 ring-1 ring-slate-100">
+            <div className="flex flex-1 items-end rounded-t-2xl bg-white/90 px-1 pt-3 shadow-inner ring-1 ring-slate-100">
               <div
-                className="min-h-3 w-full rounded-t-xl bg-gradient-to-t from-emerald-700 to-teal-400 shadow-sm shadow-emerald-900/10 transition hover:from-emerald-800"
+                className="min-h-3 w-full rounded-t-xl bg-gradient-to-t from-emerald-700 via-teal-500 to-cyan-300 shadow-sm shadow-emerald-900/10 transition hover:from-emerald-800"
                 style={{ height: `${Math.max(4, (item.visits / max) * 86)}%` }}
                 aria-label={`${item.label}: ${item.visits} kunjungan`}
               />
@@ -48,7 +48,7 @@ export function VisitorLineChart({ metrics }: VisitorChartProps) {
       .join(" ");
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+    <div className="rounded-3xl border border-slate-200/70 bg-slate-50/70 p-4">
       <svg
         viewBox={`0 0 ${width} ${height}`}
         className="h-64 w-full overflow-visible"
@@ -58,11 +58,11 @@ export function VisitorLineChart({ metrics }: VisitorChartProps) {
         <defs>
           <linearGradient id="books-line" x1="0" x2="1" y1="0" y2="0">
             <stop offset="0%" stopColor="#0f766e" />
-            <stop offset="100%" stopColor="#0284c7" />
+            <stop offset="100%" stopColor="#06b6d4" />
           </linearGradient>
           <linearGradient id="theses-line" x1="0" x2="1" y1="0" y2="0">
             <stop offset="0%" stopColor="#d97706" />
-            <stop offset="100%" stopColor="#0f766e" />
+            <stop offset="100%" stopColor="#7c3aed" />
           </linearGradient>
         </defs>
         {[0, 1, 2, 3].map((line) => {
@@ -74,8 +74,8 @@ export function VisitorLineChart({ metrics }: VisitorChartProps) {
               x2={width - padding}
               y1={y}
               y2={y}
-              stroke="#dce5df"
-              strokeDasharray="4 4"
+              stroke="#dbe7ef"
+              strokeDasharray="5 7"
             />
           );
         })}
@@ -107,7 +107,7 @@ export function VisitorLineChart({ metrics }: VisitorChartProps) {
                 cx={x}
                 cy={y}
                 r="4"
-                className={key === "books" ? "fill-emerald-700" : "fill-amber-600"}
+                className={key === "books" ? "fill-cyan-600" : "fill-amber-600"}
                 stroke="white"
                 strokeWidth="2"
               />
@@ -133,7 +133,7 @@ export function VisitorLineChart({ metrics }: VisitorChartProps) {
       </svg>
       <div className="mt-2 flex gap-4 text-xs text-muted-foreground">
         <span className="inline-flex items-center gap-2">
-          <span className="size-2 rounded-full bg-emerald-700" />
+          <span className="size-2 rounded-full bg-cyan-600" />
           Cari buku
         </span>
         <span className="inline-flex items-center gap-2">

@@ -15,27 +15,27 @@ export function StatCard({
   tone?: "emerald" | "blue" | "amber" | "slate";
 }) {
   const tones = {
-    emerald: "bg-emerald-50 text-emerald-700 ring-emerald-100",
-    blue: "bg-sky-50 text-sky-700 ring-sky-100",
-    amber: "bg-amber-50 text-amber-700 ring-amber-100",
-    slate: "bg-slate-100 text-slate-700 ring-slate-200",
+    emerald: "bg-gradient-to-br from-emerald-50 to-cyan-50 text-emerald-700 ring-emerald-100",
+    blue: "bg-gradient-to-br from-sky-50 to-cyan-50 text-sky-700 ring-sky-100",
+    amber: "bg-gradient-to-br from-amber-50 to-emerald-50 text-amber-700 ring-amber-100",
+    slate: "bg-gradient-to-br from-slate-100 to-sky-50 text-slate-700 ring-slate-200",
   };
 
   return (
-    <div className="group rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-900/5 transition hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-md">
+    <div className="group rounded-3xl border border-white/80 bg-white/80 p-5 shadow-sm shadow-slate-900/5 backdrop-blur transition duration-300 hover:-translate-y-1 hover:border-emerald-100 hover:bg-white hover:shadow-xl hover:shadow-slate-950/10">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <p className="text-sm font-medium text-slate-500">{label}</p>
-          <p className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">
+          <p className="text-sm font-semibold text-slate-500">{label}</p>
+          <p className="mt-2 text-3xl font-bold tracking-tight text-slate-950">
             {value}
           </p>
         </div>
-        <div className={cn("rounded-2xl p-3 ring-1 transition group-hover:scale-105", tones[tone])}>
+        <div className={cn("rounded-2xl p-3 shadow-sm ring-1 transition duration-300 group-hover:scale-105", tones[tone])}>
           <Icon className="size-5" />
         </div>
       </div>
       {trend ? (
-        <p className="mt-4 inline-flex max-w-full items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 ring-1 ring-emerald-100">
+        <p className="mt-4 inline-flex max-w-full items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-100">
           <TrendingUp className="size-3" />
           <span className="truncate">{trend}</span>
         </p>
