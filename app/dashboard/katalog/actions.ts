@@ -31,7 +31,7 @@ export async function createBook(values: BookFormValues): Promise<CatalogActionR
 
   const inputBy = await getInputActorName(auth.user.id, auth.user.email);
   const result = await safelyMutateCatalog(() =>
-    insertBook(bookPayload(values, inputBy), { type: "book", inputBy }),
+    insertBook(bookPayload(values, inputBy, auth.user.id), { type: "book", inputBy }),
   );
   revalidateCatalogPaths();
 
@@ -49,7 +49,7 @@ export async function createThesis(values: ThesisFormValues): Promise<CatalogAct
 
   const inputBy = await getInputActorName(auth.user.id, auth.user.email);
   const result = await safelyMutateCatalog(() =>
-    insertThesis(thesisPayload(values, inputBy), {
+    insertThesis(thesisPayload(values, inputBy, auth.user.id), {
       type: "thesis",
       inputBy,
       verificationStatus: values.verificationStatus,
@@ -190,7 +190,12 @@ async function insertBook(payload: MutationPayload, options?: InsertCatalogOptio
     return failure(error.message);
   }
 
-  const { input_by: _inputBy, input_source: _inputSource, ...fallbackPayload } = payload;
+  const {
+    created_by: _createdBy,
+    input_by: _inputBy,
+    input_source: _inputSource,
+    ...fallbackPayload
+  } = payload;
   const { data: fallbackData, error: fallbackError } = await createSupabaseAdminClient()
     .from("books")
     .insert(fallbackPayload)
@@ -225,6 +230,7 @@ async function insertThesis(payload: MutationPayload, options?: InsertCatalogOpt
   const {
     input_by: _inputBy,
     input_source: _inputSource,
+    created_by: _createdBy,
     verification_status: _verificationStatus,
     ...fallbackPayload
   } = payload;
@@ -245,7 +251,7 @@ async function updateThesisRow(id: string, payload: MutationPayload) {
   return error ? failure(error.message) : success("ok");
 }
 
-function bookPayload(values: BookFormValues, inputBy?: string): MutationPayload {
+function bookPayload(values: BookFormValues, inputBy?: string, actorId?: string): MutationPayload {
   return withInputAudit({
     title: values.title,
     author: values.author,
@@ -254,10 +260,10 @@ function bookPayload(values: BookFormValues, inputBy?: string): MutationPayload 
     stock: values.stock,
     status: values.status,
     cover_url: optionalPayloadValue(values.coverUrl),
-  }, inputBy);
+  }, inputBy, actorId);
 }
 
-function thesisPayload(values: ThesisFormValues, inputBy?: string): MutationPayload {
+function thesisPayload(values: ThesisFormValues, inputBy?: string, actorId?: string): MutationPayload {
   return withInputAudit({
     title: values.title,
     student_name: values.studentName,
@@ -270,7 +276,7 @@ function thesisPayload(values: ThesisFormValues, inputBy?: string): MutationPayl
     physical_location: values.physicalLocation,
     access_note: values.accessNote,
     verification_status: values.verificationStatus,
-  }, inputBy);
+  }, inputBy, actorId);
 }
 
 function validateBook(values: BookFormValues) {
@@ -334,13 +340,11 @@ function optionalPayloadValue(value: string) {
   return value.trim() || null;
 }
 
-function withInputAudit(payload: MutationPayload, inputBy?: string): MutationPayload {
-  if (!inputBy) return payload;
-
+function withInputAudit(payload: MutationPayload, inputBy?: string, actorId?: string): MutationPayload {
   return {
     ...payload,
-    input_source: "Dasbor",
-    input_by: inputBy,
+    ...(actorId ? { created_by: actorId } : {}),
+    ...(inputBy ? { input_source: "Dasbor", input_by: inputBy } : {}),
   };
 }
 
@@ -355,7 +359,12 @@ async function getInputActorName(userId: string, fallbackEmail?: string | null) 
 }
 
 function isMissingInputAuditColumn(message: string) {
-  return message.includes("input_by") || message.includes("input_source") || message.includes("schema cache");
+  return (
+    message.includes("created_by") ||
+    message.includes("input_by") ||
+    message.includes("input_source") ||
+    message.includes("schema cache")
+  );
 }
 
 async function writeInputAuditFromInsert(data: unknown, options?: InsertCatalogOptions) {

@@ -1,6 +1,7 @@
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PageHeader } from "@/components/page-header";
 import { SectionCard } from "@/components/section-card";
+import { requireStaffRole } from "@/lib/auth-guards";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
 import { fetchCatalogData } from "@/lib/supabase";
 import {
@@ -12,7 +13,11 @@ import type { DraftSubmissionType } from "@/lib/whatsapp-drafts";
 export const dynamic = "force-dynamic";
 
 export default async function VerificationPage() {
+  const auth = await requireStaffRole(["admin"]);
   const { books, theses, error } = await fetchCatalogData();
+  const currentActorName = auth.ok
+    ? await fetchProfileDisplayName(auth.user.id, auth.user.email)
+    : "Petugas Ruang Baca";
   const draftQueue = await fetchWhatsappDraftQueue();
   const catalogQueue: VerificationQueueItem[] = [...books, ...theses]
     .filter((item) => item.verificationStatus === "pending")
@@ -22,7 +27,7 @@ export default async function VerificationPage() {
       title: item.title,
       typeLabel: item.type === "book" ? "Buku" : "Skripsi",
       source: item.inputSource,
-      sender: item.inputBy,
+      sender: catalogSenderName(item.inputBy, currentActorName),
       status: item.verificationStatus,
       createdAt: item.createdAt,
       item,
@@ -78,6 +83,20 @@ type SenderProfile = {
   full_name: string | null;
   email: string | null;
 };
+
+async function fetchProfileDisplayName(userId: string, fallbackEmail?: string | null) {
+  const { data } = await createSupabaseAdminClient()
+    .from("profiles")
+    .select("full_name,email")
+    .eq("id", userId)
+    .maybeSingle();
+
+  return data?.full_name?.trim() || data?.email?.trim() || fallbackEmail || "Petugas Ruang Baca";
+}
+
+function catalogSenderName(inputBy: string, fallbackName: string) {
+  return inputBy === "Belum tercatat" ? fallbackName : inputBy;
+}
 
 async function fetchWhatsappDraftQueue(): Promise<VerificationQueueItem[]> {
   try {

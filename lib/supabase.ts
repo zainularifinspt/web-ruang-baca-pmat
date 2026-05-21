@@ -25,6 +25,8 @@ type CatalogInputOverride = {
   inputBy: string;
 };
 
+type ProfileNameMap = Record<string, string>;
+
 type AttendanceRow = {
   id: string;
   visitor_name: string;
@@ -112,6 +114,10 @@ export async function fetchCatalogData(options: CatalogFetchOptions = {}): Promi
   const bookVerificationOverrides = await getBookVerificationOverrides();
   const thesisVerificationOverrides = await getThesisVerificationOverrides();
   const inputOverrides = await getCatalogInputOverrides();
+  const profileNamesById = await getProfileNamesForRows([
+    ...booksResult.rows,
+    ...thesesResult.rows,
+  ]);
 
   const errors = [booksResult.error, thesesResult.error].filter(Boolean);
   const books = booksResult.rows.map((row) =>
@@ -119,6 +125,7 @@ export async function fetchCatalogData(options: CatalogFetchOptions = {}): Promi
       row,
       bookVerificationOverrides[textValue(row, ["id"])],
       inputOverrides[`book:${textValue(row, ["id"])}`],
+      createdByName(row, profileNamesById),
     ),
   );
   const theses = thesesResult.rows.map((row) =>
@@ -126,6 +133,7 @@ export async function fetchCatalogData(options: CatalogFetchOptions = {}): Promi
       row,
       thesisVerificationOverrides[textValue(row, ["id"])],
       inputOverrides[`thesis:${textValue(row, ["id"])}`],
+      createdByName(row, profileNamesById),
     ),
   );
   const publicOnly = options.visibility === "public";
@@ -145,6 +153,7 @@ export async function fetchCollectionById(type: string, id: string, options: Cat
   const bookVerificationOverrides = table === "books" ? await getBookVerificationOverrides() : {};
   const thesisVerificationOverrides = table === "theses" ? await getThesisVerificationOverrides() : {};
   const inputOverrides = await getCatalogInputOverrides();
+  const profileNamesById = await getProfileNamesForRows(rows);
   const mappedRows =
     table === "books"
       ? rows.map((row) =>
@@ -152,6 +161,7 @@ export async function fetchCollectionById(type: string, id: string, options: Cat
             row,
             bookVerificationOverrides[textValue(row, ["id"])],
             inputOverrides[`book:${textValue(row, ["id"])}`],
+            createdByName(row, profileNamesById),
           ),
         )
       : rows.map((row) =>
@@ -159,6 +169,7 @@ export async function fetchCollectionById(type: string, id: string, options: Cat
             row,
             thesisVerificationOverrides[textValue(row, ["id"])],
             inputOverrides[`thesis:${textValue(row, ["id"])}`],
+            createdByName(row, profileNamesById),
           ),
         );
 
@@ -175,11 +186,13 @@ export async function fetchBookById(id: string, options: CatalogFetchOptions = {
   const { row, error } = await fetchTableRowById("books", id);
   const bookVerificationOverrides = await getBookVerificationOverrides();
   const inputOverrides = await getCatalogInputOverrides();
+  const profileNamesById = await getProfileNamesForRows(row ? [row] : []);
   const book = row
     ? mapBookRow(
         row,
         bookVerificationOverrides[textValue(row, ["id"])],
         inputOverrides[`book:${textValue(row, ["id"])}`],
+        createdByName(row, profileNamesById),
       )
     : null;
 
@@ -193,11 +206,13 @@ export async function fetchThesisById(id: string, options: CatalogFetchOptions =
   const { row, error } = await fetchTableRowById("theses", id);
   const thesisVerificationOverrides = await getThesisVerificationOverrides();
   const inputOverrides = await getCatalogInputOverrides();
+  const profileNamesById = await getProfileNamesForRows(row ? [row] : []);
   const thesis = row
     ? mapThesisRow(
         row,
         thesisVerificationOverrides[textValue(row, ["id"])],
         inputOverrides[`thesis:${textValue(row, ["id"])}`],
+        createdByName(row, profileNamesById),
       )
     : null;
 
@@ -249,6 +264,7 @@ function mapBookRow(
   row: UnknownRow,
   verificationOverride?: VerificationStatus,
   inputOverride?: CatalogInputOverride,
+  createdByName?: string,
 ): Book {
   const stock = numberValue(row, ["stock"]);
   const rackLocation = textValue(
@@ -258,7 +274,7 @@ function mapBookRow(
   );
 
   return {
-    ...mapBaseRow(row, verificationOverride, inputOverride),
+    ...mapBaseRow(row, verificationOverride, inputOverride, createdByName),
     type: "book",
     author: textValue(row, ["author"]),
     publisher: textValue(row, ["publisher"]),
@@ -277,6 +293,7 @@ function mapThesisRow(
   row: UnknownRow,
   verificationOverride?: VerificationStatus,
   inputOverride?: CatalogInputOverride,
+  createdByName?: string,
 ): Thesis {
   const topic = textValue(row, ["topic"], "Skripsi");
   const physicalLocation = textValue(
@@ -286,7 +303,7 @@ function mapThesisRow(
   );
 
   return {
-    ...mapBaseRow(row, verificationOverride, inputOverride),
+    ...mapBaseRow(row, verificationOverride, inputOverride, createdByName),
     type: "thesis",
     studentName: textValue(row, ["student_name"]),
     topic,
@@ -309,6 +326,7 @@ function mapBaseRow(
   row: UnknownRow,
   verificationOverride?: VerificationStatus,
   inputOverride?: CatalogInputOverride,
+  createdByName?: string,
 ): CollectionBase {
   const currentYear = new Date().getFullYear();
 
@@ -319,7 +337,11 @@ function mapBaseRow(
     code: textValue(row, ["code", "kode", "collection_code", "kode_koleksi"], "-"),
     location: textValue(row, ["location", "rack_location", "physical_location"], "-"),
     inputSource: inputOverride?.source ?? inputSourceValue(row),
-    inputBy: inputOverride?.inputBy ?? textValue(row, ["input_by", "inputBy", "diinput_oleh"], "Belum tercatat"),
+    inputBy:
+      inputOverride?.inputBy ??
+      optionalTextValue(row, ["input_by", "inputBy", "diinput_oleh"]) ??
+      createdByName ??
+      "Belum tercatat",
     verificationStatus: verificationOverride ?? verificationStatusValue(row),
     notes: optionalTextValue(row, ["notes", "catatan"]),
     keywords: keywordsValue(row),
@@ -458,4 +480,51 @@ async function getCatalogInputOverrides() {
 
   const { readCatalogInputOverrides } = await import("@/lib/catalog-verification-store");
   return readCatalogInputOverrides();
+}
+
+function createdByName(row: UnknownRow, profileNamesById: ProfileNameMap) {
+  const profileId = textValue(row, ["created_by", "createdBy", "created_by_id"]);
+  return profileId ? profileNamesById[profileId] : undefined;
+}
+
+async function getProfileNamesForRows(rows: UnknownRow[]): Promise<ProfileNameMap> {
+  if (typeof window !== "undefined") return {};
+
+  const ids = Array.from(
+    new Set(
+      rows
+        .map((row) => textValue(row, ["created_by", "createdBy", "created_by_id"]))
+        .filter(Boolean),
+    ),
+  );
+
+  if (!ids.length) return {};
+
+  try {
+    const { createSupabaseAdminClient } = await import("@/lib/supabase-admin");
+    const { data, error } = await createSupabaseAdminClient()
+      .from("profiles")
+      .select("id,full_name,email")
+      .in("id", ids);
+
+    if (error) {
+      console.error("[catalog] Failed to resolve input actor profiles", {
+        error: error.message,
+      });
+      return {};
+    }
+
+    return Object.fromEntries(
+      ((data ?? []) as Array<{ id: string; full_name: string | null; email: string | null }>)
+        .map((profile) => [
+          profile.id,
+          profile.full_name?.trim() || profile.email?.trim() || "Petugas Ruang Baca",
+        ]),
+    );
+  } catch (error) {
+    console.error("[catalog] Failed to load input actor profiles", {
+      error: error instanceof Error ? error.message : error,
+    });
+    return {};
+  }
 }
