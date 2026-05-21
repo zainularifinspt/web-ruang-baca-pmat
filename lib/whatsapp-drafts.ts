@@ -58,8 +58,11 @@ export function parseWhatsappDraftMessage(rawMessage: string): ParsedWhatsappDra
   const fields = parseFields(lines.slice(type ? 1 : 0));
 
   const title = fields.judul ?? "";
-  const author = fields.penulis ?? "";
-  const category = type === "book" ? fields.kategori ?? "" : fields.topik ?? "Skripsi";
+  const author = fields.penulis ?? fields.mahasiswa ?? fields.nama ?? fields.nama_mahasiswa ?? "";
+  const category =
+    type === "book"
+      ? fields.kategori ?? ""
+      : fields.topik ?? fields.kategori ?? "Skripsi";
   const description =
     type === "thesis"
       ? fields.abstrak ?? fields.deskripsi ?? ""
