@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getSupabaseClient } from "@/lib/supabase";
-import type { Attendance } from "@/lib/types";
+import type { Attendance, VisitorMetric } from "@/lib/types";
 
 type AttendanceApiRow = {
   id: string;
@@ -123,6 +123,25 @@ export function countVisitsForCurrentMonth(items: Attendance[]) {
   ).length;
 }
 
+export function buildWeeklyVisitorMetrics(items: Attendance[]): VisitorMetric[] {
+  const weekStart = startOfCurrentWeek();
+  const labels = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
+
+  return labels.map((label, index) => {
+    const date = new Date(weekStart);
+    date.setDate(weekStart.getDate() + index);
+    const key = dateKey(date);
+    const dailyItems = items.filter((item) => dateKey(new Date(item.visitedAt)) === key);
+
+    return {
+      label,
+      visits: dailyItems.length,
+      books: dailyItems.filter((item) => item.purpose.toLowerCase().includes("buku")).length,
+      theses: dailyItems.filter((item) => item.purpose.toLowerCase().includes("skripsi")).length,
+    };
+  });
+}
+
 function normalizeVisitorStatus(value: string): Attendance["visitorStatus"] {
   if (value === "Dosen" || value === "Umum") return value;
   return "Mahasiswa";
@@ -135,4 +154,13 @@ function dateKey(date: Date) {
     month: "2-digit",
     day: "2-digit",
   }).format(date);
+}
+
+function startOfCurrentWeek() {
+  const [year, month, day] = dateKey(new Date()).split("-").map(Number);
+  const today = new Date(year, month - 1, day);
+  const distanceFromMonday = (today.getDay() + 6) % 7;
+  today.setDate(today.getDate() - distanceFromMonday);
+  today.setHours(0, 0, 0, 0);
+  return today;
 }

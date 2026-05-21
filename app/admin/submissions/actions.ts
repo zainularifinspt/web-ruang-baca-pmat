@@ -1,0 +1,202 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { requireStaffRole } from "@/lib/auth-guards";
+import { createSupabaseAdminClient } from "@/lib/supabase-admin";
+import type { DraftSubmissionType } from "@/lib/whatsapp-drafts";
+
+export type DraftSubmissionInput = {
+  id: string;
+  title: string;
+  author: string;
+  year?: string;
+  category?: string;
+  description?: string;
+};
+
+export type DraftSubmissionActionResult = {
+  ok: boolean;
+  message: string;
+};
+
+type DraftSubmissionRow = {
+  id: string;
+  type: DraftSubmissionType | null;
+  title: string | null;
+  author: string | null;
+  year: number | null;
+  category: string | null;
+  description: string | null;
+  raw_message: string | null;
+  status: "pending" | "approved" | "rejected";
+};
+
+const defaultAccessNote =
+  "Dokumen lengkap tersedia dalam bentuk fisik di Ruang Baca Program Studi Pendidikan Matematika.";
+
+export async function updateDraftSubmission(
+  input: DraftSubmissionInput,
+): Promise<DraftSubmissionActionResult> {
+  const auth = await requireStaffRole(["admin"]);
+  if (!auth.ok) return failure(auth.message);
+
+  const id = input.id.trim();
+  if (!id) return failure("Submission tidak valid.");
+
+  const year = parseYear(input.year);
+  if (input.year?.trim() && !year) return failure("Tahun harus berupa angka yang valid.");
+
+  try {
+    const { error } = await createSupabaseAdminClient()
+      .from("draft_submissions")
+      .update({
+        title: input.title.trim() || null,
+        author: input.author.trim() || null,
+        year,
+        category: input.category?.trim() || null,
+        description: input.description?.trim() || null,
+      })
+      .eq("id", id);
+
+    if (error) return failure(error.message);
+
+    revalidateSubmissionPaths();
+    return { ok: true, message: "Draft submission diperbarui." };
+  } catch (error) {
+    return failure(error instanceof Error ? error.message : "Gagal memperbarui submission.");
+  }
+}
+
+export async function approveDraftSubmission(id: string): Promise<DraftSubmissionActionResult> {
+  const auth = await requireStaffRole(["admin"]);
+  if (!auth.ok) return failure(auth.message);
+
+  const normalizedId = id.trim();
+  if (!normalizedId) return failure("Submission tidak valid.");
+
+  try {
+    const supabaseAdmin = createSupabaseAdminClient();
+    const { data: draft, error: draftError } = await supabaseAdmin
+      .from("draft_submissions")
+      .select("id,type,title,author,year,category,description,raw_message,status")
+      .eq("id", normalizedId)
+      .maybeSingle();
+
+    if (draftError) return failure(draftError.message);
+    if (!draft) return failure("Submission tidak ditemukan.");
+
+    const validationError = validateDraftForApproval(draft as DraftSubmissionRow);
+    if (validationError) return failure(validationError);
+
+    const row = draft as DraftSubmissionRow;
+    const insertResult =
+      row.type === "book"
+        ? await insertApprovedBook(row)
+        : await insertApprovedThesis(row);
+
+    if (!insertResult.ok) return insertResult;
+
+    const { error: updateError } = await supabaseAdmin
+      .from("draft_submissions")
+      .update({
+        status: "approved",
+        verified_by: auth.user.id,
+        verified_at: new Date().toISOString(),
+      })
+      .eq("id", normalizedId);
+
+    if (updateError) return failure(updateError.message);
+
+    revalidateSubmissionPaths();
+    revalidatePath("/katalog");
+    revalidatePath("/dashboard/katalog");
+    revalidatePath("/dashboard/verifikasi");
+
+    return { ok: true, message: "Submission disetujui dan masuk katalog." };
+  } catch (error) {
+    return failure(error instanceof Error ? error.message : "Gagal menyetujui submission.");
+  }
+}
+
+export async function rejectDraftSubmission(id: string): Promise<DraftSubmissionActionResult> {
+  const auth = await requireStaffRole(["admin"]);
+  if (!auth.ok) return failure(auth.message);
+
+  const normalizedId = id.trim();
+  if (!normalizedId) return failure("Submission tidak valid.");
+
+  try {
+    const { error } = await createSupabaseAdminClient()
+      .from("draft_submissions")
+      .update({
+        status: "rejected",
+        verified_by: auth.user.id,
+        verified_at: new Date().toISOString(),
+      })
+      .eq("id", normalizedId);
+
+    if (error) return failure(error.message);
+
+    revalidateSubmissionPaths();
+    return { ok: true, message: "Submission ditolak." };
+  } catch (error) {
+    return failure(error instanceof Error ? error.message : "Gagal menolak submission.");
+  }
+}
+
+async function insertApprovedBook(row: DraftSubmissionRow) {
+  const { error } = await createSupabaseAdminClient().from("books").insert({
+    title: row.title,
+    author: row.author,
+    category: row.category || "Buku",
+    rack_location: "Ruang Baca",
+    stock: 1,
+    status: "tersedia",
+    verification_status: "approved",
+  });
+
+  return error ? failure(error.message) : { ok: true, message: "ok" };
+}
+
+async function insertApprovedThesis(row: DraftSubmissionRow) {
+  const { error } = await createSupabaseAdminClient().from("theses").insert({
+    title: row.title,
+    student_name: row.author,
+    year: row.year ?? new Date().getFullYear(),
+    topic: row.category || "Skripsi",
+    abstract: row.description,
+    supervisor_1: "-",
+    supervisor_2: "-",
+    physical_location: "Ruang Baca",
+    access_note: defaultAccessNote,
+    verification_status: "approved",
+  });
+
+  return error ? failure(error.message) : { ok: true, message: "ok" };
+}
+
+function validateDraftForApproval(row: DraftSubmissionRow) {
+  if (row.status === "approved") return "Submission ini sudah disetujui.";
+  if (!row.type) return "Tipe submission belum valid. Perbaiki format pesan terlebih dahulu.";
+  if (!row.title?.trim()) return "Judul wajib diisi sebelum approve.";
+  if (!row.author?.trim()) return row.type === "thesis" ? "Nama mahasiswa wajib diisi sebelum approve." : "Penulis wajib diisi sebelum approve.";
+  if (row.type === "book" && !row.category?.trim()) return "Kategori buku wajib diisi sebelum approve.";
+  if (row.type === "thesis" && !row.year) return "Tahun skripsi wajib diisi sebelum approve.";
+  if (row.type === "thesis" && !row.description?.trim()) return "Abstrak skripsi wajib diisi sebelum approve.";
+  return null;
+}
+
+function parseYear(value?: string) {
+  if (!value?.trim()) return null;
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed >= 1900 ? parsed : null;
+}
+
+function revalidateSubmissionPaths() {
+  revalidatePath("/admin/submissions");
+  revalidatePath("/dashboard/whatsapp");
+}
+
+function failure(message: string): DraftSubmissionActionResult {
+  return { ok: false, message };
+}

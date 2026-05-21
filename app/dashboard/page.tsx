@@ -34,18 +34,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { whatsappSubmissions } from "@/lib/mock-data";
 import {
-  allCollections,
-  books,
-  theses,
-  whatsappSubmissions,
-} from "@/lib/mock-data";
-import {
+  buildWeeklyVisitorMetrics,
   countVisitsForLastDays,
   countVisitsForToday,
   useRealtimeAttendances,
 } from "@/hooks/use-realtime-attendances";
-import type { Attendance, Book, Thesis } from "@/lib/types";
+import { useRealtimeCatalogData } from "@/hooks/use-realtime-catalog-data";
+import type { Attendance, Book, Thesis, VisitorMetric } from "@/lib/types";
 import { cn, formatDate, formatShortDate } from "@/lib/utils";
 
 type CollectionItem = Book | Thesis;
@@ -68,23 +65,32 @@ function ChartPlaceholder() {
 export default function DashboardPage() {
   const { role, roleLabel } = useRole();
   const { attendances, isLoading: isAttendanceLoading } = useRealtimeAttendances();
-  const collections = allCollections();
+  const {
+    books,
+    theses,
+    collections,
+    isLoading: isCatalogLoading,
+  } = useRealtimeCatalogData();
   const verificationQueue = collections.filter(
-    (item) => item.verificationStatus !== "approved",
+    (item) => item.verificationStatus === "pending",
   );
   const todayVisits = useMemo(() => countVisitsForToday(attendances), [attendances]);
   const weeklyVisits = useMemo(() => countVisitsForLastDays(attendances, 7), [attendances]);
-  const newBooks = books.filter((item) => item.createdAt >= "2026-05-01").length;
-  const newTheses = theses.filter((item) => item.createdAt >= "2026-05-01").length;
+  const visitorMetrics = useMemo(() => buildWeeklyVisitorMetrics(attendances), [attendances]);
+  const newBooks = useMemo(() => books.filter(isCreatedInCurrentMonth).length, [books]);
+  const newTheses = useMemo(() => theses.filter(isCreatedInCurrentMonth).length, [theses]);
 
   if (role === "dosen") {
     return (
       <DosenDashboard
         roleLabel={roleLabel}
+        theses={theses}
         weeklyVisits={weeklyVisits}
+        visitorMetrics={visitorMetrics}
         verificationQueue={verificationQueue}
         attendances={attendances}
         isAttendanceLoading={isAttendanceLoading}
+        isCatalogLoading={isCatalogLoading}
       />
     );
   }
@@ -99,6 +105,7 @@ export default function DashboardPage() {
         verificationQueue={verificationQueue}
         attendances={attendances}
         isAttendanceLoading={isAttendanceLoading}
+        isCatalogLoading={isCatalogLoading}
       />
     );
   }
@@ -106,29 +113,56 @@ export default function DashboardPage() {
   return (
     <AdminDashboard
       roleLabel={roleLabel}
+      books={books}
+      theses={theses}
       todayVisits={todayVisits}
       weeklyVisits={weeklyVisits}
+      visitorMetrics={visitorMetrics}
       verificationQueue={verificationQueue}
       attendances={attendances}
       isAttendanceLoading={isAttendanceLoading}
+      isCatalogLoading={isCatalogLoading}
     />
   );
 }
 
+function isCreatedInCurrentMonth(item: CollectionItem) {
+  const currentMonth = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Makassar",
+    year: "numeric",
+    month: "2-digit",
+  }).format(new Date());
+  const itemMonth = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Makassar",
+    year: "numeric",
+    month: "2-digit",
+  }).format(new Date(item.createdAt));
+
+  return itemMonth === currentMonth;
+}
+
 function AdminDashboard({
   roleLabel,
+  books,
+  theses,
   todayVisits,
   weeklyVisits,
+  visitorMetrics,
   verificationQueue,
   attendances,
   isAttendanceLoading,
+  isCatalogLoading,
 }: {
   roleLabel: string;
+  books: Book[];
+  theses: Thesis[];
   todayVisits: number;
   weeklyVisits: number;
+  visitorMetrics: VisitorMetric[];
   verificationQueue: CollectionItem[];
   attendances: Attendance[];
   isAttendanceLoading: boolean;
+  isCatalogLoading: boolean;
 }) {
   return (
     <DashboardFrame
@@ -137,11 +171,11 @@ function AdminDashboard({
       description="Pantau koleksi, kunjungan, presensi, dan antrean verifikasi dalam satu layar yang rapi."
     >
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-        <StatCard icon={BookOpen} label="Total buku" value={books.length} trend="Katalog siap ditelusuri" tone="emerald" />
-        <StatCard icon={GraduationCap} label="Total skripsi" value={theses.length} trend="Repositori aktif" tone="blue" />
+        <StatCard icon={BookOpen} label="Total buku" value={isCatalogLoading ? "..." : books.length} trend="Realtime dari katalog" tone="emerald" />
+        <StatCard icon={GraduationCap} label="Total skripsi" value={isCatalogLoading ? "..." : theses.length} trend="Realtime dari katalog" tone="blue" />
         <StatCard icon={CalendarCheck} label="Pengunjung hari ini" value={isAttendanceLoading ? "..." : todayVisits} trend="Realtime dari presensi" tone="emerald" />
         <StatCard icon={Users} label="Kunjungan minggu ini" value={isAttendanceLoading ? "..." : weeklyVisits} trend="7 hari terakhir" tone="amber" />
-        <StatCard icon={CheckCheck} label="Antrean verifikasi" value={verificationQueue.length} trend="Perlu ditinjau" tone="slate" />
+        <StatCard icon={CheckCheck} label="Antrean verifikasi" value={isCatalogLoading ? "..." : verificationQueue.length} trend="Menunggu admin" tone="slate" />
       </div>
 
       <QuickActions
@@ -155,16 +189,16 @@ function AdminDashboard({
 
       <div className="grid gap-5 xl:grid-cols-[1.05fr_0.95fr]">
         <SectionCard title="Tren Kunjungan" description="Kunjungan ruang baca selama pekan berjalan.">
-          <VisitorBarChart />
+          <VisitorBarChart metrics={visitorMetrics} />
         </SectionCard>
         <SectionCard title="Minat Koleksi" description="Perbandingan kebutuhan buku dan skripsi.">
-          <VisitorLineChart />
+          <VisitorLineChart metrics={visitorMetrics} />
         </SectionCard>
       </div>
 
       <div className="grid gap-5 xl:grid-cols-[0.95fr_1.05fr]">
         <AttendancePanel attendances={attendances} isLoading={isAttendanceLoading} />
-        <VerificationQueuePanel queue={verificationQueue} />
+        <VerificationQueuePanel queue={verificationQueue} isLoading={isCatalogLoading} />
       </div>
     </DashboardFrame>
   );
@@ -172,16 +206,22 @@ function AdminDashboard({
 
 function DosenDashboard({
   roleLabel,
+  theses,
   weeklyVisits,
+  visitorMetrics,
   verificationQueue,
   attendances,
   isAttendanceLoading,
+  isCatalogLoading,
 }: {
   roleLabel: string;
+  theses: Thesis[];
   weeklyVisits: number;
+  visitorMetrics: VisitorMetric[];
   verificationQueue: CollectionItem[];
   attendances: Attendance[];
   isAttendanceLoading: boolean;
+  isCatalogLoading: boolean;
 }) {
   return (
     <DashboardFrame
@@ -190,22 +230,22 @@ function DosenDashboard({
       description="Fokus pada perkembangan repositori skripsi, topik penelitian, dan pola kunjungan mahasiswa."
     >
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        <StatCard icon={GraduationCap} label="Total skripsi" value={theses.length} trend="Topik makin beragam" tone="blue" />
+        <StatCard icon={GraduationCap} label="Total skripsi" value={isCatalogLoading ? "..." : theses.length} trend="Realtime dari katalog" tone="blue" />
         <StatCard icon={Users} label="Statistik kunjungan" value={isAttendanceLoading ? "..." : weeklyVisits} trend="7 hari terakhir" tone="emerald" />
-        <StatCard icon={CheckCheck} label="Data perlu ditinjau" value={verificationQueue.filter((item) => item.type === "thesis").length} trend="Prioritas skripsi" tone="slate" />
+        <StatCard icon={CheckCheck} label="Data perlu ditinjau" value={isCatalogLoading ? "..." : verificationQueue.filter((item) => item.type === "thesis").length} trend="Menunggu admin" tone="slate" />
       </div>
 
       <div className="grid gap-5 xl:grid-cols-[0.92fr_1.08fr]">
         <SectionCard title="Skripsi Berdasarkan Topik" description="Tema penelitian yang muncul dari data katalog.">
-          <TopicInterest />
+          <TopicInterest theses={theses} />
         </SectionCard>
         <SectionCard title="Minat Koleksi" description="Perbandingan kunjungan untuk buku dan skripsi.">
-          <VisitorLineChart />
+          <VisitorLineChart metrics={visitorMetrics} />
         </SectionCard>
       </div>
 
       <div className="grid gap-5 xl:grid-cols-[1.05fr_0.95fr]">
-        <LatestThesesPanel />
+        <LatestThesesPanel theses={theses} />
         <AttendancePanel attendances={attendances} isLoading={isAttendanceLoading} showExport={false} />
       </div>
 
@@ -228,6 +268,7 @@ function PetugasDashboard({
   verificationQueue,
   attendances,
   isAttendanceLoading,
+  isCatalogLoading,
 }: {
   roleLabel: string;
   todayVisits: number;
@@ -236,6 +277,7 @@ function PetugasDashboard({
   verificationQueue: CollectionItem[];
   attendances: Attendance[];
   isAttendanceLoading: boolean;
+  isCatalogLoading: boolean;
 }) {
   return (
     <DashboardFrame
@@ -246,9 +288,9 @@ function PetugasDashboard({
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <StatCard icon={CalendarCheck} label="Pengunjung hari ini" value={isAttendanceLoading ? "..." : todayVisits} trend="Realtime dari presensi" tone="emerald" />
         <StatCard icon={ClipboardCheck} label="Presensi terbaru" value={isAttendanceLoading ? "..." : attendances.length} trend="Catatan aktif" tone="blue" />
-        <StatCard icon={BookOpen} label="Buku baru ditambahkan" value={newBooks} trend="Bulan ini" tone="amber" />
-        <StatCard icon={GraduationCap} label="Skripsi baru ditambahkan" value={newTheses} trend="Bulan ini" tone="blue" />
-        <StatCard icon={CheckCheck} label="Input menunggu verifikasi" value={verificationQueue.length} trend="Perlu dicek" tone="slate" />
+        <StatCard icon={BookOpen} label="Buku baru ditambahkan" value={isCatalogLoading ? "..." : newBooks} trend="Bulan ini" tone="amber" />
+        <StatCard icon={GraduationCap} label="Skripsi baru ditambahkan" value={isCatalogLoading ? "..." : newTheses} trend="Bulan ini" tone="blue" />
+        <StatCard icon={CheckCheck} label="Input menunggu verifikasi" value={isCatalogLoading ? "..." : verificationQueue.length} trend="Menunggu admin" tone="slate" />
       </div>
 
       <QuickActions
@@ -262,7 +304,7 @@ function PetugasDashboard({
 
       <div className="grid gap-5 xl:grid-cols-[0.98fr_1.02fr]">
         <AttendancePanel attendances={attendances} isLoading={isAttendanceLoading} showExport={false} />
-        <VerificationQueuePanel queue={verificationQueue} title="Antrean Input Menunggu Verifikasi" />
+        <VerificationQueuePanel queue={verificationQueue} isLoading={isCatalogLoading} title="Antrean Input Menunggu Verifikasi" />
       </div>
 
       <SectionCard title="Riwayat Input WhatsApp" description="Pesan koleksi yang masuk melalui alur WhatsApp.">
@@ -470,14 +512,18 @@ function InitialsAvatar({ name }: { name: string }) {
 
 function VerificationQueuePanel({
   queue,
+  isLoading = false,
   title = "Antrean Verifikasi Terbaru",
 }: {
   queue: CollectionItem[];
+  isLoading?: boolean;
   title?: string;
 }) {
   return (
     <SectionCard title={title} description="Koleksi yang membutuhkan tindak lanjut.">
-      {queue.length ? (
+      {isLoading ? (
+        <AttendanceSkeleton />
+      ) : queue.length ? (
         <div className="grid gap-3">
           {queue.slice(0, 5).map((item) => (
             <VerificationItem key={item.id} item={item} />
@@ -520,7 +566,7 @@ function VerificationItem({ item }: { item: CollectionItem }) {
   );
 }
 
-function TopicInterest() {
+function TopicInterest({ theses }: { theses: Thesis[] }) {
   const topics = theses
     .flatMap((item) => item.keywords.slice(0, 2))
     .reduce<Record<string, number>>((acc, keyword) => {
@@ -532,7 +578,7 @@ function TopicInterest() {
 
   return (
     <div className="space-y-3">
-      {entries.map(([topic, value], index) => (
+      {entries.length ? entries.map(([topic, value], index) => (
         <div key={topic} className="rounded-2xl border border-slate-200 bg-slate-50/70 p-3">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
@@ -550,16 +596,23 @@ function TopicInterest() {
             />
           </div>
         </div>
-      ))}
+      )) : (
+        <EmptyState
+          title="Belum ada topik"
+          description="Topik skripsi akan muncul setelah data katalog Supabase tersedia."
+          className="bg-slate-50/70"
+        />
+      )}
     </div>
   );
 }
 
-function LatestThesesPanel() {
+function LatestThesesPanel({ theses }: { theses: Thesis[] }) {
   return (
     <SectionCard title="Data Skripsi Terbaru" description="Repositori skripsi yang baru masuk ke katalog.">
-      <div className="grid gap-3">
-        {theses.map((item) => (
+      {theses.length ? (
+        <div className="grid gap-3">
+          {theses.slice(0, 6).map((item) => (
           <Link
             key={item.id}
             href={`/katalog/skripsi/${item.id}`}
@@ -580,8 +633,15 @@ function LatestThesesPanel() {
               ))}
             </div>
           </Link>
-        ))}
-      </div>
+          ))}
+        </div>
+      ) : (
+        <EmptyState
+          title="Belum ada skripsi"
+          description="Data skripsi terbaru akan tampil setelah katalog Supabase dimuat."
+          className="bg-slate-50/70"
+        />
+      )}
     </SectionCard>
   );
 }

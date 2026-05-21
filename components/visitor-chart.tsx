@@ -1,18 +1,22 @@
-import { visitorMetrics } from "@/lib/mock-data";
+import type { VisitorMetric } from "@/lib/types";
 
-export function VisitorBarChart() {
-  const max = Math.max(...visitorMetrics.map((item) => item.visits));
+type VisitorChartProps = {
+  metrics: VisitorMetric[];
+};
+
+export function VisitorBarChart({ metrics }: VisitorChartProps) {
+  const max = Math.max(1, ...metrics.map((item) => item.visits));
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
       <div className="flex h-72 items-end gap-2 sm:gap-3">
-        {visitorMetrics.map((item) => (
+        {metrics.map((item) => (
           <div key={item.label} className="flex h-full min-w-0 flex-1 flex-col justify-end gap-2">
             <div className="text-center text-xs font-semibold text-slate-700">{item.visits}</div>
             <div className="flex flex-1 items-end rounded-t-2xl bg-white/80 px-1 pt-3 ring-1 ring-slate-100">
               <div
                 className="min-h-3 w-full rounded-t-xl bg-gradient-to-t from-emerald-700 to-teal-400 shadow-sm shadow-emerald-900/10 transition hover:from-emerald-800"
-                style={{ height: `${(item.visits / max) * 86}%` }}
+                style={{ height: `${Math.max(4, (item.visits / max) * 86)}%` }}
                 aria-label={`${item.label}: ${item.visits} kunjungan`}
               />
             </div>
@@ -24,19 +28,20 @@ export function VisitorBarChart() {
   );
 }
 
-export function VisitorLineChart() {
+export function VisitorLineChart({ metrics }: VisitorChartProps) {
   const width = 560;
   const height = 220;
   const padding = 24;
   const max = Math.max(
-    ...visitorMetrics.flatMap((item) => [item.books, item.theses]),
+    1,
+    ...metrics.flatMap((item) => [item.books, item.theses]),
   );
   const pointsFor = (key: "books" | "theses") =>
-    visitorMetrics
+    metrics
       .map((item, index) => {
         const x =
           padding +
-          (index / (visitorMetrics.length - 1)) * (width - padding * 2);
+          (index / Math.max(1, metrics.length - 1)) * (width - padding * 2);
         const y = height - padding - (item[key] / max) * (height - padding * 2);
         return `${x},${y}`;
       })
@@ -90,10 +95,10 @@ export function VisitorLineChart() {
           strokeLinejoin="round"
           strokeWidth="4"
         />
-        {visitorMetrics.flatMap((item, index) => {
+        {metrics.flatMap((item, index) => {
           const x =
             padding +
-            (index / (visitorMetrics.length - 1)) * (width - padding * 2);
+            (index / Math.max(1, metrics.length - 1)) * (width - padding * 2);
           return (["books", "theses"] as const).map((key) => {
             const y = height - padding - (item[key] / max) * (height - padding * 2);
             return (
@@ -109,10 +114,10 @@ export function VisitorLineChart() {
             );
           });
         })}
-        {visitorMetrics.map((item, index) => {
+        {metrics.map((item, index) => {
           const x =
             padding +
-            (index / (visitorMetrics.length - 1)) * (width - padding * 2);
+            (index / Math.max(1, metrics.length - 1)) * (width - padding * 2);
           return (
             <text
               key={item.label}

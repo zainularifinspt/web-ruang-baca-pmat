@@ -8,11 +8,12 @@ export const dynamic = "force-dynamic";
 
 export default async function VerificationPage() {
   const { books, theses, error } = await fetchCatalogData();
-  const queue = [...books, ...theses].sort((first, second) => {
-    if (first.verificationStatus === "pending" && second.verificationStatus !== "pending") return -1;
-    if (first.verificationStatus !== "pending" && second.verificationStatus === "pending") return 1;
-    return Date.parse(second.createdAt) - Date.parse(first.createdAt);
-  });
+  const queue = [...books, ...theses]
+    .filter((item) => item.verificationStatus === "pending")
+    .sort(
+      (first, second) =>
+        Date.parse(second.createdAt) - Date.parse(first.createdAt),
+    );
 
   return (
     <div className="space-y-6">
