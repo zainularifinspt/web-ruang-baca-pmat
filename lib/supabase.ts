@@ -266,7 +266,7 @@ function mapBaseRow(row: UnknownRow, verificationOverride?: VerificationStatus):
     code: textValue(row, ["code", "kode", "collection_code", "kode_koleksi"], "-"),
     location: textValue(row, ["location", "rack_location", "physical_location"], "-"),
     inputSource: inputSourceValue(row),
-    inputBy: textValue(row, ["input_by", "inputBy", "diinput_oleh"], "Supabase"),
+    inputBy: textValue(row, ["input_by", "inputBy", "diinput_oleh"], "Belum tercatat"),
     verificationStatus: verificationOverride ?? verificationStatusValue(row),
     notes: optionalTextValue(row, ["notes", "catatan"]),
     keywords: keywordsValue(row),

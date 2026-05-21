@@ -23,7 +23,8 @@ export async function createBook(values: BookFormValues): Promise<CatalogActionR
   const validationError = validateBook(values);
   if (validationError) return failure(validationError);
 
-  const result = await safelyMutateCatalog(() => insertBook(bookPayload(values)));
+  const inputBy = await getInputActorName(auth.user.id, auth.user.email);
+  const result = await safelyMutateCatalog(() => insertBook(bookPayload(values, inputBy)));
   revalidateCatalogPaths();
 
   return result.ok
@@ -38,7 +39,8 @@ export async function createThesis(values: ThesisFormValues): Promise<CatalogAct
   const validationError = validateThesis(values);
   if (validationError) return failure(validationError);
 
-  const result = await safelyMutateCatalog(() => insertThesis(thesisPayload(values)));
+  const inputBy = await getInputActorName(auth.user.id, auth.user.email);
+  const result = await safelyMutateCatalog(() => insertThesis(thesisPayload(values, inputBy)));
   revalidateCatalogPaths();
 
   return result.ok
@@ -161,7 +163,17 @@ function isMissingVerificationColumn(message: string) {
 
 async function insertBook(payload: MutationPayload) {
   const { error } = await createSupabaseAdminClient().from("books").insert(payload);
-  return error ? failure(error.message) : success("ok");
+  if (!error) return success("ok");
+
+  if (!isMissingInputAuditColumn(error.message)) {
+    return failure(error.message);
+  }
+
+  const { input_by: _inputBy, input_source: _inputSource, ...fallbackPayload } = payload;
+  const { error: fallbackError } = await createSupabaseAdminClient()
+    .from("books")
+    .insert(fallbackPayload);
+  return fallbackError ? failure(fallbackError.message) : success("ok");
 }
 
 async function updateBookRow(id: string, payload: MutationPayload) {
@@ -171,7 +183,17 @@ async function updateBookRow(id: string, payload: MutationPayload) {
 
 async function insertThesis(payload: MutationPayload) {
   const { error } = await createSupabaseAdminClient().from("theses").insert(payload);
-  return error ? failure(error.message) : success("ok");
+  if (!error) return success("ok");
+
+  if (!isMissingInputAuditColumn(error.message)) {
+    return failure(error.message);
+  }
+
+  const { input_by: _inputBy, input_source: _inputSource, ...fallbackPayload } = payload;
+  const { error: fallbackError } = await createSupabaseAdminClient()
+    .from("theses")
+    .insert(fallbackPayload);
+  return fallbackError ? failure(fallbackError.message) : success("ok");
 }
 
 async function updateThesisRow(id: string, payload: MutationPayload) {
@@ -179,8 +201,8 @@ async function updateThesisRow(id: string, payload: MutationPayload) {
   return error ? failure(error.message) : success("ok");
 }
 
-function bookPayload(values: BookFormValues): MutationPayload {
-  return {
+function bookPayload(values: BookFormValues, inputBy?: string): MutationPayload {
+  return withInputAudit({
     title: values.title,
     author: values.author,
     category: values.category,
@@ -188,11 +210,11 @@ function bookPayload(values: BookFormValues): MutationPayload {
     stock: values.stock,
     status: values.status,
     cover_url: optionalPayloadValue(values.coverUrl),
-  };
+  }, inputBy);
 }
 
-function thesisPayload(values: ThesisFormValues): MutationPayload {
-  return {
+function thesisPayload(values: ThesisFormValues, inputBy?: string): MutationPayload {
+  return withInputAudit({
     title: values.title,
     student_name: values.studentName,
     year: values.year,
@@ -204,7 +226,7 @@ function thesisPayload(values: ThesisFormValues): MutationPayload {
     physical_location: values.physicalLocation,
     access_note: values.accessNote,
     verification_status: values.verificationStatus,
-  };
+  }, inputBy);
 }
 
 function validateBook(values: BookFormValues) {
@@ -266,4 +288,28 @@ function failure(message: string): CatalogActionResult {
 
 function optionalPayloadValue(value: string) {
   return value.trim() || null;
+}
+
+function withInputAudit(payload: MutationPayload, inputBy?: string): MutationPayload {
+  if (!inputBy) return payload;
+
+  return {
+    ...payload,
+    input_source: "Dasbor",
+    input_by: inputBy,
+  };
+}
+
+async function getInputActorName(userId: string, fallbackEmail?: string | null) {
+  const { data } = await createSupabaseAdminClient()
+    .from("profiles")
+    .select("full_name,email")
+    .eq("id", userId)
+    .maybeSingle();
+
+  return data?.full_name ?? data?.email ?? fallbackEmail ?? "Petugas Ruang Baca";
+}
+
+function isMissingInputAuditColumn(message: string) {
+  return message.includes("input_by") || message.includes("input_source") || message.includes("schema cache");
 }
