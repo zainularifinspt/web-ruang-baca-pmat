@@ -2,7 +2,7 @@
 
 import { FormEvent, useState, useTransition } from "react";
 import { toast } from "sonner";
-import { Check, Pencil, X } from "lucide-react";
+import { AlertTriangle, Check, Eye, Pencil, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
   approveDraftSubmission,
@@ -11,7 +11,14 @@ import {
 } from "@/app/admin/submissions/actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type { DraftSubmissionStatus, DraftSubmissionType } from "@/lib/whatsapp-drafts";
@@ -29,6 +36,8 @@ export type SubmissionRow = {
   category: string | null;
   description: string | null;
   raw_message: string | null;
+  parsing_error: boolean;
+  unknown_sender: boolean;
   status: DraftSubmissionStatus;
   verified_by: string | null;
   verified_at: string | null;
@@ -102,6 +111,17 @@ function SubmissionCard({
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="secondary">{typeLabel(submission.type)}</Badge>
             <StatusBadge status={submission.status} />
+            {submission.parsing_error ? (
+              <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">
+                <AlertTriangle className="size-3.5" />
+                Format perlu dicek
+              </span>
+            ) : null}
+            {submission.unknown_sender ? (
+              <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-600">
+                Pengirim baru
+              </span>
+            ) : null}
             <span className="text-xs text-slate-500">{formatDate(submission.created_at)}</span>
           </div>
           <h3 className="mt-3 text-lg font-semibold text-slate-950">
@@ -115,6 +135,7 @@ function SubmissionCard({
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <SubmissionDetailDialog submission={submission} senderName={senderName} />
           <EditSubmissionDialog submission={submission} />
           <Button
             type="button"
@@ -151,6 +172,58 @@ function SubmissionCard({
         </div>
       </div>
     </article>
+  );
+}
+
+function SubmissionDetailDialog({
+  submission,
+  senderName,
+}: {
+  submission: SubmissionRow;
+  senderName: string;
+}) {
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button type="button" size="sm" variant="outline" className="rounded-xl">
+          <Eye />
+          Detail
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-3xl rounded-2xl">
+        <DialogHeader>
+          <DialogTitle>Detail submission WhatsApp</DialogTitle>
+          <DialogDescription>
+            Data asli dari webhook dan hasil parsing sementara sebelum approve.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 lg:grid-cols-2">
+          <div className="rounded-2xl bg-slate-50 p-4 text-sm leading-6 text-slate-700">
+            <p><span className="font-semibold">Nama pengirim:</span> {senderName}</p>
+            <p><span className="font-semibold">Nomor WA:</span> {submission.sender_phone || "-"}</p>
+            <p><span className="font-semibold">Status:</span> {submission.status}</p>
+            <p><span className="font-semibold">Waktu kirim:</span> {formatDate(submission.created_at)}</p>
+            <p><span className="font-semibold">Pengirim tidak dikenal:</span> {submission.unknown_sender ? "Ya" : "Tidak"}</p>
+            <p><span className="font-semibold">Parsing error:</span> {submission.parsing_error ? "Ya" : "Tidak"}</p>
+          </div>
+          <div className="rounded-2xl bg-slate-50 p-4 text-sm leading-6 text-slate-700">
+            <p><span className="font-semibold">Tipe:</span> {typeLabel(submission.type)}</p>
+            <p><span className="font-semibold">Judul:</span> {submission.title || "-"}</p>
+            <p><span className="font-semibold">Penulis:</span> {submission.author || "-"}</p>
+            <p><span className="font-semibold">Tahun:</span> {submission.year || "-"}</p>
+            <p><span className="font-semibold">Kategori/topik:</span> {submission.category || "-"}</p>
+          </div>
+          <div className="rounded-2xl bg-slate-50 p-4 lg:col-span-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Raw message</p>
+            <pre className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-700">{submission.raw_message || "-"}</pre>
+          </div>
+          <div className="rounded-2xl bg-slate-50 p-4 lg:col-span-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Deskripsi / abstrak</p>
+            <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-700">{submission.description || "-"}</p>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 

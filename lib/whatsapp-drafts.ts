@@ -13,6 +13,8 @@ export type DraftSubmission = {
   category: string | null;
   description: string | null;
   raw_message: string | null;
+  parsing_error: boolean;
+  unknown_sender: boolean;
   status: DraftSubmissionStatus;
   verified_by: string | null;
   verified_at: string | null;
@@ -87,10 +89,17 @@ export function parseWhatsappDraftMessage(rawMessage: string): ParsedWhatsappDra
 
 function parseFields(lines: string[]) {
   const fields: Record<string, string> = {};
+  let currentKey = "";
 
   for (const line of lines) {
     const separatorIndex = line.indexOf(":");
-    if (separatorIndex < 0) continue;
+    if (separatorIndex < 0) {
+      if (currentKey) {
+        fields[currentKey] = [fields[currentKey], line].filter(Boolean).join("\n");
+      }
+
+      continue;
+    }
 
     const key = line
       .slice(0, separatorIndex)
@@ -99,7 +108,10 @@ function parseFields(lines: string[]) {
       .replace(/\s+/g, "_");
     const value = line.slice(separatorIndex + 1).trim();
 
-    if (key && value) fields[key] = value;
+    if (key) {
+      currentKey = key;
+      if (value) fields[key] = value;
+    }
   }
 
   return fields;

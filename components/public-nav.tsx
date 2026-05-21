@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
   BookOpen,
-  Clock3,
   GraduationCap,
   LogIn,
   ScanLine,
@@ -79,10 +78,6 @@ export function PublicNav() {
           <NavLink href="/katalog?tab=books" icon={Search} label="Katalog" />
           <NavLink href="/presensi" icon={ScanLine} label="Presensi" />
           <div className="mx-1 h-6 w-px bg-slate-200" />
-          <div className="hidden items-center gap-2 rounded-full bg-slate-100 px-3 py-1.5 text-xs text-slate-600 lg:flex">
-            <Clock3 className="size-3.5 text-emerald-600" />
-            08.00-16.00
-          </div>
           <Button asChild size="sm" className="rounded-full">
             <Link href="/login?redirectTo=/dashboard">
               <LogIn />
