@@ -224,7 +224,11 @@ async function insertThesis(payload: MutationPayload, options?: InsertCatalogOpt
     return success("ok");
   }
 
-  if (!isMissingInputAuditColumn(error.message) && !isMissingVerificationColumn(error.message)) {
+  if (
+    !isMissingInputAuditColumn(error.message) &&
+    !isMissingVerificationColumn(error.message) &&
+    !isMissingThesisPdfColumn(error.message)
+  ) {
     return failure(error.message);
   }
 
@@ -233,6 +237,9 @@ async function insertThesis(payload: MutationPayload, options?: InsertCatalogOpt
     input_source: _inputSource,
     created_by: _createdBy,
     verification_status: _verificationStatus,
+    pdf_url: _pdfUrl,
+    pdf_filename: _pdfFilename,
+    pdf_size: _pdfSize,
     ...fallbackPayload
   } = payload;
   const { data: fallbackData, error: fallbackError } = await createSupabaseAdminClient()
@@ -249,7 +256,19 @@ async function insertThesis(payload: MutationPayload, options?: InsertCatalogOpt
 
 async function updateThesisRow(id: string, payload: MutationPayload) {
   const { error } = await createSupabaseAdminClient().from("theses").update(payload).eq("id", id);
-  return error ? failure(error.message) : success("ok");
+  if (!error) return success("ok");
+
+  if (!isMissingThesisPdfColumn(error.message)) {
+    return failure(error.message);
+  }
+
+  const { pdf_url: _pdfUrl, pdf_filename: _pdfFilename, pdf_size: _pdfSize, ...fallbackPayload } = payload;
+  const { error: fallbackError } = await createSupabaseAdminClient()
+    .from("theses")
+    .update(fallbackPayload)
+    .eq("id", id);
+
+  return fallbackError ? failure(fallbackError.message) : success("ok");
 }
 
 function bookPayload(values: BookFormValues, inputBy?: string, actorId?: string): MutationPayload {
@@ -265,7 +284,7 @@ function bookPayload(values: BookFormValues, inputBy?: string, actorId?: string)
 }
 
 function thesisPayload(values: ThesisFormValues, inputBy?: string, actorId?: string): MutationPayload {
-  return withInputAudit({
+  const payload: MutationPayload = {
     title: values.title,
     student_name: values.studentName,
     year: values.year,
@@ -277,10 +296,13 @@ function thesisPayload(values: ThesisFormValues, inputBy?: string, actorId?: str
     physical_location: values.physicalLocation,
     access_note: values.accessNote,
     verification_status: values.verificationStatus,
-    pdf_url: optionalPayloadValue(values.pdfUrl),
-    pdf_filename: optionalPayloadValue(values.pdfFilename),
-    pdf_size: values.pdfSize > 0 ? values.pdfSize : null,
-  }, inputBy, actorId);
+  };
+
+  if (values.pdfUrl.trim()) payload.pdf_url = values.pdfUrl.trim();
+  if (values.pdfFilename.trim()) payload.pdf_filename = values.pdfFilename.trim();
+  if (values.pdfSize > 0) payload.pdf_size = values.pdfSize;
+
+  return withInputAudit(payload, inputBy, actorId);
 }
 
 function validateBook(values: BookFormValues) {
@@ -354,6 +376,14 @@ function withInputAudit(payload: MutationPayload, inputBy?: string, actorId?: st
     ...(actorId ? { created_by: actorId } : {}),
     ...(inputBy ? { input_source: "Dasbor", input_by: inputBy } : {}),
   };
+}
+
+function isMissingThesisPdfColumn(message: string) {
+  return (
+    message.includes("pdf_url") ||
+    message.includes("pdf_filename") ||
+    message.includes("pdf_size")
+  );
 }
 
 async function getInputActorName(userId: string, fallbackEmail?: string | null) {
