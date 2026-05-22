@@ -58,19 +58,19 @@ export function PublicNav() {
   return (
     <header
       className={cn(
-        "sticky top-0 z-40 border-b transition-all duration-300",
+        "sticky top-0 z-40 border-b transition-all duration-500",
         scrolled
-          ? "border-white/70 bg-white/82 shadow-[0_12px_40px_rgba(15,23,42,0.08)] backdrop-blur-2xl"
-          : "border-transparent bg-white/64 backdrop-blur-2xl",
+          ? "border-white/30 bg-white/55 shadow-[0_8px_30px_rgba(15,23,42,0.03)] backdrop-blur-3xl"
+          : "border-transparent bg-white/30 backdrop-blur-3xl",
       )}
     >
       <div className="mx-auto flex min-h-18 max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
         <Link href="/" className="group flex min-w-0 items-center gap-3">
           <div className="flex shrink-0 items-center -space-x-2">
-            <div className="flex size-10 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#047857,#0891b2_55%,#7c3aed)] text-primary-foreground shadow-lg shadow-emerald-950/15 transition duration-300 group-hover:scale-105 sm:size-11">
+            <div className="flex size-10 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#047857,#0891b2_55%,#7c3aed)] text-primary-foreground shadow-lg shadow-emerald-950/15 transition-all duration-300 group-hover:scale-105 sm:size-11">
               <BookOpen className="size-5" />
             </div>
-            <span className="flex size-9 items-center justify-center rounded-full border border-white bg-white shadow-sm ring-1 ring-slate-200 sm:size-10">
+            <span className="flex size-9 items-center justify-center rounded-full border border-white bg-white shadow-sm ring-1 ring-slate-100 sm:size-10">
               <Image src="/ulm-logo.png" alt="Logo Universitas Lambung Mangkurat" width={30} height={30} className="size-7 object-contain sm:size-8" priority />
             </span>
           </div>
@@ -83,10 +83,10 @@ export function PublicNav() {
         <nav className="hidden items-center gap-3 md:flex">
           <NavLink href="/katalog?tab=books" icon={Search} label="Katalog" />
           <NavLink href="/presensi" icon={ScanLine} label="Presensi" />
-          <div className="mx-1 h-6 w-px bg-slate-200/80" />
-          <Button asChild size="sm" className="rounded-full bg-[linear-gradient(135deg,#047857,#0891b2)] px-4 shadow-lg shadow-emerald-950/10 transition duration-300 hover:-translate-y-0.5 hover:shadow-emerald-950/20">
+          <div className="mx-1 h-6 w-px bg-slate-200/50" />
+          <Button asChild size="sm" className="rounded-full bg-gradient-to-r from-emerald-600 via-cyan-600 to-indigo-600 px-5 text-white shadow-lg shadow-emerald-950/10 transition-all duration-300 hover:-translate-y-0.5 hover:scale-[1.03] hover:shadow-emerald-950/20 active:scale-[0.98] border-0">
             <Link href="/login?redirectTo=/dashboard">
-              <LogIn />
+              <LogIn className="size-4" />
               Admin
             </Link>
           </Button>
@@ -136,14 +136,14 @@ function NavbarSearch({
   return (
     <div className={cn("relative", className)}>
       <div className="relative">
-        <Search className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-emerald-600/70" />
+        <Search className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-cyan-600/70" />
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           onFocus={() => setFocused(true)}
           onBlur={() => window.setTimeout(() => setFocused(false), 140)}
-          placeholder="Cari buku atau skripsi"
-          className="h-11 w-full rounded-full border border-white/80 bg-white/68 pl-10 pr-10 text-sm font-medium text-slate-800 shadow-sm shadow-slate-950/[0.04] outline-none backdrop-blur-xl transition duration-300 placeholder:text-slate-400 focus:border-cyan-200 focus:bg-white focus:shadow-md focus:ring-4 focus:ring-cyan-500/10"
+          placeholder="Cari buku atau skripsi..."
+          className="h-11 w-full rounded-full border border-white/40 bg-white/45 pl-10 pr-10 text-sm font-semibold text-slate-800 shadow-sm shadow-slate-950/[0.02] outline-none backdrop-blur-xl transition-all duration-300 placeholder:font-medium placeholder:text-slate-400 focus:border-cyan-300/80 focus:bg-white/85 focus:shadow-md focus:ring-4 focus:ring-cyan-500/5"
         />
         {query ? (
           <button
@@ -162,8 +162,8 @@ function NavbarSearch({
       </div>
 
       {isOpen ? (
-        <div className="nav-search-dropdown absolute left-0 right-0 top-full mt-2 origin-top overflow-hidden rounded-[1.5rem] border border-white/75 bg-white/88 shadow-2xl shadow-slate-950/[0.12] ring-1 ring-slate-200/50 backdrop-blur-2xl">
-          <div className="border-b border-slate-100/80 px-3 py-2 text-xs font-semibold text-slate-500">
+        <div className="nav-search-dropdown absolute left-0 right-0 top-full mt-2.5 origin-top overflow-hidden rounded-[1.75rem] border border-white/40 bg-white/75 shadow-[0_24px_50px_rgba(15,23,42,0.12)] ring-1 ring-slate-200/20 backdrop-blur-3xl">
+          <div className="border-b border-slate-100/50 px-4 py-2.5 text-xs font-semibold text-slate-500">
             {results.length ? `${results.length} hasil cepat` : "Tidak ada hasil"}
           </div>
           <div className="grid max-h-80 overflow-auto p-2">
@@ -176,16 +176,16 @@ function NavbarSearch({
                     setQuery("");
                     setDebouncedQuery("");
                   }}
-                  className="group flex items-center gap-3 rounded-2xl p-2.5 transition duration-300 hover:bg-emerald-50/80"
+                  className="group flex items-center gap-3 rounded-2xl p-2.5 transition-all duration-300 hover:bg-gradient-to-r hover:from-cyan-500/5 hover:to-indigo-500/5"
                 >
                   <SearchCover item={item} />
                   <span className="min-w-0 flex-1">
-                    <span className="line-clamp-1 text-sm font-semibold text-slate-950">
+                    <span className="line-clamp-1 text-sm font-bold text-slate-900 group-hover:text-cyan-800 transition-colors duration-300">
                       {item.title}
                     </span>
                     <span className="mt-1 flex items-center gap-2 text-xs text-slate-500">
-                      <span>{item.type === "book" ? "Buku" : "Skripsi"}</span>
-                      <span className="size-1 rounded-full bg-slate-300" />
+                      <span className="font-semibold text-slate-400">{item.type === "book" ? "Buku" : "Skripsi"}</span>
+                      <span className="size-1 rounded-full bg-slate-200" />
                       <span className="line-clamp-1">{item.category}</span>
                     </span>
                   </span>
@@ -255,11 +255,11 @@ function NavLink({
   return (
     <Link
       href={href}
-      className="group relative inline-flex items-center gap-2 rounded-full px-2.5 py-2 text-sm font-semibold text-slate-600 transition duration-300 hover:bg-white/70 hover:text-slate-950"
+      className="group relative inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition-all duration-300 hover:bg-white/40 hover:text-slate-955"
     >
       <Icon className="size-4 text-emerald-600 transition duration-300 group-hover:-translate-y-0.5" />
       {label}
-      <span className="absolute inset-x-3 -bottom-0.5 h-0.5 scale-x-0 rounded-full bg-[linear-gradient(90deg,#047857,#0891b2,#7c3aed)] transition-transform duration-300 group-hover:scale-x-100" />
+      <span className="absolute inset-x-4 -bottom-px h-0.5 scale-x-0 rounded-full bg-[linear-gradient(90deg,#047857,#0891b2,#7c3aed)] transition-transform duration-300 group-hover:scale-x-100" />
     </Link>
   );
 }
