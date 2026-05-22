@@ -21,6 +21,7 @@ type InsertCatalogOptions = {
   inputBy?: string;
   verificationStatus?: VerificationStatus;
 };
+const maxThesisPdfSize = 5 * 1024 * 1024;
 
 export async function createBook(values: BookFormValues): Promise<CatalogActionResult> {
   const auth = await requireStaffRole(["admin", "petugas"]);
@@ -276,6 +277,9 @@ function thesisPayload(values: ThesisFormValues, inputBy?: string, actorId?: str
     physical_location: values.physicalLocation,
     access_note: values.accessNote,
     verification_status: values.verificationStatus,
+    pdf_url: optionalPayloadValue(values.pdfUrl),
+    pdf_filename: optionalPayloadValue(values.pdfFilename),
+    pdf_size: values.pdfSize > 0 ? values.pdfSize : null,
   }, inputBy, actorId);
 }
 
@@ -305,6 +309,10 @@ function validateThesis(values: ThesisFormValues) {
   if (!values.supervisor2.trim()) return "Dosen pembimbing 2 wajib diisi.";
   if (!values.physicalLocation.trim()) return "Lokasi fisik wajib diisi.";
   if (!values.accessNote.trim()) return "Catatan akses wajib diisi.";
+  if (values.pdfSize > maxThesisPdfSize) return "Ukuran file PDF maksimal 5 MB.";
+  if (values.pdfFilename && !values.pdfFilename.toLowerCase().endsWith(".pdf")) {
+    return "File skripsi harus berekstensi .pdf.";
+  }
   return null;
 }
 

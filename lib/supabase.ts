@@ -318,6 +318,9 @@ function mapThesisRow(
       ["access_note"],
       "Dokumen lengkap tersedia dalam bentuk fisik di Ruang Baca Program Studi Pendidikan Matematika.",
     ),
+    pdfUrl: optionalTextValue(row, ["pdf_url", "pdfUrl"]),
+    pdfFilename: optionalTextValue(row, ["pdf_filename", "pdfFilename"]),
+    pdfSize: optionalNumberValue(row, ["pdf_size", "pdfSize"]),
     keywords: [topic],
   };
 }
@@ -373,6 +376,18 @@ function numberValue(row: UnknownRow, keys: string[], fallback = 0) {
   }
 
   return fallback;
+}
+
+function optionalNumberValue(row: UnknownRow, keys: string[]) {
+  const value = firstValue(row, keys);
+
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+
+  return undefined;
 }
 
 function keywordsValue(row: UnknownRow) {

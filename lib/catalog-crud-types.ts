@@ -29,4 +29,7 @@ export type ThesisFormValues = {
   physicalLocation: string;
   accessNote: string;
   verificationStatus: VerificationStatus;
+  pdfUrl: string;
+  pdfFilename: string;
+  pdfSize: number;
 };

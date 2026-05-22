@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { PublicNav } from "@/components/public-nav";
 import { AvailabilityBadge } from "@/components/status-badge";
+import { ThesisPdfViewer } from "@/components/thesis-pdf-viewer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -25,6 +26,7 @@ export function CollectionDetailPage({ item }: { item: DetailItem }) {
   const isBook = item.type === "book";
   const backHref = isBook ? "/katalog?tab=books" : "/katalog?tab=theses";
   const collectionType = isBook ? "Buku" : "Skripsi";
+  const supervisorNames = isBook ? "" : [item.supervisor1, item.supervisor2].filter(Boolean).join(", ");
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-950">
@@ -49,9 +51,13 @@ export function CollectionDetailPage({ item }: { item: DetailItem }) {
                   {isBook ? <AvailabilityBadge available={item.available} stock={item.stock} /> : null}
                 </div>
                 <div className="grid gap-3">
-                  <SideMeta icon={Hash} label="Kode koleksi" value={item.code} />
                   <SideMeta icon={Calendar} label="Tahun" value={String(item.year)} />
-                  <SideMeta icon={MapPin} label="Lokasi" value={isBook ? item.rackLocation : item.physicalLocation} />
+                  {isBook ? (
+                    <>
+                      <SideMeta icon={Hash} label="Kode koleksi" value={item.code} />
+                      <SideMeta icon={MapPin} label="Lokasi" value={item.rackLocation} />
+                    </>
+                  ) : null}
                 </div>
               </div>
             </div>
@@ -66,24 +72,26 @@ export function CollectionDetailPage({ item }: { item: DetailItem }) {
               <p className="mt-4 max-w-3xl text-base leading-8 text-slate-600">
                 {isBook
                   ? `${item.author || "Penulis belum tercatat"} - ${item.publisher || "Penerbit belum tercatat"}`
-                  : `${item.studentName || "Mahasiswa"} - ${item.topic || "Topik skripsi"}`}
+                  : `${item.studentName || "Mahasiswa"} - ${item.year}`}
               </p>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <InfoCard
-                icon={UserRound}
-                label={isBook ? "Penulis" : "Mahasiswa"}
-                value={isBook ? item.author : item.studentName}
-              />
-              <InfoCard icon={LibraryBig} label="Sumber input" value={item.inputSource} />
-              <InfoCard icon={Calendar} label="Tanggal input" value={formatDate(item.createdAt)} />
-              <InfoCard
-                icon={isBook ? BookOpen : GraduationCap}
-                label={isBook ? "Kategori" : "Topik"}
-                value={isBook ? item.category : item.topic}
-              />
-            </div>
+            {isBook ? (
+              <div className="grid gap-4 sm:grid-cols-2">
+                <InfoCard icon={UserRound} label="Penulis" value={item.author} />
+                <InfoCard icon={LibraryBig} label="Sumber input" value={item.inputSource} />
+                <InfoCard icon={Calendar} label="Tanggal input" value={formatDate(item.createdAt)} />
+                <InfoCard icon={BookOpen} label="Kategori" value={item.category} />
+              </div>
+            ) : (
+              <div className="grid gap-4 sm:grid-cols-2">
+                <InfoCard icon={Calendar} label="Tahun" value={String(item.year)} />
+                <InfoCard icon={UserRound} label="Mahasiswa" value={item.studentName} />
+                <InfoCard icon={GraduationCap} label="Dosen pembimbing" value={supervisorNames} />
+                <InfoCard icon={Calendar} label="Tanggal input" value={formatDate(item.createdAt)} />
+                <InfoCard icon={LibraryBig} label="Diinput oleh" value={item.inputBy} />
+              </div>
+            )}
 
             <Card className="rounded-[2rem] border-slate-200 bg-white shadow-sm">
               <CardContent className="p-6 sm:p-8">
@@ -91,31 +99,33 @@ export function CollectionDetailPage({ item }: { item: DetailItem }) {
               </CardContent>
             </Card>
 
-            <div className="grid gap-4 lg:grid-cols-[1fr_0.9fr]">
-              <Card className="rounded-[2rem] border-slate-200 bg-white shadow-sm">
-                <CardContent className="p-6">
-                  <p className="text-sm font-semibold text-slate-950">Kata kunci</p>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {item.keywords.length ? (
-                      item.keywords.map((keyword) => (
-                        <Badge key={keyword} variant="secondary" className="rounded-full">
-                          {keyword}
-                        </Badge>
-                      ))
-                    ) : (
-                      <p className="text-sm text-slate-500">Belum ada kata kunci.</p>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+            {isBook ? (
+              <div className="grid gap-4 lg:grid-cols-[1fr_0.9fr]">
+                <Card className="rounded-[2rem] border-slate-200 bg-white shadow-sm">
+                  <CardContent className="p-6">
+                    <p className="text-sm font-semibold text-slate-950">Kata kunci</p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {item.keywords.length ? (
+                        item.keywords.map((keyword) => (
+                          <Badge key={keyword} variant="secondary" className="rounded-full">
+                            {keyword}
+                          </Badge>
+                        ))
+                      ) : (
+                        <p className="text-sm text-slate-500">Belum ada kata kunci.</p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
 
-              <Card className="rounded-[2rem] border-emerald-100 bg-emerald-50 shadow-sm">
-                <CardContent className="p-6 text-sm leading-6 text-emerald-950">
-                  <Sparkles className="mb-3 size-5" />
-                  Koleksi ini sudah melewati alur verifikasi dan tampil sebagai data publik ruang baca.
-                </CardContent>
-              </Card>
-            </div>
+                <Card className="rounded-[2rem] border-emerald-100 bg-emerald-50 shadow-sm">
+                  <CardContent className="p-6 text-sm leading-6 text-emerald-950">
+                    <Sparkles className="mb-3 size-5" />
+                    Koleksi ini sudah melewati alur verifikasi dan tampil sebagai data publik ruang baca.
+                  </CardContent>
+                </Card>
+              </div>
+            ) : null}
 
             {item.notes ? (
               <div className="rounded-[1.5rem] border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-900">
@@ -250,13 +260,17 @@ function ThesisDetail({ item }: { item: Thesis }) {
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
           <Meta label="Pembimbing 1" value={item.supervisor1 || "-"} />
           <Meta label="Pembimbing 2" value={item.supervisor2 || "-"} />
-          <Meta label="Topik" value={item.topic || "-"} />
-          <Meta label="Catatan akses" value={item.accessNote || "-"} />
         </div>
       </div>
       <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
         <p className="text-sm font-semibold text-slate-950">Abstrak</p>
         <p className="mt-3 text-sm leading-7 text-slate-600">{item.abstract || "-"}</p>
+      </div>
+      <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+        <p className="text-sm font-semibold text-slate-950">File Skripsi</p>
+        <div className="mt-3">
+          <ThesisPdfViewer pdfUrl={item.pdfUrl} pdfFilename={item.pdfFilename} />
+        </div>
       </div>
     </div>
   );

@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { Edit3, Plus, Trash2 } from "lucide-react";
+import { Edit3, FileText, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   createBook,
@@ -56,6 +56,7 @@ const emptyBookValues: BookFormValues = {
 
 const defaultAccessNote =
   "Dokumen lengkap tersedia dalam bentuk fisik di Ruang Baca Program Studi Pendidikan Matematika.";
+const maxPdfSize = 5 * 1024 * 1024;
 
 const emptyThesisValues: ThesisFormValues = {
   title: "",
@@ -69,6 +70,9 @@ const emptyThesisValues: ThesisFormValues = {
   physicalLocation: "",
   accessNote: defaultAccessNote,
   verificationStatus: "pending",
+  pdfUrl: "",
+  pdfFilename: "",
+  pdfSize: 0,
 };
 
 export function AddBookDialog() {
@@ -95,6 +99,7 @@ export function AddBookDialog() {
 
 export function AddThesisDialog() {
   const [values, setValues] = useState<ThesisFormValues>(emptyThesisValues);
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
 
   return (
     <ThesisDialog
@@ -103,8 +108,13 @@ export function AddThesisDialog() {
       submitLabel="Simpan skripsi"
       values={values}
       onValuesChange={setValues}
-      onSubmit={async () => createThesis(values)}
-      onSuccess={() => setValues(emptyThesisValues)}
+      pdfFile={pdfFile}
+      onPdfFileChange={setPdfFile}
+      onSubmit={async () => createThesis(await valuesWithUploadedPdf(values, pdfFile))}
+      onSuccess={() => {
+        setValues(emptyThesisValues);
+        setPdfFile(null);
+      }}
       trigger={
         <Button size="sm" className="rounded-xl">
           <Plus />
@@ -220,7 +230,11 @@ function EditThesisDialog({ item }: { item: Thesis }) {
     physicalLocation: item.physicalLocation,
     accessNote: item.accessNote,
     verificationStatus: item.verificationStatus,
+    pdfUrl: item.pdfUrl ?? "",
+    pdfFilename: item.pdfFilename ?? "",
+    pdfSize: item.pdfSize ?? 0,
   });
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
 
   return (
     <ThesisDialog
@@ -229,7 +243,10 @@ function EditThesisDialog({ item }: { item: Thesis }) {
       submitLabel="Simpan perubahan"
       values={values}
       onValuesChange={setValues}
-      onSubmit={async () => updateThesis(item.id, values)}
+      pdfFile={pdfFile}
+      onPdfFileChange={setPdfFile}
+      onSubmit={async () => updateThesis(item.id, await valuesWithUploadedPdf(values, pdfFile))}
+      onSuccess={() => setPdfFile(null)}
       trigger={
         <Button variant="outline" size="sm" className="rounded-xl">
           <Edit3 />
@@ -350,6 +367,8 @@ function ThesisDialog({
   submitLabel,
   values,
   onValuesChange,
+  pdfFile,
+  onPdfFileChange,
   onSubmit,
   onSuccess,
   trigger,
@@ -359,6 +378,8 @@ function ThesisDialog({
   submitLabel: string;
   values: ThesisFormValues;
   onValuesChange: (values: ThesisFormValues) => void;
+  pdfFile: File | null;
+  onPdfFileChange: (file: File | null) => void;
   onSubmit: () => Promise<CatalogActionResult>;
   onSuccess?: () => void;
   trigger: React.ReactNode;
@@ -477,6 +498,40 @@ function ThesisDialog({
                 required
               />
             </Field>
+            <Field label="File skripsi PDF" className="sm:col-span-2">
+              <Input
+                type="file"
+                accept="application/pdf,.pdf"
+                onChange={(event) => {
+                  const file = event.target.files?.[0] ?? null;
+                  const error = validatePdfFile(file);
+
+                  if (error) {
+                    toast.error("File PDF tidak valid", { description: error });
+                    event.target.value = "";
+                    onPdfFileChange(null);
+                    return;
+                  }
+
+                  onPdfFileChange(file);
+                }}
+                disabled={form.isPending}
+              />
+              <div className="mt-2 flex flex-col gap-1 text-xs text-slate-500">
+                <span>Maksimal 5 MB dan hanya menerima file .pdf.</span>
+                {pdfFile ? (
+                  <span className="inline-flex items-center gap-1 font-medium text-emerald-700">
+                    <FileText className="size-3.5" />
+                    {pdfFile.name}
+                  </span>
+                ) : values.pdfFilename ? (
+                  <span className="inline-flex items-center gap-1 font-medium text-slate-700">
+                    <FileText className="size-3.5" />
+                    File tersimpan: {values.pdfFilename}
+                  </span>
+                ) : null}
+              </div>
+            </Field>
           </div>
           <DialogActions isPending={form.isPending} submitLabel={submitLabel} />
         </form>
@@ -500,19 +555,64 @@ function useCatalogFormSubmit({
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     startTransition(async () => {
-      const result = await onSubmit();
-      if (result.ok) {
-        toast.success(result.message);
-        onSuccess?.();
-        onClose();
-        router.refresh();
-      } else {
-        toast.error("Gagal menyimpan data", { description: result.message });
+      try {
+        const result = await onSubmit();
+        if (result.ok) {
+          toast.success(result.message);
+          onSuccess?.();
+          onClose();
+          router.refresh();
+        } else {
+          toast.error("Gagal menyimpan data", { description: result.message });
+        }
+      } catch (error) {
+        toast.error("Gagal menyimpan data", {
+          description: error instanceof Error ? error.message : "Terjadi kesalahan saat menyimpan.",
+        });
       }
     });
   };
 
   return { isPending, handleSubmit };
+}
+
+function validatePdfFile(file: File | null) {
+  if (!file) return null;
+  if (file.type !== "application/pdf") return "File harus bertipe application/pdf.";
+  if (!file.name.toLowerCase().endsWith(".pdf")) return "Ekstensi file harus .pdf.";
+  if (file.size > maxPdfSize) return "Ukuran file PDF maksimal 5 MB.";
+  return null;
+}
+
+async function valuesWithUploadedPdf(values: ThesisFormValues, file: File | null) {
+  const error = validatePdfFile(file);
+  if (error) throw new Error(error);
+  if (!file) return values;
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await fetch("/api/theses/pdf", {
+    method: "POST",
+    body: formData,
+  });
+  const payload = (await response.json()) as {
+    pdfUrl?: string;
+    pdfFilename?: string;
+    pdfSize?: number;
+    error?: string;
+  };
+
+  if (!response.ok || payload.error || !payload.pdfUrl) {
+    throw new Error(payload.error ?? "Gagal mengupload file PDF.");
+  }
+
+  return {
+    ...values,
+    pdfUrl: payload.pdfUrl,
+    pdfFilename: payload.pdfFilename ?? file.name,
+    pdfSize: payload.pdfSize ?? file.size,
+  };
 }
 
 function BookStatusSelect({

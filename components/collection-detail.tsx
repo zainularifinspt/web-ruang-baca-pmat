@@ -1,8 +1,9 @@
-import { BookOpen, Calendar, ExternalLink, MapPin, Sparkles, UserRound } from "lucide-react";
+import { BookOpen, Calendar, MapPin, UserRound } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { AvailabilityBadge, StatusBadge } from "@/components/status-badge";
+import { ThesisPdfViewer } from "@/components/thesis-pdf-viewer";
 import type { Book, Thesis } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 
@@ -36,7 +37,7 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
         <DialogHeader>
           <div className="flex flex-wrap gap-2">
             <Badge variant="secondary" className="rounded-full">{isBook ? "Buku" : "Skripsi"}</Badge>
-            <StatusBadge status={item.verificationStatus} />
+            {isBook ? <StatusBadge status={item.verificationStatus} /> : null}
             {isBook ? <AvailabilityBadge available={item.available} stock={item.stock} /> : null}
           </div>
           <DialogTitle className="text-xl leading-snug text-slate-950 sm:text-2xl">{item.title}</DialogTitle>
@@ -46,8 +47,8 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
         <div className="grid gap-3 sm:grid-cols-2">
           <Info icon={<UserRound />} label={isBook ? "Penulis" : "Mahasiswa"} value={isBook ? item.author : item.studentName} />
           <Info icon={<Calendar />} label="Tahun" value={String(item.year)} />
-          <Info icon={<BookOpen />} label="Kode Koleksi" value={item.code} />
-          <Info icon={<MapPin />} label="Lokasi Fisik" value={isBook ? item.rackLocation : item.physicalLocation} />
+          {isBook ? <Info icon={<BookOpen />} label="Kode Koleksi" value={item.code} /> : null}
+          {isBook ? <Info icon={<MapPin />} label="Lokasi Fisik" value={item.rackLocation} /> : null}
         </div>
         <div className="rounded-2xl border bg-slate-50 p-4 text-sm leading-6">
           {isBook ? (
@@ -59,16 +60,16 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
             </div>
           ) : (
             <div className="space-y-2">
-              <Meta label="Topik" value={item.topic} />
+              <p className="font-medium text-foreground">Abstrak</p>
               <p className="text-muted-foreground">{item.abstract}</p>
             </div>
           )}
         </div>
         <div className="grid gap-2 text-sm sm:grid-cols-2">
-          <Meta label="Sumber input" value={item.inputSource} />
+          {isBook ? <Meta label="Sumber input" value={item.inputSource} /> : null}
           <Meta label="Diinput oleh" value={item.inputBy} />
           <Meta label="Tanggal input" value={formatDate(item.createdAt)} />
-          <Meta label="Kata kunci" value={item.keywords.join(", ")} />
+          {isBook ? <Meta label="Kata kunci" value={item.keywords.join(", ")} /> : null}
         </div>
         {!isBook ? (
           <div className="space-y-4">
@@ -80,18 +81,8 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
               </div>
             </div>
             <div className="rounded-2xl border bg-white p-4 text-sm leading-6">
-              <Meta label="Catatan akses" value={item.accessNote} />
-              {item.coverUrl ? (
-                <a
-                  href={item.coverUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-2 inline-flex items-center gap-2 font-medium text-primary hover:underline"
-                >
-                  <ExternalLink className="size-4" />
-                  Lihat cover
-                </a>
-              ) : null}
+              <p className="mb-3 font-medium text-foreground">File Skripsi</p>
+              <ThesisPdfViewer pdfUrl={item.pdfUrl} pdfFilename={item.pdfFilename} />
             </div>
           </div>
         ) : null}
@@ -100,10 +91,6 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
             Catatan: {item.notes}
           </div>
         ) : null}
-        <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-3 text-sm text-emerald-900">
-          <Sparkles className="mr-2 inline size-4" />
-          Informasi ini berasal dari data katalog Supabase ruang baca.
-        </div>
       </div>
     </DialogContent>
   );

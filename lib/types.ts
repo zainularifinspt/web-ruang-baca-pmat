@@ -73,6 +73,9 @@ export type Thesis = CollectionBase & {
   coverUrl?: string;
   physicalLocation: string;
   accessNote: string;
+  pdfUrl?: string;
+  pdfFilename?: string;
+  pdfSize?: number;
 };
 
 export type Attendance = {

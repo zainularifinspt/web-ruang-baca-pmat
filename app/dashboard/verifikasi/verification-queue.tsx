@@ -278,6 +278,9 @@ function VerifyCatalogDialog({
           physicalLocation: item.item.physicalLocation,
           accessNote: item.item.accessNote,
           verificationStatus: item.item.verificationStatus,
+          pdfUrl: item.item.pdfUrl ?? "",
+          pdfFilename: item.item.pdfFilename ?? "",
+          pdfSize: item.item.pdfSize ?? 0,
         }
       : {
           title: "",
@@ -291,6 +294,9 @@ function VerifyCatalogDialog({
           physicalLocation: "",
           accessNote: "",
           verificationStatus: "pending",
+          pdfUrl: "",
+          pdfFilename: "",
+          pdfSize: 0,
         },
   );
 
