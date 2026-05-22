@@ -14,6 +14,11 @@ type ChartPoint = {
   value: number;
 };
 
+type ChartCoordinate = ChartPoint & {
+  x: number;
+  y: number;
+};
+
 export function RealtimeVisitorChart() {
   const [rows, setRows] = useState<AttendanceRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -116,28 +121,23 @@ export function RealtimeVisitorChart() {
 }
 
 function VisitorLine({ points }: { points: ChartPoint[] }) {
-  const width = 760;
-  const height = 220;
-  const paddingX = 34;
-  const paddingY = 28;
+  const width = 460;
+  const height = 260;
+  const paddingX = 28;
+  const paddingTop = 42;
+  const paddingBottom = 44;
   const max = Math.max(1, ...points.map((point) => point.value));
   const coordinates = points.map((point, index) => {
     const x = paddingX + (index / Math.max(1, points.length - 1)) * (width - paddingX * 2);
-    const y = height - paddingY - (point.value / max) * (height - paddingY * 2);
+    const y = height - paddingBottom - (point.value / max) * (height - paddingTop - paddingBottom);
     return { ...point, x, y };
   });
-  const line = coordinates.map((point) => `${point.x},${point.y}`).join(" ");
-  const area = `${paddingX},${height - paddingY} ${line} ${width - paddingX},${height - paddingY}`;
+  const line = buildSmoothLinePath(coordinates);
 
   return (
     <div className="min-w-0">
-      <svg viewBox={`0 0 ${width} ${height}`} className="h-56 w-full overflow-visible" role="img" aria-label="Grafik pengunjung realtime">
+      <svg viewBox={`0 0 ${width} ${height}`} className="h-72 w-full overflow-visible sm:h-80" role="img" aria-label="Grafik pengunjung realtime">
         <defs>
-          <linearGradient id="visitor-area" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.22" />
-            <stop offset="55%" stopColor="#10b981" stopOpacity="0.08" />
-            <stop offset="100%" stopColor="#7c3aed" stopOpacity="0.01" />
-          </linearGradient>
           <linearGradient id="visitor-line" x1="0" x2="1" y1="0" y2="0">
             <stop offset="0%" stopColor="#047857" />
             <stop offset="52%" stopColor="#06b6d4" />
@@ -145,20 +145,30 @@ function VisitorLine({ points }: { points: ChartPoint[] }) {
           </linearGradient>
         </defs>
         {[0, 1, 2].map((lineIndex) => {
-          const y = paddingY + lineIndex * ((height - paddingY * 2) / 2);
+          const y = paddingTop + lineIndex * ((height - paddingTop - paddingBottom) / 2);
           return <line key={lineIndex} x1={paddingX} x2={width - paddingX} y1={y} y2={y} stroke="#e2e8f0" strokeOpacity="0.4" strokeWidth="1" strokeDasharray="6 8" />;
         })}
-        <polygon points={area} fill="url(#visitor-area)" />
-        <polyline points={line} fill="none" stroke="url(#visitor-line)" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
+        <path d={line} fill="none" stroke="url(#visitor-line)" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
         {coordinates.map((point) => (
           <g key={point.label}>
-            <circle cx={point.x} cy={point.y} r="5" fill="#06b6d4" stroke="white" strokeWidth="2.5" className="shadow-sm" />
-            <text x={point.x} y={height - 6} textAnchor="middle" className="fill-slate-400 font-semibold text-[10px]">
+            <text x={point.x} y={Math.max(16, point.y - 14)} textAnchor="middle" className="fill-slate-950 font-bold text-[11px]">
+              {point.value} orang
+            </text>
+            <circle cx={point.x} cy={point.y} r="5.5" fill="#06b6d4" stroke="white" strokeWidth="2.5" />
+            <text x={point.x} y={height - 12} textAnchor="middle" className="fill-slate-500 font-semibold text-[10px]">
               {point.label}
             </text>
           </g>
         ))}
       </svg>
+      <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:hidden">
+        {points.map((point) => (
+          <div key={point.label} className="rounded-2xl border border-slate-200/50 bg-white/45 px-3 py-2 shadow-sm">
+            <p className="text-[11px] font-bold text-slate-500">{point.label}</p>
+            <p className="mt-1 text-sm font-extrabold text-slate-950">{point.value.toLocaleString("id-ID")} orang</p>
+          </div>
+        ))}
+      </div>
       {!points.some((point) => point.value > 0) ? (
         <div className="mt-3 flex items-center gap-2 rounded-2xl border border-slate-200/40 bg-white/20 p-3 text-xs text-slate-400">
           <Activity className="size-4 text-emerald-600" />
@@ -167,6 +177,31 @@ function VisitorLine({ points }: { points: ChartPoint[] }) {
       ) : null}
     </div>
   );
+}
+
+function buildSmoothLinePath(points: ChartCoordinate[]) {
+  if (points.length === 0) return "";
+  if (points.length === 1) return `M ${points[0].x} ${points[0].y}`;
+
+  const commands = [`M ${points[0].x} ${points[0].y}`];
+
+  for (let index = 0; index < points.length - 1; index += 1) {
+    const current = points[index];
+    const next = points[index + 1];
+    const previous = points[index - 1] ?? current;
+    const afterNext = points[index + 2] ?? next;
+    const smoothing = 0.18;
+    const controlPointOneX = current.x + (next.x - previous.x) * smoothing;
+    const controlPointOneY = current.y + (next.y - previous.y) * smoothing;
+    const controlPointTwoX = next.x - (afterNext.x - current.x) * smoothing;
+    const controlPointTwoY = next.y - (afterNext.y - current.y) * smoothing;
+
+    commands.push(
+      `C ${controlPointOneX} ${controlPointOneY}, ${controlPointTwoX} ${controlPointTwoY}, ${next.x} ${next.y}`,
+    );
+  }
+
+  return commands.join(" ");
 }
 
 function buildVisitorPoints(rows: AttendanceRow[]) {
