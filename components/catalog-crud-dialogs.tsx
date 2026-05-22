@@ -239,7 +239,7 @@ function EditThesisDialog({ item }: { item: Thesis }) {
   return (
     <ThesisDialog
       title="Edit Skripsi"
-      description="Perbarui data skripsi di Supabase."
+      description=""
       submitLabel="Simpan perubahan"
       values={values}
       onValuesChange={setValues}
