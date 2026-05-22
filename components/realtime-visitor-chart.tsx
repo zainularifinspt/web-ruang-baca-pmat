@@ -97,7 +97,7 @@ export function RealtimeVisitorChart() {
           {error}
         </div>
       ) : (
-        <div className="mt-6 grid gap-6 lg:grid-cols-[220px_1fr] lg:items-center">
+        <div className="mt-6 grid gap-6 lg:grid-cols-[190px_1fr] lg:items-center">
           <div>
             <p className="text-xs font-bold tracking-wider text-slate-400 uppercase">Total Pengunjung</p>
             <div className="mt-2.5 flex items-center gap-2">
@@ -121,11 +121,11 @@ export function RealtimeVisitorChart() {
 }
 
 function VisitorLine({ points }: { points: ChartPoint[] }) {
-  const width = 460;
-  const height = 260;
-  const paddingX = 28;
-  const paddingTop = 42;
-  const paddingBottom = 44;
+  const width = 390;
+  const height = 320;
+  const paddingX = 18;
+  const paddingTop = 50;
+  const paddingBottom = 50;
   const max = Math.max(1, ...points.map((point) => point.value));
   const coordinates = points.map((point, index) => {
     const x = paddingX + (index / Math.max(1, points.length - 1)) * (width - paddingX * 2);
@@ -136,7 +136,7 @@ function VisitorLine({ points }: { points: ChartPoint[] }) {
 
   return (
     <div className="min-w-0">
-      <svg viewBox={`0 0 ${width} ${height}`} className="h-72 w-full overflow-visible sm:h-80" role="img" aria-label="Grafik pengunjung realtime">
+      <svg viewBox={`0 0 ${width} ${height}`} className="h-[22rem] w-full overflow-visible sm:h-[26rem]" role="img" aria-label="Grafik pengunjung realtime">
         <defs>
           <linearGradient id="visitor-line" x1="0" x2="1" y1="0" y2="0">
             <stop offset="0%" stopColor="#047857" />
@@ -148,14 +148,14 @@ function VisitorLine({ points }: { points: ChartPoint[] }) {
           const y = paddingTop + lineIndex * ((height - paddingTop - paddingBottom) / 2);
           return <line key={lineIndex} x1={paddingX} x2={width - paddingX} y1={y} y2={y} stroke="#e2e8f0" strokeOpacity="0.4" strokeWidth="1" strokeDasharray="6 8" />;
         })}
-        <path d={line} fill="none" stroke="url(#visitor-line)" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+        <path d={line} fill="none" stroke="url(#visitor-line)" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" />
         {coordinates.map((point) => (
           <g key={point.label}>
-            <text x={point.x} y={Math.max(16, point.y - 14)} textAnchor="middle" className="fill-slate-950 font-bold text-[11px]">
-              {point.value} orang
+            <text x={point.x} y={Math.max(20, point.y - 17)} textAnchor="middle" className="fill-slate-950 font-bold text-[15px]">
+              {point.value}
             </text>
-            <circle cx={point.x} cy={point.y} r="5.5" fill="#06b6d4" stroke="white" strokeWidth="2.5" />
-            <text x={point.x} y={height - 12} textAnchor="middle" className="fill-slate-500 font-semibold text-[10px]">
+            <circle cx={point.x} cy={point.y} r="8" fill="#06b6d4" stroke="white" strokeWidth="3.5" />
+            <text x={point.x} y={height - 14} textAnchor="middle" className="fill-slate-500 font-semibold text-[12px]">
               {point.label}
             </text>
           </g>
@@ -165,7 +165,7 @@ function VisitorLine({ points }: { points: ChartPoint[] }) {
         {points.map((point) => (
           <div key={point.label} className="rounded-2xl border border-slate-200/50 bg-white/45 px-3 py-2 shadow-sm">
             <p className="text-[11px] font-bold text-slate-500">{point.label}</p>
-            <p className="mt-1 text-sm font-extrabold text-slate-950">{point.value.toLocaleString("id-ID")} orang</p>
+            <p className="mt-1 text-lg font-extrabold text-slate-950">{point.value.toLocaleString("id-ID")}</p>
           </div>
         ))}
       </div>
