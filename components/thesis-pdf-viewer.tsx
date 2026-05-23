@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Eye, FileText, RotateCw, ZoomIn, ZoomOut } from "lucide-react";
+import { Eye, RotateCw, ZoomIn, ZoomOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -17,11 +17,13 @@ import type { PDFDocumentLoadingTask, PDFDocumentProxy, RenderTask } from "pdfjs
 type ThesisPdfViewerProps = {
   pdfUrl?: string;
   pdfFilename?: string;
+  studentName?: string;
 };
 
-export function ThesisPdfViewer({ pdfUrl, pdfFilename }: ThesisPdfViewerProps) {
+export function ThesisPdfViewer({ pdfUrl, studentName }: ThesisPdfViewerProps) {
   const resolvedPdfUrl = resolveThesisPdfUrl(pdfUrl);
   const [open, setOpen] = useState(false);
+  const readerTitle = studentName ? `File Skripsi - ${studentName}` : "File Skripsi";
 
   if (!resolvedPdfUrl) {
     return <p className="text-sm leading-6 text-slate-500">File PDF belum tersedia.</p>;
@@ -40,7 +42,7 @@ export function ThesisPdfViewer({ pdfUrl, pdfFilename }: ThesisPdfViewerProps) {
           <DialogContent className="h-[94vh] max-h-[94vh] w-[96vw] max-w-none grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden rounded-[2rem] p-0">
             <DialogHeader className="px-5 py-4 pr-12 sm:px-6">
               <DialogTitle>File Skripsi</DialogTitle>
-              <DialogDescription>{pdfFilename || "Dokumen PDF skripsi"}</DialogDescription>
+              <DialogDescription>{studentName || "Nama mahasiswa belum tercatat"}</DialogDescription>
             </DialogHeader>
             <div
               className="min-h-0 select-none overflow-hidden rounded-b-[2rem] border-t bg-slate-100"
@@ -53,18 +55,12 @@ export function ThesisPdfViewer({ pdfUrl, pdfFilename }: ThesisPdfViewerProps) {
               <PdfCanvasReader
                 active={open}
                 pdfUrl={resolvedPdfUrl}
-                title={pdfFilename || "File skripsi"}
+                title={readerTitle}
               />
             </div>
           </DialogContent>
         </Dialog>
       </div>
-      {pdfFilename ? (
-        <p className="inline-flex items-center gap-2 text-xs font-medium text-slate-500">
-          <FileText className="size-4 text-emerald-700" />
-          {pdfFilename}
-        </p>
-      ) : null}
     </div>
   );
 }

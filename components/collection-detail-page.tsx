@@ -269,7 +269,11 @@ function ThesisDetail({ item }: { item: Thesis }) {
       <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
         <p className="text-sm font-semibold text-slate-950">File Skripsi</p>
         <div className="mt-3">
-          <ThesisPdfViewer pdfUrl={item.pdfUrl} pdfFilename={item.pdfFilename} />
+          <ThesisPdfViewer
+            pdfUrl={item.pdfUrl}
+            pdfFilename={item.pdfFilename}
+            studentName={item.studentName}
+          />
         </div>
       </div>
     </div>

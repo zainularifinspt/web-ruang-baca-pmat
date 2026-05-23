@@ -82,7 +82,11 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
             </div>
             <div className="rounded-2xl border bg-white p-4 text-sm leading-6">
               <p className="mb-3 font-medium text-foreground">File Skripsi</p>
-              <ThesisPdfViewer pdfUrl={item.pdfUrl} pdfFilename={item.pdfFilename} />
+              <ThesisPdfViewer
+                pdfUrl={item.pdfUrl}
+                pdfFilename={item.pdfFilename}
+                studentName={item.studentName}
+              />
             </div>
           </div>
         ) : null}
