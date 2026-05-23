@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Eye, FileText } from "lucide-react";
+import { Eye, FileText, RotateCw, ZoomIn, ZoomOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -81,6 +81,10 @@ function PdfCanvasReader({
   const [document, setDocument] = useState<PDFDocumentProxy | null>(null);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [zoom, setZoom] = useState(1);
+  const [rotation, setRotation] = useState(0);
+
+  const zoomPercent = Math.round(zoom * 100);
 
   useEffect(() => {
     if (!active) return;
@@ -159,13 +163,55 @@ function PdfCanvasReader({
       className="h-full overflow-auto bg-slate-200 px-4 py-6"
       role="document"
     >
+      <div className="sticky top-0 z-10 mx-auto mb-4 flex w-fit items-center gap-2 rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-sm">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="size-9 rounded-xl p-0"
+          onClick={() => setZoom((currentZoom) => Math.max(0.75, currentZoom - 0.15))}
+          disabled={zoom <= 0.75}
+          aria-label="Zoom out"
+          title="Zoom out"
+        >
+          <ZoomOut className="size-4" />
+        </Button>
+        <span className="min-w-14 text-center text-xs font-semibold text-slate-600">
+          {zoomPercent}%
+        </span>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="size-9 rounded-xl p-0"
+          onClick={() => setZoom((currentZoom) => Math.min(1.75, currentZoom + 0.15))}
+          disabled={zoom >= 1.75}
+          aria-label="Zoom in"
+          title="Zoom in"
+        >
+          <ZoomIn className="size-4" />
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="h-9 rounded-xl"
+          onClick={() => setRotation((currentRotation) => (currentRotation + 180) % 360)}
+          aria-label="Putar halaman"
+          title="Putar halaman"
+        >
+          <RotateCw className="size-4" />
+          Putar
+        </Button>
+      </div>
       <div className="mx-auto flex max-w-6xl flex-col gap-6">
         {Array.from({ length: document.numPages }, (_, index) => (
           <PdfCanvasPage
             key={`${pdfUrl}-${index + 1}`}
             document={document}
             pageNumber={index + 1}
-            rotation={180}
+            rotation={rotation}
+            zoom={zoom}
           />
         ))}
       </div>
@@ -177,16 +223,19 @@ function PdfCanvasPage({
   document,
   pageNumber,
   rotation,
+  zoom,
 }: {
   document: PDFDocumentProxy;
   pageNumber: number;
   rotation: number;
+  zoom: number;
 }) {
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [pageWidth, setPageWidth] = useState(820);
+  const [availableWidth, setAvailableWidth] = useState(820);
   const [isVisible, setIsVisible] = useState(pageNumber === 1);
   const [isRendered, setIsRendered] = useState(false);
+  const pageWidth = Math.round(Math.max(320, Math.min(1600, availableWidth * zoom)));
   const placeholderHeight = Math.round(pageWidth * 1.414);
 
   useEffect(() => {
@@ -195,7 +244,7 @@ function PdfCanvasPage({
 
     const resizeObserver = new ResizeObserver(([entry]) => {
       if (!entry) return;
-      setPageWidth(Math.max(320, Math.min(900, entry.contentRect.width)));
+      setAvailableWidth(Math.max(320, Math.min(900, entry.contentRect.width)));
     });
 
     resizeObserver.observe(wrapper);
@@ -237,10 +286,9 @@ function PdfCanvasPage({
         const page = await document.getPage(pageNumber);
         if (isCancelled) return;
 
-        const correctedRotation = (page.rotate + rotation) % 360;
-        const initialViewport = page.getViewport({ scale: 1, rotation: correctedRotation });
+        const initialViewport = page.getViewport({ scale: 1, rotation });
         const scale = pageWidth / initialViewport.width;
-        const viewport = page.getViewport({ scale, rotation: correctedRotation });
+        const viewport = page.getViewport({ scale, rotation });
         const context = targetCanvas.getContext("2d");
         if (!context) return;
 
