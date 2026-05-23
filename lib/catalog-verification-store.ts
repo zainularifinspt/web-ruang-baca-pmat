@@ -6,10 +6,17 @@ export type CatalogInputAudit = {
   inputBy: string;
 };
 
+export type ThesisPdfMetadata = {
+  url: string;
+  filename?: string;
+  size?: number;
+};
+
 type VerificationStore = {
   books?: Record<string, VerificationStatus>;
   theses?: Record<string, VerificationStatus>;
   inputs?: Record<string, CatalogInputAudit>;
+  thesisPdfs?: Record<string, ThesisPdfMetadata>;
 };
 
 const bucketName = "ruang-baca-metadata";
@@ -28,6 +35,11 @@ export async function readThesisVerificationOverrides() {
 export async function readCatalogInputOverrides() {
   const store = await readVerificationStore();
   return store.inputs ?? {};
+}
+
+export async function readThesisPdfOverrides() {
+  const store = await readVerificationStore();
+  return store.thesisPdfs ?? {};
 }
 
 async function readVerificationStore() {
@@ -65,6 +77,21 @@ export async function writeCatalogInputOverride(
     inputs: {
       ...(existing.inputs ?? {}),
       [key]: audit,
+    },
+  };
+
+  await writeVerificationStore(next);
+}
+
+export async function writeThesisPdfOverride(id: string, metadata: ThesisPdfMetadata) {
+  await ensureBucket();
+
+  const existing = await readVerificationStore();
+  const next: VerificationStore = {
+    ...existing,
+    thesisPdfs: {
+      ...(existing.thesisPdfs ?? {}),
+      [id]: metadata,
     },
   };
 

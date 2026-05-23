@@ -26,6 +26,12 @@ type CatalogInputOverride = {
   inputBy: string;
 };
 
+type ThesisPdfOverride = {
+  url: string;
+  filename?: string;
+  size?: number;
+};
+
 type ProfileNameMap = Record<string, string>;
 
 type AttendanceRow = {
@@ -115,6 +121,7 @@ export async function fetchCatalogData(options: CatalogFetchOptions = {}): Promi
   const bookVerificationOverrides = await getBookVerificationOverrides();
   const thesisVerificationOverrides = await getThesisVerificationOverrides();
   const inputOverrides = await getCatalogInputOverrides();
+  const thesisPdfOverrides = await getThesisPdfOverrides();
   const profileNamesById = await getProfileNamesForRows([
     ...booksResult.rows,
     ...thesesResult.rows,
@@ -135,6 +142,7 @@ export async function fetchCatalogData(options: CatalogFetchOptions = {}): Promi
       thesisVerificationOverrides[textValue(row, ["id"])],
       inputOverrides[`thesis:${textValue(row, ["id"])}`],
       createdByName(row, profileNamesById),
+      thesisPdfOverrides[textValue(row, ["id"])],
     ),
   );
   const publicOnly = options.visibility === "public";
@@ -154,6 +162,7 @@ export async function fetchCollectionById(type: string, id: string, options: Cat
   const bookVerificationOverrides = table === "books" ? await getBookVerificationOverrides() : {};
   const thesisVerificationOverrides = table === "theses" ? await getThesisVerificationOverrides() : {};
   const inputOverrides = await getCatalogInputOverrides();
+  const thesisPdfOverrides = table === "theses" ? await getThesisPdfOverrides() : {};
   const profileNamesById = await getProfileNamesForRows(rows);
   const mappedRows =
     table === "books"
@@ -171,6 +180,7 @@ export async function fetchCollectionById(type: string, id: string, options: Cat
             thesisVerificationOverrides[textValue(row, ["id"])],
             inputOverrides[`thesis:${textValue(row, ["id"])}`],
             createdByName(row, profileNamesById),
+            thesisPdfOverrides[textValue(row, ["id"])],
           ),
         );
 
@@ -207,6 +217,7 @@ export async function fetchThesisById(id: string, options: CatalogFetchOptions =
   const { row, error } = await fetchTableRowById("theses", id);
   const thesisVerificationOverrides = await getThesisVerificationOverrides();
   const inputOverrides = await getCatalogInputOverrides();
+  const thesisPdfOverrides = await getThesisPdfOverrides();
   const profileNamesById = await getProfileNamesForRows(row ? [row] : []);
   const thesis = row
     ? mapThesisRow(
@@ -214,6 +225,7 @@ export async function fetchThesisById(id: string, options: CatalogFetchOptions =
         thesisVerificationOverrides[textValue(row, ["id"])],
         inputOverrides[`thesis:${textValue(row, ["id"])}`],
         createdByName(row, profileNamesById),
+        thesisPdfOverrides[textValue(row, ["id"])],
       )
     : null;
 
@@ -295,6 +307,7 @@ function mapThesisRow(
   verificationOverride?: VerificationStatus,
   inputOverride?: CatalogInputOverride,
   createdByName?: string,
+  pdfOverride?: ThesisPdfOverride,
 ): Thesis {
   const topic = textValue(row, ["topic"], "Skripsi");
   const physicalLocation = textValue(
@@ -320,9 +333,9 @@ function mapThesisRow(
       ["access_note"],
       "Dokumen lengkap tersedia dalam bentuk fisik di Ruang Baca Program Studi Pendidikan Matematika.",
     ),
-    pdfUrl: resolveThesisPdfUrl(pdfUrl),
-    pdfFilename: optionalTextValue(row, ["pdf_filename", "pdfFilename"]),
-    pdfSize: optionalNumberValue(row, ["pdf_size", "pdfSize"]),
+    pdfUrl: resolveThesisPdfUrl(pdfUrl) ?? resolveThesisPdfUrl(pdfOverride?.url),
+    pdfFilename: optionalTextValue(row, ["pdf_filename", "pdfFilename"]) ?? pdfOverride?.filename,
+    pdfSize: optionalNumberValue(row, ["pdf_size", "pdfSize"]) ?? pdfOverride?.size,
     keywords: [topic],
   };
 }
@@ -497,6 +510,15 @@ async function getCatalogInputOverrides() {
 
   const { readCatalogInputOverrides } = await import("@/lib/catalog-verification-store");
   return readCatalogInputOverrides();
+}
+
+async function getThesisPdfOverrides() {
+  if (typeof window !== "undefined") {
+    return {};
+  }
+
+  const { readThesisPdfOverrides } = await import("@/lib/catalog-verification-store");
+  return readThesisPdfOverrides();
 }
 
 function createdByName(row: UnknownRow, profileNamesById: ProfileNameMap) {

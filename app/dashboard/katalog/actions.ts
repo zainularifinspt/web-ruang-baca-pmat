@@ -5,6 +5,7 @@ import { requireStaffRole } from "@/lib/auth-guards";
 import {
   writeCatalogInputOverride,
   writeBookVerificationOverride,
+  writeThesisPdfOverride,
   writeThesisVerificationOverride,
 } from "@/lib/catalog-verification-store";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
@@ -220,11 +221,8 @@ async function insertThesis(payload: MutationPayload, options?: InsertCatalogOpt
     .single();
   if (!error) {
     await writeInputAuditFromInsert(data, options);
+    await writeThesisPdfOverrideFromPayload(data, payload);
     return success("ok");
-  }
-
-  if (payloadHasThesisPdf(payload) && isMissingThesisPdfColumn(error.message)) {
-    return failure(thesisPdfColumnErrorMessage());
   }
 
   if (
@@ -240,20 +238,20 @@ async function insertThesis(payload: MutationPayload, options?: InsertCatalogOpt
     "input_by",
     "input_source",
     "verification_status",
+    "pdf_url",
+    "pdf_filename",
+    "pdf_size",
   ]);
   const { data: fallbackData, error: fallbackError } = await createSupabaseAdminClient()
     .from("theses")
     .insert(fallbackPayload)
     .select("id")
     .single();
-  if (fallbackError) {
-    return payloadHasThesisPdf(payload) && isMissingThesisPdfColumn(fallbackError.message)
-      ? failure(thesisPdfColumnErrorMessage())
-      : failure(fallbackError.message);
-  }
+  if (fallbackError) return failure(fallbackError.message);
 
   await writeInputAuditFromInsert(fallbackData, options);
   await writeVerificationOverrideFromInsert(fallbackData, options);
+  await writeThesisPdfOverrideFromPayload(fallbackData, payload);
   return success("ok");
 }
 
@@ -262,7 +260,20 @@ async function updateThesisRow(id: string, payload: MutationPayload) {
   if (!error) return success("ok");
 
   if (payloadHasThesisPdf(payload) && isMissingThesisPdfColumn(error.message)) {
-    return failure(thesisPdfColumnErrorMessage());
+    const fallbackPayload = omitPayloadKeys(payload, [
+      "pdf_url",
+      "pdf_filename",
+      "pdf_size",
+    ]);
+    const { error: fallbackError } = await createSupabaseAdminClient()
+      .from("theses")
+      .update(fallbackPayload)
+      .eq("id", id);
+
+    if (fallbackError) return failure(fallbackError.message);
+
+    await writeThesisPdfOverrideFromId(id, payload);
+    return success("ok");
   }
 
   return failure(error.message);
@@ -387,10 +398,6 @@ function payloadHasThesisPdf(payload: MutationPayload) {
   return Boolean(payload.pdf_url || payload.pdf_filename || payload.pdf_size);
 }
 
-function thesisPdfColumnErrorMessage() {
-  return "File PDF berhasil diupload, tetapi metadata PDF belum dapat disimpan. Pastikan migration 20260522_thesis_pdf_storage.sql sudah dijalankan agar kolom pdf_url, pdf_filename, dan pdf_size tersedia di tabel theses.";
-}
-
 function omitPayloadKeys(payload: MutationPayload, keys: string[]) {
   const nextPayload = { ...payload };
 
@@ -399,6 +406,24 @@ function omitPayloadKeys(payload: MutationPayload, keys: string[]) {
   });
 
   return nextPayload;
+}
+
+async function writeThesisPdfOverrideFromPayload(data: unknown, payload: MutationPayload) {
+  const id = textId(data);
+  if (!id) return;
+
+  await writeThesisPdfOverrideFromId(id, payload);
+}
+
+async function writeThesisPdfOverrideFromId(id: string, payload: MutationPayload) {
+  const pdfUrl = typeof payload.pdf_url === "string" ? payload.pdf_url.trim() : "";
+  if (!pdfUrl) return;
+
+  await writeThesisPdfOverride(id, {
+    url: pdfUrl,
+    filename: typeof payload.pdf_filename === "string" ? payload.pdf_filename : undefined,
+    size: typeof payload.pdf_size === "number" ? payload.pdf_size : undefined,
+  });
 }
 
 async function getInputActorName(userId: string, fallbackEmail?: string | null) {
