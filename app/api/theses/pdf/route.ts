@@ -31,8 +31,7 @@ export async function POST(request: Request) {
   }
 
   const supabase = createSupabaseAdminClient();
-  
-  // Ensure bucket exists
+
   const { data: existingBucket } = await supabase.storage.getBucket(PDF_BUCKET);
   if (!existingBucket) {
     const { error: createBucketError } = await supabase.storage.createBucket(PDF_BUCKET, {
@@ -40,10 +39,23 @@ export async function POST(request: Request) {
       fileSizeLimit: MAX_PDF_SIZE,
       allowedMimeTypes: ["application/pdf"],
     });
-    
+
     if (createBucketError && !createBucketError.message.includes("already exists")) {
       return NextResponse.json(
         { error: `Gagal membuat bucket: ${createBucketError.message}` },
+        { status: 500 },
+      );
+    }
+  } else if (!existingBucket.public) {
+    const { error: updateBucketError } = await supabase.storage.updateBucket(PDF_BUCKET, {
+      public: true,
+      fileSizeLimit: MAX_PDF_SIZE,
+      allowedMimeTypes: ["application/pdf"],
+    });
+
+    if (updateBucketError) {
+      return NextResponse.json(
+        { error: `Gagal mengaktifkan akses publik bucket: ${updateBucketError.message}` },
         { status: 500 },
       );
     }
@@ -69,6 +81,7 @@ export async function POST(request: Request) {
 
   return NextResponse.json({
     pdfUrl: publicUrl,
+    pdfPath: storagePath,
     pdfFilename: file.name,
     pdfSize: file.size,
   });

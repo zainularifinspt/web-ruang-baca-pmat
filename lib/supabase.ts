@@ -7,6 +7,7 @@ import type {
   Thesis,
   VerificationStatus,
 } from "@/lib/types";
+import { resolveThesisPdfUrl } from "@/lib/thesis-pdf";
 
 type UnknownRow = Record<string, unknown>;
 
@@ -301,6 +302,7 @@ function mapThesisRow(
     ["physical_location"],
     "-",
   );
+  const pdfUrl = optionalTextValue(row, ["pdf_url", "pdfUrl"]);
 
   return {
     ...mapBaseRow(row, verificationOverride, inputOverride, createdByName),
@@ -318,7 +320,7 @@ function mapThesisRow(
       ["access_note"],
       "Dokumen lengkap tersedia dalam bentuk fisik di Ruang Baca Program Studi Pendidikan Matematika.",
     ),
-    pdfUrl: optionalTextValue(row, ["pdf_url", "pdfUrl"]),
+    pdfUrl: resolveThesisPdfUrl(pdfUrl),
     pdfFilename: optionalTextValue(row, ["pdf_filename", "pdfFilename"]),
     pdfSize: optionalNumberValue(row, ["pdf_size", "pdfSize"]),
     keywords: [topic],
