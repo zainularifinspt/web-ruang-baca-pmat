@@ -51,7 +51,7 @@ export function ThesisPdfViewer({ pdfUrl, pdfFilename }: ThesisPdfViewerProps) {
                 src={readerPdfUrl(resolvedPdfUrl)}
                 title={pdfFilename || "File skripsi"}
                 className="h-full w-full select-none"
-                sandbox="allow-same-origin"
+                sandbox="allow-same-origin allow-scripts"
                 referrerPolicy="no-referrer"
               />
             </div>
