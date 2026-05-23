@@ -34,16 +34,25 @@ export function ThesisPdfViewer({ pdfUrl, pdfFilename }: ThesisPdfViewerProps) {
               Lihat PDF
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-5xl rounded-[2rem] p-0">
-            <DialogHeader className="px-5 pt-5 sm:px-6">
+          <DialogContent className="h-[94vh] max-h-[94vh] w-[96vw] max-w-none grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden rounded-[2rem] p-0">
+            <DialogHeader className="px-5 py-4 pr-12 sm:px-6">
               <DialogTitle>File Skripsi</DialogTitle>
               <DialogDescription>{pdfFilename || "Dokumen PDF skripsi"}</DialogDescription>
             </DialogHeader>
-            <div className="h-[78vh] overflow-hidden rounded-b-[2rem] border-t bg-slate-100">
+            <div
+              className="min-h-0 select-none overflow-hidden rounded-b-[2rem] border-t bg-slate-100"
+              onContextMenu={(event) => event.preventDefault()}
+              onCopy={(event) => event.preventDefault()}
+              onCut={(event) => event.preventDefault()}
+              onSelect={(event) => event.preventDefault()}
+              onSelectCapture={(event) => event.preventDefault()}
+            >
               <iframe
                 src={readerPdfUrl(resolvedPdfUrl)}
                 title={pdfFilename || "File skripsi"}
-                className="h-full w-full"
+                className="h-full w-full select-none"
+                sandbox="allow-same-origin"
+                referrerPolicy="no-referrer"
               />
             </div>
           </DialogContent>
