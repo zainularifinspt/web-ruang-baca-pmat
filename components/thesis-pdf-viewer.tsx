@@ -184,8 +184,8 @@ function PdfCanvasReader({
           variant="outline"
           size="sm"
           className="size-9 rounded-xl p-0"
-          onClick={() => setZoom((currentZoom) => Math.min(1.75, currentZoom + 0.15))}
-          disabled={zoom >= 1.75}
+          onClick={() => setZoom((currentZoom) => Math.min(2.5, currentZoom + 0.15))}
+          disabled={zoom >= 2.5}
           aria-label="Zoom in"
           title="Zoom in"
         >
@@ -204,7 +204,7 @@ function PdfCanvasReader({
           Putar
         </Button>
       </div>
-      <div className="mx-auto flex max-w-6xl flex-col gap-6">
+      <div className="mx-auto flex w-max min-w-full flex-col items-center gap-6">
         {Array.from({ length: document.numPages }, (_, index) => (
           <PdfCanvasPage
             key={`${pdfUrl}-${index + 1}`}
@@ -235,7 +235,7 @@ function PdfCanvasPage({
   const [availableWidth, setAvailableWidth] = useState(820);
   const [isVisible, setIsVisible] = useState(pageNumber === 1);
   const [isRendered, setIsRendered] = useState(false);
-  const pageWidth = Math.round(Math.max(320, Math.min(1600, availableWidth * zoom)));
+  const pageWidth = Math.round(Math.max(320, Math.min(2250, availableWidth * zoom)));
   const placeholderHeight = Math.round(pageWidth * 1.414);
 
   useEffect(() => {
@@ -330,7 +330,10 @@ function PdfCanvasPage({
     <div
       ref={wrapperRef}
       className="relative flex justify-center"
-      style={!isRendered ? { minHeight: placeholderHeight } : undefined}
+      style={{
+        width: pageWidth,
+        ...(!isRendered ? { minHeight: placeholderHeight } : {}),
+      }}
     >
       {!isRendered ? (
         <div className="absolute top-6 rounded-full bg-white/90 px-3 py-1 text-xs font-medium text-slate-500 shadow-sm">
@@ -340,7 +343,7 @@ function PdfCanvasPage({
       <canvas
         ref={canvasRef}
         aria-label={`Halaman ${pageNumber}`}
-        className="max-w-full rounded-sm bg-white shadow-lg ring-1 ring-slate-300"
+        className="rounded-sm bg-white shadow-lg ring-1 ring-slate-300"
       />
     </div>
   );
