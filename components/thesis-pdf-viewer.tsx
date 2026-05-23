@@ -12,7 +12,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { resolveThesisPdfUrl } from "@/lib/thesis-pdf";
-import type { PDFDocumentLoadingTask, PDFDocumentProxy } from "pdfjs-dist";
+import type { PDFDocumentLoadingTask, PDFDocumentProxy, RenderTask } from "pdfjs-dist";
 
 type ThesisPdfViewerProps = {
   pdfUrl?: string;
@@ -165,6 +165,7 @@ function PdfCanvasReader({
             key={`${pdfUrl}-${index + 1}`}
             document={document}
             pageNumber={index + 1}
+            rotation={180}
           />
         ))}
       </div>
@@ -175,14 +176,18 @@ function PdfCanvasReader({
 function PdfCanvasPage({
   document,
   pageNumber,
+  rotation,
 }: {
   document: PDFDocumentProxy;
   pageNumber: number;
+  rotation: number;
 }) {
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [pageWidth, setPageWidth] = useState(900);
+  const [pageWidth, setPageWidth] = useState(820);
+  const [isVisible, setIsVisible] = useState(pageNumber === 1);
   const [isRendered, setIsRendered] = useState(false);
+  const placeholderHeight = Math.round(pageWidth * 1.414);
 
   useEffect(() => {
     const wrapper = wrapperRef.current;
@@ -190,7 +195,7 @@ function PdfCanvasPage({
 
     const resizeObserver = new ResizeObserver(([entry]) => {
       if (!entry) return;
-      setPageWidth(Math.max(320, Math.min(1080, entry.contentRect.width)));
+      setPageWidth(Math.max(320, Math.min(900, entry.contentRect.width)));
     });
 
     resizeObserver.observe(wrapper);
@@ -198,40 +203,70 @@ function PdfCanvasPage({
   }, []);
 
   useEffect(() => {
+    if (isVisible) return;
+
+    const wrapper = wrapperRef.current;
+    if (!wrapper) return;
+
+    const visibilityObserver = new IntersectionObserver(
+      ([entry], observer) => {
+        if (!entry?.isIntersecting) return;
+
+        setIsVisible(true);
+        observer.disconnect();
+      },
+      { rootMargin: "900px 0px" },
+    );
+
+    visibilityObserver.observe(wrapper);
+    return () => visibilityObserver.disconnect();
+  }, [isVisible]);
+
+  useEffect(() => {
+    if (!isVisible) return;
+
     let isCancelled = false;
+    let renderTask: RenderTask | null = null;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const targetCanvas = canvas;
 
     async function renderPage() {
-      setIsRendered(false);
-      const page = await document.getPage(pageNumber);
-      if (isCancelled) return;
+      try {
+        setIsRendered(false);
+        const page = await document.getPage(pageNumber);
+        if (isCancelled) return;
 
-      const initialViewport = page.getViewport({ scale: 1 });
-      const scale = pageWidth / initialViewport.width;
-      const viewport = page.getViewport({ scale });
-      const context = targetCanvas.getContext("2d");
-      if (!context) return;
+        const correctedRotation = (page.rotate + rotation) % 360;
+        const initialViewport = page.getViewport({ scale: 1, rotation: correctedRotation });
+        const scale = pageWidth / initialViewport.width;
+        const viewport = page.getViewport({ scale, rotation: correctedRotation });
+        const context = targetCanvas.getContext("2d");
+        if (!context) return;
 
-      const outputScale = window.devicePixelRatio || 1;
-      targetCanvas.width = Math.floor(viewport.width * outputScale);
-      targetCanvas.height = Math.floor(viewport.height * outputScale);
-      targetCanvas.style.width = `${Math.floor(viewport.width)}px`;
-      targetCanvas.style.height = `${Math.floor(viewport.height)}px`;
+        const outputScale = Math.min(window.devicePixelRatio || 1, 1.35);
+        targetCanvas.width = Math.floor(viewport.width * outputScale);
+        targetCanvas.height = Math.floor(viewport.height * outputScale);
+        targetCanvas.style.width = `${Math.floor(viewport.width)}px`;
+        targetCanvas.style.height = `${Math.floor(viewport.height)}px`;
 
-      context.setTransform(outputScale, 0, 0, outputScale, 0, 0);
+        context.setTransform(outputScale, 0, 0, outputScale, 0, 0);
 
-      const renderTask = page.render({
-        canvas,
-        canvasContext: context,
-        viewport,
-      });
+        renderTask = page.render({
+          canvas: targetCanvas,
+          canvasContext: context,
+          viewport,
+        });
 
-      await renderTask.promise;
+        await renderTask.promise;
 
-      if (!isCancelled) {
-        setIsRendered(true);
+        if (!isCancelled) {
+          setIsRendered(true);
+        }
+      } catch (caughtError) {
+        if (!isCancelled && !(caughtError instanceof Error && caughtError.name === "RenderingCancelledException")) {
+          console.error("[thesis-pdf-viewer] Failed to render PDF page", caughtError);
+        }
       }
     }
 
@@ -239,11 +274,16 @@ function PdfCanvasPage({
 
     return () => {
       isCancelled = true;
+      renderTask?.cancel();
     };
-  }, [document, pageNumber, pageWidth]);
+  }, [document, isVisible, pageNumber, pageWidth, rotation]);
 
   return (
-    <div ref={wrapperRef} className="relative flex justify-center">
+    <div
+      ref={wrapperRef}
+      className="relative flex justify-center"
+      style={!isRendered ? { minHeight: placeholderHeight } : undefined}
+    >
       {!isRendered ? (
         <div className="absolute top-6 rounded-full bg-white/90 px-3 py-1 text-xs font-medium text-slate-500 shadow-sm">
           Memuat halaman {pageNumber}
