@@ -100,19 +100,21 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
 
 function BookCoverPreview({ coverUrl, title }: { coverUrl?: string; title: string }) {
   return (
-    <div className="mt-5 w-fit rounded-2xl border border-emerald-100 bg-white p-3 shadow-sm">
+    <div className="mt-8 flex justify-center">
+      <div className="w-fit rounded-[1.75rem] border border-emerald-100 bg-white p-4 shadow-lg shadow-slate-200/70">
       {coverUrl ? (
         <div
           aria-label={`Cover ${title}`}
-          className="h-48 w-32 rounded-xl bg-slate-100 bg-cover bg-center ring-1 ring-slate-200"
+          className="h-72 w-48 rounded-2xl bg-slate-100 bg-cover bg-center ring-1 ring-slate-200"
           role="img"
           style={{ backgroundImage: `url(${coverUrl})` }}
         />
       ) : (
-        <div className="flex h-48 w-32 items-center justify-center rounded-xl bg-slate-100 px-3 text-center text-xs font-medium text-slate-500 ring-1 ring-slate-200">
+        <div className="flex h-72 w-48 items-center justify-center rounded-2xl bg-slate-100 px-4 text-center text-sm font-medium text-slate-500 ring-1 ring-slate-200">
           Cover belum tersedia
         </div>
       )}
+      </div>
     </div>
   );
 }
