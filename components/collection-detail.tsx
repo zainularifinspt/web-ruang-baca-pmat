@@ -33,8 +33,8 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
 
   return (
     <DialogContent className="max-w-3xl rounded-2xl border-slate-200 p-0">
-      <div className="rounded-t-2xl bg-gradient-to-br from-emerald-50 to-white p-5 pr-12 sm:p-6 sm:pr-14">
-        <DialogHeader>
+      <div className="rounded-t-2xl bg-gradient-to-br from-emerald-50 to-white px-5 pb-5 pt-4 pr-12 sm:px-6 sm:pb-6 sm:pt-5 sm:pr-14">
+        <DialogHeader className="space-y-1">
           <div className="flex flex-wrap gap-2">
             <Badge variant="secondary" className="rounded-full">{isBook ? "Buku" : "Skripsi"}</Badge>
             {isBook ? <AvailabilityBadge available={item.available} stock={item.stock} /> : null}
@@ -100,17 +100,17 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
 
 function BookCoverPreview({ coverUrl, title }: { coverUrl?: string; title: string }) {
   return (
-    <div className="mt-8 flex justify-center">
+    <div className="mt-4 flex justify-center">
       <div className="w-fit rounded-[1.75rem] border border-emerald-100 bg-white p-4 shadow-lg shadow-slate-200/70">
       {coverUrl ? (
         <div
           aria-label={`Cover ${title}`}
-          className="h-72 w-48 rounded-2xl bg-slate-100 bg-cover bg-center ring-1 ring-slate-200"
+          className="h-80 w-56 rounded-2xl bg-slate-100 bg-cover bg-center ring-1 ring-slate-200"
           role="img"
           style={{ backgroundImage: `url(${coverUrl})` }}
         />
       ) : (
-        <div className="flex h-72 w-48 items-center justify-center rounded-2xl bg-slate-100 px-4 text-center text-sm font-medium text-slate-500 ring-1 ring-slate-200">
+        <div className="flex h-80 w-56 items-center justify-center rounded-2xl bg-slate-100 px-4 text-center text-sm font-medium text-slate-500 ring-1 ring-slate-200">
           Cover belum tersedia
         </div>
       )}
