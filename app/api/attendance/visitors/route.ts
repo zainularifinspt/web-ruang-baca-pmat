@@ -38,6 +38,16 @@ export async function POST(request: Request) {
       .upsert(payload, { onConflict: "nim_nip" });
 
     if (error) {
+      if (isMissingAttendanceVisitorsTable(error.message)) {
+        return NextResponse.json(
+          {
+            error:
+              "Tabel data presensi belum dibuat. Jalankan migration supabase/migrations/20260524_attendance_visitors.sql di Supabase SQL Editor, lalu ulangi import.",
+          },
+          { status: 500 },
+        );
+      }
+
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
@@ -71,4 +81,14 @@ function normalizeVisitorStatus(value: unknown): VisitorStatus {
   if (normalized === "dosen") return "Dosen";
   if (normalized === "umum") return "Umum";
   return "Mahasiswa";
+}
+
+function isMissingAttendanceVisitorsTable(message: string) {
+  return (
+    message.includes("attendance_visitors") &&
+    (message.includes("schema cache") ||
+      message.includes("Could not find the table") ||
+      message.includes("relation") ||
+      message.includes("does not exist"))
+  );
 }

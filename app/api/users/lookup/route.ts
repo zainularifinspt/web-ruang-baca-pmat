@@ -15,13 +15,17 @@ export async function GET(request: Request) {
 
   try {
     const supabaseAdmin = createSupabaseAdminClient();
-    const { data: visitorRow } = await supabaseAdmin
+    const { data: visitorRow, error: visitorError } = await supabaseAdmin
       .from("attendance_visitors")
       .select("nim_nip,full_name,visitor_status,study_program")
       .eq("nim_nip", identifier)
       .maybeSingle();
 
-    if (visitorRow) {
+    if (visitorError && !isMissingAttendanceVisitorsTable(visitorError.message)) {
+      return NextResponse.json({ error: visitorError.message }, { status: 500 });
+    }
+
+    if (!visitorError && visitorRow) {
       return NextResponse.json({
         user: {
           name: visitorRow.full_name ?? "",
@@ -92,4 +96,14 @@ function getVisitorStatusFromText(value: unknown): VisitorStatus {
   if (normalized === "dosen") return "Dosen";
   if (normalized === "umum") return "Umum";
   return "Mahasiswa";
+}
+
+function isMissingAttendanceVisitorsTable(message: string) {
+  return (
+    message.includes("attendance_visitors") &&
+    (message.includes("schema cache") ||
+      message.includes("Could not find the table") ||
+      message.includes("relation") ||
+      message.includes("does not exist"))
+  );
 }
