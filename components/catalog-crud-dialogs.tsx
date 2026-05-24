@@ -57,6 +57,10 @@ const emptyBookValues: BookFormValues = {
 const defaultAccessNote =
   "Dokumen lengkap tersedia dalam bentuk fisik di Ruang Baca Program Studi Pendidikan Matematika.";
 const maxPdfSize = 5 * 1024 * 1024;
+const maxCoverOriginalSize = 15 * 1024 * 1024;
+const maxCoverUploadSize = 900 * 1024;
+const maxCoverDimension = 900;
+const allowedCoverTypes = ["image/jpeg", "image/png", "image/webp"];
 
 const emptyThesisValues: ThesisFormValues = {
   title: "",
@@ -77,6 +81,7 @@ const emptyThesisValues: ThesisFormValues = {
 
 export function AddBookDialog() {
   const [values, setValues] = useState<BookFormValues>(emptyBookValues);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
 
   return (
     <BookDialog
@@ -85,8 +90,13 @@ export function AddBookDialog() {
       submitLabel="Simpan buku"
       values={values}
       onValuesChange={setValues}
-      onSubmit={async () => createBook(values)}
-      onSuccess={() => setValues(emptyBookValues)}
+      coverFile={coverFile}
+      onCoverFileChange={setCoverFile}
+      onSubmit={async () => createBook(await valuesWithUploadedCover(values, coverFile))}
+      onSuccess={() => {
+        setValues(emptyBookValues);
+        setCoverFile(null);
+      }}
       trigger={
         <Button size="sm" className="rounded-xl">
           <Plus />
@@ -198,6 +208,7 @@ function EditBookDialog({ item }: { item: Book }) {
     status: item.status,
     coverUrl: item.coverUrl ?? "",
   });
+  const [coverFile, setCoverFile] = useState<File | null>(null);
 
   return (
     <BookDialog
@@ -206,7 +217,10 @@ function EditBookDialog({ item }: { item: Book }) {
       submitLabel="Simpan perubahan"
       values={values}
       onValuesChange={setValues}
-      onSubmit={async () => updateBook(item.id, values)}
+      coverFile={coverFile}
+      onCoverFileChange={setCoverFile}
+      onSubmit={async () => updateBook(item.id, await valuesWithUploadedCover(values, coverFile))}
+      onSuccess={() => setCoverFile(null)}
       trigger={
         <Button variant="outline" size="sm" className="rounded-xl">
           <Edit3 />
@@ -263,6 +277,8 @@ function BookDialog({
   submitLabel,
   values,
   onValuesChange,
+  coverFile,
+  onCoverFileChange,
   onSubmit,
   onSuccess,
   trigger,
@@ -272,6 +288,8 @@ function BookDialog({
   submitLabel: string;
   values: BookFormValues;
   onValuesChange: (values: BookFormValues) => void;
+  coverFile: File | null;
+  onCoverFileChange: (file: File | null) => void;
   onSubmit: () => Promise<CatalogActionResult>;
   onSuccess?: () => void;
   trigger: React.ReactNode;
@@ -344,15 +362,26 @@ function BookDialog({
                 onValueChange={(status) => onValuesChange({ ...values, status })}
               />
             </Field>
-            <Field label="Cover buku (URL)" className="sm:col-span-2">
+            <Field label="Cover buku" className="sm:col-span-2">
               <Input
-                type="url"
-                value={values.coverUrl}
-                onChange={(event) => onValuesChange({ ...values, coverUrl: event.target.value })}
-                placeholder="https://..."
+                type="file"
+                accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
+                onChange={(event) => {
+                  const file = event.target.files?.[0] ?? null;
+                  const error = validateCoverFile(file);
+
+                  if (error) {
+                    toast.error("Cover buku tidak valid", { description: error });
+                    event.target.value = "";
+                    onCoverFileChange(null);
+                    return;
+                  }
+
+                  onCoverFileChange(file);
+                }}
                 disabled={form.isPending}
               />
-              <BookCoverFormPreview coverUrl={values.coverUrl} />
+              <BookCoverFormPreview coverFile={coverFile} coverUrl={values.coverUrl} />
             </Field>
           </div>
           <DialogActions isPending={form.isPending} submitLabel={submitLabel} />
@@ -362,21 +391,35 @@ function BookDialog({
   );
 }
 
-function BookCoverFormPreview({ coverUrl }: { coverUrl: string }) {
+function BookCoverFormPreview({ coverFile, coverUrl }: { coverFile: File | null; coverUrl: string }) {
   const trimmedCoverUrl = coverUrl.trim();
 
-  if (!trimmedCoverUrl) {
-    return <p className="mt-2 text-xs text-slate-500">Masukkan URL gambar cover buku.</p>;
+  if (!coverFile && !trimmedCoverUrl) {
+    return (
+      <p className="mt-2 text-xs text-slate-500">
+        Upload JPG, PNG, atau WebP. Gambar akan dikompres otomatis sebelum disimpan.
+      </p>
+    );
   }
 
   return (
-    <div className="mt-3 w-fit rounded-2xl border bg-slate-50 p-2">
-      <div
-        aria-label="Preview cover buku"
-        className="h-40 w-28 rounded-xl bg-slate-100 bg-cover bg-center ring-1 ring-slate-200"
-        role="img"
-        style={{ backgroundImage: `url(${trimmedCoverUrl})` }}
-      />
+    <div className="mt-3 flex flex-col gap-2 text-xs text-slate-500">
+      {coverFile ? (
+        <span>Cover baru: {coverFile.name}. Akan dikompres otomatis saat disimpan.</span>
+      ) : null}
+      {trimmedCoverUrl ? (
+        <>
+          <span>Cover tersimpan saat ini.</span>
+          <div className="w-fit rounded-2xl border bg-slate-50 p-2">
+            <div
+              aria-label="Preview cover buku"
+              className="h-40 w-28 rounded-xl bg-slate-100 bg-cover bg-center ring-1 ring-slate-200"
+              role="img"
+              style={{ backgroundImage: `url(${trimmedCoverUrl})` }}
+            />
+          </div>
+        </>
+      ) : null}
     </div>
   );
 }
@@ -602,6 +645,113 @@ function validatePdfFile(file: File | null) {
   if (!file.name.toLowerCase().endsWith(".pdf")) return "Ekstensi file harus .pdf.";
   if (file.size > maxPdfSize) return "Ukuran file PDF maksimal 5 MB.";
   return null;
+}
+
+function validateCoverFile(file: File | null) {
+  if (!file) return null;
+  if (!allowedCoverTypes.includes(file.type)) return "Cover harus berupa gambar JPG, PNG, atau WebP.";
+  if (file.size > maxCoverOriginalSize) return "Ukuran file cover maksimal 15 MB sebelum kompresi.";
+  return null;
+}
+
+async function valuesWithUploadedCover(values: BookFormValues, file: File | null) {
+  const error = validateCoverFile(file);
+  if (error) throw new Error(error);
+  if (!file) return values;
+
+  const compressedCover = await compressCoverImage(file);
+  const formData = new FormData();
+  formData.append("file", compressedCover);
+
+  const response = await fetch("/api/books/cover", {
+    method: "POST",
+    body: formData,
+  });
+  const payload = (await response.json()) as {
+    coverUrl?: string;
+    error?: string;
+  };
+
+  if (!response.ok || payload.error || !payload.coverUrl) {
+    throw new Error(payload.error ?? "Gagal mengupload cover buku.");
+  }
+
+  return {
+    ...values,
+    coverUrl: payload.coverUrl,
+  };
+}
+
+async function compressCoverImage(file: File) {
+  const image = await loadImage(file);
+  let quality = 0.82;
+  let maxDimension = maxCoverDimension;
+  let compressed = await drawCompressedCover(image, file, maxDimension, quality);
+
+  while (compressed.size > maxCoverUploadSize && (quality > 0.52 || maxDimension > 640)) {
+    quality = Math.max(0.52, quality - 0.08);
+    maxDimension = Math.max(640, Math.round(maxDimension * 0.9));
+    compressed = await drawCompressedCover(image, file, maxDimension, quality);
+  }
+
+  return compressed;
+}
+
+function loadImage(file: File) {
+  return new Promise<HTMLImageElement>((resolve, reject) => {
+    const objectUrl = URL.createObjectURL(file);
+    const image = new Image();
+
+    image.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve(image);
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error("Cover buku tidak dapat dibaca sebagai gambar."));
+    };
+    image.src = objectUrl;
+  });
+}
+
+function drawCompressedCover(
+  image: HTMLImageElement,
+  sourceFile: File,
+  maxDimension: number,
+  quality: number,
+) {
+  return new Promise<File>((resolve, reject) => {
+    const scale = Math.min(1, maxDimension / Math.max(image.naturalWidth, image.naturalHeight));
+    const width = Math.max(1, Math.round(image.naturalWidth * scale));
+    const height = Math.max(1, Math.round(image.naturalHeight * scale));
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+
+    if (!context) {
+      reject(new Error("Browser tidak dapat memproses kompresi cover."));
+      return;
+    }
+
+    canvas.width = width;
+    canvas.height = height;
+    context.fillStyle = "#ffffff";
+    context.fillRect(0, 0, width, height);
+    context.drawImage(image, 0, 0, width, height);
+
+    canvas.toBlob(
+      (blob) => {
+        if (!blob) {
+          reject(new Error("Gagal mengompres cover buku."));
+          return;
+        }
+
+        const filename = `${sourceFile.name.replace(/\.[^.]+$/, "") || "cover"}.webp`;
+        resolve(new File([blob], filename, { type: "image/webp" }));
+      },
+      "image/webp",
+      quality,
+    );
+  });
 }
 
 async function valuesWithUploadedPdf(values: ThesisFormValues, file: File | null) {
