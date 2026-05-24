@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from "@/components/ui/button";
 import { AvailabilityBadge } from "@/components/status-badge";
 import { ThesisPdfViewer } from "@/components/thesis-pdf-viewer";
+import { splitBookAuthors } from "@/lib/book-authors";
 import type { Book, Thesis } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 
@@ -45,7 +46,11 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
       </div>
       <div className="space-y-5 p-5 sm:p-6">
         <div className="grid gap-3 sm:grid-cols-2">
-          <Info icon={<UserRound />} label={isBook ? "Penulis" : "Mahasiswa"} value={isBook ? item.author : item.studentName} />
+          <Info
+            icon={<UserRound />}
+            label={isBook ? "Penulis" : "Mahasiswa"}
+            value={isBook ? <AuthorLines author={item.author} /> : item.studentName}
+          />
           <Info icon={<Calendar />} label="Tahun" value={String(item.year)} />
           {isBook ? <Info icon={<BookOpen />} label="Kode Koleksi" value={item.code} /> : null}
           {isBook ? <Info icon={<MapPin />} label="Lokasi Fisik" value={item.rackLocation} /> : null}
@@ -126,15 +131,29 @@ function Info({
 }: {
   icon: React.ReactNode;
   label: string;
-  value: string;
+  value: React.ReactNode;
 }) {
   return (
     <div className="flex gap-3 rounded-2xl border bg-white p-3 shadow-sm">
       <div className="mt-0.5 text-primary [&_svg]:size-4">{icon}</div>
       <div>
         <p className="text-xs text-muted-foreground">{label}</p>
-        <p className="font-medium">{value}</p>
+        <div className="font-medium">{value || "-"}</div>
       </div>
+    </div>
+  );
+}
+
+function AuthorLines({ author }: { author: string }) {
+  const authors = splitBookAuthors(author);
+
+  if (!authors.length) return "-";
+
+  return (
+    <div className="space-y-0.5">
+      {authors.map((name, index) => (
+        <p key={`${name}-${index}`}>{name}</p>
+      ))}
     </div>
   );
 }

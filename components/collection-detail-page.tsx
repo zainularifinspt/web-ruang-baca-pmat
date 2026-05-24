@@ -15,6 +15,7 @@ import { ThesisPdfViewer } from "@/components/thesis-pdf-viewer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { splitBookAuthors } from "@/lib/book-authors";
 import type { Book, Thesis } from "@/lib/types";
 import { cn, formatDate } from "@/lib/utils";
 
@@ -69,14 +70,14 @@ export function CollectionDetailPage({ item }: { item: DetailItem }) {
               </h1>
               <p className="mt-4 max-w-3xl text-base leading-8 text-slate-600">
                 {isBook
-                  ? item.author || "Penulis belum tercatat"
+                  ? splitBookAuthors(item.author).join(", ") || "Penulis belum tercatat"
                   : `${item.studentName || "Mahasiswa"} - ${item.year}`}
               </p>
             </div>
 
             {isBook ? (
               <div className="grid gap-4 sm:grid-cols-2">
-                <InfoCard icon={UserRound} label="Penulis" value={item.author} />
+                <InfoCard icon={UserRound} label="Penulis" value={<AuthorLines author={item.author} />} />
                 <InfoCard icon={BookOpen} label="Kategori" value={item.category} />
               </div>
             ) : (
@@ -253,7 +254,7 @@ function InfoCard({
 }: {
   icon: typeof UserRound;
   label: string;
-  value: string;
+  value: React.ReactNode;
 }) {
   return (
     <div className="flex min-w-0 gap-3 rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
@@ -262,8 +263,22 @@ function InfoCard({
       </div>
       <div className="min-w-0">
         <p className="text-xs font-medium text-slate-500">{label}</p>
-        <p className="mt-1 break-words text-sm font-semibold text-slate-950">{value || "-"}</p>
+        <div className="mt-1 break-words text-sm font-semibold text-slate-950">{value || "-"}</div>
       </div>
+    </div>
+  );
+}
+
+function AuthorLines({ author }: { author: string }) {
+  const authors = splitBookAuthors(author);
+
+  if (!authors.length) return "-";
+
+  return (
+    <div className="space-y-0.5">
+      {authors.map((name, index) => (
+        <p key={`${name}-${index}`}>{name}</p>
+      ))}
     </div>
   );
 }

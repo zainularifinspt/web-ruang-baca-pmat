@@ -316,12 +316,13 @@ function BookDialog({
                 required
               />
             </Field>
-            <Field label="Penulis">
-              <Input
+            <Field label="Penulis" className="sm:col-span-2">
+              <Textarea
                 value={values.author}
                 onChange={(event) => onValuesChange({ ...values, author: event.target.value })}
-                placeholder="Nama penulis"
+                placeholder={"Satu penulis per baris\nContoh:\nVarberg\nPurcell\nRigdon"}
                 disabled={form.isPending}
+                className="min-h-28"
                 required
               />
             </Field>

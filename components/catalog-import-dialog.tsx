@@ -374,7 +374,7 @@ async function downloadImportTemplate(importType: ImportType) {
       ? [
           {
             title: "Kalkulus Dasar",
-            author: "Purcell",
+            author: "Varberg\nPurcell\nRigdon",
             year: "2026",
             category: "Matematika",
             rack_location: "Ruang Baca",
