@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { Archive, FileSpreadsheet, Upload } from "lucide-react";
+import { Archive, Download, FileSpreadsheet, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { createBook, createThesis } from "@/app/dashboard/katalog/actions";
 import { Button } from "@/components/ui/button";
@@ -43,7 +43,13 @@ const allowedCoverTypes = ["image/jpeg", "image/png", "image/webp"];
 const defaultAccessNote =
   "Dokumen lengkap tersedia dalam bentuk fisik di Ruang Baca Program Studi Pendidikan Matematika.";
 
-export function CatalogImportDialog() {
+export function CatalogImportDialog({
+  importType,
+  triggerLabel,
+}: {
+  importType: ImportType;
+  triggerLabel: string;
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [spreadsheetFile, setSpreadsheetFile] = useState<File | null>(null);
@@ -65,7 +71,7 @@ export function CatalogImportDialog() {
     startTransition(async () => {
       try {
         const [parsedRows, parsedAssets] = await Promise.all([
-          parseSpreadsheet(spreadsheetFile),
+          parseSpreadsheet(spreadsheetFile, importType),
           assetZipFile ? parseAssetZip(assetZipFile) : Promise.resolve(new Map() as ZipAssetMap),
         ]);
 
@@ -131,14 +137,14 @@ export function CatalogImportDialog() {
       <DialogTrigger asChild>
         <Button type="button" size="sm" variant="outline" className="rounded-xl bg-white">
           <Upload className="size-4" />
-          Import katalog
+          {triggerLabel}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-4xl rounded-2xl">
         <DialogHeader>
-          <DialogTitle>Import Buku dan Skripsi</DialogTitle>
+          <DialogTitle>Import {importType === "book" ? "Buku" : "Skripsi"}</DialogTitle>
           <DialogDescription>
-            Upload spreadsheet data dan ZIP berisi folder covers/pdf untuk import massal.
+            Upload spreadsheet data dan ZIP aset untuk import massal {importType === "book" ? "buku" : "skripsi"}.
           </DialogDescription>
         </DialogHeader>
 
@@ -170,14 +176,26 @@ export function CatalogImportDialog() {
         </div>
 
         <div className="rounded-2xl border bg-slate-50 p-4 text-sm leading-6 text-slate-600">
-          <p className="font-semibold text-slate-950">Kolom yang didukung</p>
-          <p className="mt-1">
-            Buku: type, title, author, year, category, rack_location, stock, status, cover_filename.
-          </p>
-          <p>
-            Skripsi: type, title, student_name, year, topic, abstract, supervisor_1,
-            supervisor_2, physical_location, access_note, cover_filename, pdf_filename.
-          </p>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="font-semibold text-slate-950">Template XLSX</p>
+              <p className="mt-1">
+                {importType === "book"
+                  ? "Kolom: title, author, year, category, rack_location, stock, status, cover_filename."
+                  : "Kolom: title, student_name, year, topic, abstract, supervisor_1, supervisor_2, physical_location, access_note, cover_filename, pdf_filename."}
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="rounded-xl bg-white"
+              onClick={() => downloadImportTemplate(importType)}
+            >
+              <Download className="size-4" />
+              Download template
+            </Button>
+          </div>
         </div>
 
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -255,7 +273,7 @@ export function CatalogImportDialog() {
   );
 }
 
-async function parseSpreadsheet(file: File): Promise<ImportRow[]> {
+async function parseSpreadsheet(file: File, importType: ImportType): Promise<ImportRow[]> {
   const XLSX = await import("xlsx");
   const buffer = await file.arrayBuffer();
   const workbook = XLSX.read(buffer, { type: "array" });
@@ -269,7 +287,7 @@ async function parseSpreadsheet(file: File): Promise<ImportRow[]> {
   });
 
   return records
-    .map((record, index) => normalizeImportRow(record, index + 2))
+    .map((record, index) => normalizeImportRow(record, index + 2, importType))
     .filter((row): row is ImportRow => Boolean(row));
 }
 
@@ -295,13 +313,17 @@ async function parseAssetZip(file: File): Promise<ZipAssetMap> {
   return assets;
 }
 
-function normalizeImportRow(record: Record<string, unknown>, rowNumber: number): ImportRow | null {
+function normalizeImportRow(
+  record: Record<string, unknown>,
+  rowNumber: number,
+  importType: ImportType,
+): ImportRow | null {
   const typeValue = getText(record, ["type", "jenis", "tipe"]).toLowerCase();
   const type = typeValue === "book" || typeValue === "buku"
     ? "book"
     : typeValue === "thesis" || typeValue === "skripsi"
       ? "thesis"
-      : null;
+      : importType;
 
   if (!type) return null;
 
@@ -343,6 +365,44 @@ function validateImportRows(rows: ImportRow[], assets: ZipAssetMap) {
       ? { ...row, status: "error" as const, message: errors.join(" ") }
       : row;
   });
+}
+
+async function downloadImportTemplate(importType: ImportType) {
+  const XLSX = await import("xlsx");
+  const rows =
+    importType === "book"
+      ? [
+          {
+            title: "Kalkulus Dasar",
+            author: "Purcell",
+            year: "2026",
+            category: "Matematika",
+            rack_location: "Ruang Baca",
+            stock: "1",
+            status: "tersedia",
+            cover_filename: "covers/kalkulus-dasar.jpg",
+          },
+        ]
+      : [
+          {
+            title: "Analisis Kemampuan Berpikir Kritis Siswa",
+            student_name: "Ahmad Fauzi",
+            year: "2026",
+            topic: "Pendidikan Matematika",
+            abstract: "Ringkasan penelitian skripsi.",
+            supervisor_1: "Dr. Pembimbing Satu, M.Pd.",
+            supervisor_2: "Dr. Pembimbing Dua, M.Pd.",
+            physical_location: "Lemari Skripsi",
+            access_note: defaultAccessNote,
+            cover_filename: "covers/ahmad-fauzi.jpg",
+            pdf_filename: "pdf/ahmad-fauzi.pdf",
+          },
+        ];
+  const worksheet = XLSX.utils.json_to_sheet(rows);
+  const workbook = XLSX.utils.book_new();
+
+  XLSX.utils.book_append_sheet(workbook, worksheet, importType === "book" ? "Import Buku" : "Import Skripsi");
+  XLSX.writeFile(workbook, importType === "book" ? "template-import-buku.xlsx" : "template-import-skripsi.xlsx");
 }
 
 async function buildBookValues(row: ImportRow, assets: ZipAssetMap): Promise<BookFormValues> {

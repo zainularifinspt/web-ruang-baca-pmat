@@ -50,16 +50,23 @@ export function DashboardCatalogActions() {
   const canImport = role === "admin" || role === "petugas";
 
   return (
-    <>
-      {canExport ? (
-        <>
-          <ExportButton type="book" label="Ekspor buku" />
-          <ExportButton type="thesis" label="Ekspor skripsi" />
-        </>
-      ) : null}
-      {canAddBook ? <AddBookDialog /> : null}
-      {canAddThesis ? <AddThesisDialog /> : null}
-      {canImport ? <CatalogImportDialog /> : null}
-    </>
+    <div className="grid w-full gap-3 lg:grid-cols-2">
+      <div className="rounded-2xl border border-emerald-100 bg-white/80 p-3 shadow-sm">
+        <p className="mb-2 text-xs font-semibold uppercase text-emerald-700">Buku</p>
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+          {canExport ? <ExportButton type="book" label="Ekspor buku" /> : null}
+          {canImport ? <CatalogImportDialog importType="book" triggerLabel="Import buku" /> : null}
+          {canAddBook ? <AddBookDialog /> : null}
+        </div>
+      </div>
+      <div className="rounded-2xl border border-sky-100 bg-white/80 p-3 shadow-sm">
+        <p className="mb-2 text-xs font-semibold uppercase text-sky-700">Skripsi</p>
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+          {canExport ? <ExportButton type="thesis" label="Ekspor skripsi" /> : null}
+          {canImport ? <CatalogImportDialog importType="thesis" triggerLabel="Import skripsi" /> : null}
+          {canAddThesis ? <AddThesisDialog /> : null}
+        </div>
+      </div>
+    </div>
   );
 }
