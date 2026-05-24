@@ -25,6 +25,21 @@ export function ThesisPdfViewer({ pdfUrl, studentName }: ThesisPdfViewerProps) {
   const [open, setOpen] = useState(false);
   const readerTitle = studentName ? `File Skripsi - ${studentName}` : "File Skripsi";
 
+  useEffect(() => {
+    if (!resolvedPdfUrl) return;
+
+    const warmup = window.setTimeout(() => {
+      void import("pdfjs-dist").then((pdfjs) => {
+        pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+          "pdfjs-dist/build/pdf.worker.mjs",
+          import.meta.url,
+        ).toString();
+      });
+    }, 250);
+
+    return () => window.clearTimeout(warmup);
+  }, [resolvedPdfUrl]);
+
   if (!resolvedPdfUrl) {
     return <p className="text-sm leading-6 text-slate-500">File PDF belum tersedia.</p>;
   }
@@ -77,6 +92,7 @@ function PdfCanvasReader({
   const [document, setDocument] = useState<PDFDocumentProxy | null>(null);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
 
@@ -93,6 +109,7 @@ function PdfCanvasReader({
       setIsLoading(true);
       setError("");
       setDocument(null);
+      setLoadingProgress(0);
 
       try {
         const pdfjs = await import("pdfjs-dist");
@@ -101,10 +118,20 @@ function PdfCanvasReader({
           import.meta.url,
         ).toString();
 
-        loadingTask = pdfjs.getDocument({ url: pdfUrl, withCredentials: false });
+        loadingTask = pdfjs.getDocument({
+          url: pdfUrl,
+          withCredentials: false,
+          rangeChunkSize: 262144,
+        });
+        loadingTask.onProgress = ({ loaded, total }: { loaded: number; total: number }) => {
+          if (!total || isCancelled) return;
+
+          setLoadingProgress(Math.min(99, Math.round((loaded / total) * 100)));
+        };
         loadedDocument = await loadingTask.promise;
 
         if (!isCancelled) {
+          setLoadingProgress(100);
           setDocument(loadedDocument);
         } else {
           loadedDocument.destroy();
@@ -135,8 +162,24 @@ function PdfCanvasReader({
 
   if (isLoading) {
     return (
-      <div className="flex h-full items-center justify-center text-sm font-medium text-slate-500">
-        Memuat file PDF...
+      <div className="flex h-full items-center justify-center px-6 text-center text-sm font-medium text-slate-500">
+        <div className="w-full max-w-sm space-y-3">
+          <div>
+            <p>Memuat file PDF...</p>
+            <p className="mt-1 text-xs font-normal text-slate-400">
+              PDF dirender sebagai gambar agar teks tidak bisa disalin.
+            </p>
+          </div>
+          <div className="h-2 overflow-hidden rounded-full bg-white">
+            <div
+              className="h-full rounded-full bg-emerald-600 transition-all"
+              style={{ width: `${loadingProgress}%` }}
+            />
+          </div>
+          <p className="text-xs font-semibold text-slate-500">
+            {loadingProgress ? `${loadingProgress}%` : "Menyiapkan viewer..."}
+          </p>
+        </div>
       </div>
     );
   }
