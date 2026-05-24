@@ -3,11 +3,11 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import {
-  ArrowUpRight,
   CalendarCheck,
   Clock3,
   Filter,
   Search,
+  Sparkles,
   Target,
   TrendingUp,
   Users,
@@ -15,7 +15,6 @@ import {
 import { EmptyState } from "@/components/empty-state";
 import { ExportButton } from "@/components/export-button";
 import { InitialAvatar } from "@/components/data-table";
-import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -73,28 +72,39 @@ export default function AttendanceReportPage() {
   const topPurpose = useMemo(() => getTopPurpose(attendances), [attendances]);
 
   return (
-    <div className="space-y-5">
-      <PageHeader
-        eyebrow="Internal / Presensi"
-        title="Data Kunjungan"
-        description="Pantau aktivitas pengunjung, saring data operasional, dan siapkan laporan presensi ruang baca."
-        className="rounded-[1.25rem] border-slate-200/70 bg-white/95 p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)] [&_h1]:text-2xl [&_h1]:font-semibold [&_p]:text-sm sm:p-5 sm:[&_h1]:text-2xl"
-        action={
-          <>
-            <Button asChild size="sm" className="h-9 rounded-lg bg-emerald-700 px-3 text-xs hover:bg-emerald-800">
+    <div className="space-y-7">
+      <section className="relative overflow-hidden rounded-3xl border border-white/70 bg-gradient-to-br from-emerald-800 via-teal-700 to-cyan-800 p-5 text-white shadow-xl shadow-emerald-950/20 sm:p-6">
+        <div className="pointer-events-none absolute -right-16 -top-20 size-72 rounded-full bg-cyan-300 opacity-25 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-24 left-1/3 size-72 rounded-full bg-violet-300 opacity-20 blur-3xl" />
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:40px_40px] opacity-30" />
+        <div className="relative grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
+          <div className="max-w-3xl">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 text-sm font-semibold text-emerald-50 shadow-sm ring-1 ring-white/25 backdrop-blur">
+              <Sparkles className="size-3.5" />
+              Internal / Presensi
+            </div>
+            <h2 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">
+              Data Kunjungan
+            </h2>
+            <p className="mt-3 max-w-2xl leading-7 text-emerald-50">
+              Pantau aktivitas pengunjung, saring data operasional, dan siapkan laporan presensi ruang baca.
+            </p>
+          </div>
+          <div className="flex flex-col gap-2 sm:flex-row lg:justify-end">
+            <Button asChild size="sm" className="h-10 rounded-xl bg-white px-4 text-sm font-semibold text-emerald-800 shadow-sm hover:bg-emerald-50">
               <Link href="/presensi">
-                <CalendarCheck className="size-3.5" />
+                <CalendarCheck className="size-4" />
                 Buka Mode Presensi QR
               </Link>
             </Button>
             <ExportButton
               type="attendance"
               label="Ekspor presensi"
-              className="h-9 rounded-lg px-3 text-xs"
+              className="h-10 rounded-xl border-white/70 bg-white/95 px-4 text-sm font-semibold text-slate-700 shadow-sm hover:bg-white"
             />
-          </>
-        }
-      />
+          </div>
+        </div>
+      </section>
 
       <div className="grid items-stretch gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <AttendanceStatCard
@@ -126,7 +136,7 @@ export default function AttendanceReportPage() {
         />
       </div>
 
-      <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="min-w-0">
         <section className="min-w-0 rounded-[1.25rem] border border-slate-200/70 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
           <div className="flex flex-col gap-3 border-b border-slate-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
             <div>
@@ -273,36 +283,6 @@ export default function AttendanceReportPage() {
             )}
           </div>
         </section>
-
-        <aside className="min-w-0 rounded-[1.25rem] border border-slate-200/70 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-          <div className="border-b border-slate-100 px-4 py-4">
-            <div className="flex min-w-0 items-start justify-between gap-3">
-              <div>
-                <h2 className="text-base font-semibold text-slate-950">Presensi Terbaru</h2>
-                <p className="mt-1 text-xs leading-5 text-slate-500">Cuplikan aktivitas operasional.</p>
-              </div>
-              <Badge variant="secondary" className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] text-emerald-700">
-                Live
-              </Badge>
-            </div>
-          </div>
-          <div className="max-h-[430px] divide-y divide-slate-100 overflow-y-auto px-2 py-2">
-            {attendances.map((item) => (
-              <RecentAttendanceItem key={item.id} item={item} />
-            ))}
-            {isLoading ? <RecentAttendanceSkeleton /> : null}
-            {!isLoading && !error && attendances.length === 0 ? (
-              <div className="px-3 py-6 text-center text-xs leading-5 text-slate-500">
-                Belum ada presensi yang tercatat.
-              </div>
-            ) : null}
-            {!isLoading && error ? (
-              <div className="px-3 py-6 text-center text-xs leading-5 text-rose-600">
-                {error}
-              </div>
-            ) : null}
-          </div>
-        </aside>
       </div>
     </div>
   );
@@ -347,36 +327,6 @@ function AttendanceStatCard({
   );
 }
 
-function RecentAttendanceItem({ item }: { item: Attendance }) {
-  return (
-    <div className="group rounded-xl px-2 py-3 transition hover:bg-slate-50">
-      <div className="flex items-start gap-3">
-        <InitialAvatar
-          name={item.guestName}
-          className="size-9 bg-slate-100 text-xs text-slate-700 ring-1 ring-slate-200"
-        />
-        <div className="min-w-0 flex-1">
-          <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0">
-              <p className="truncate text-sm font-semibold leading-5 text-slate-950">
-                {item.guestName}
-              </p>
-              <p className="truncate text-xs leading-5 text-slate-500">{item.purpose}</p>
-            </div>
-            <ArrowUpRight className="mt-0.5 size-3.5 shrink-0 text-slate-300 transition group-hover:text-emerald-600" />
-          </div>
-          <div className="mt-2 flex items-center justify-between gap-2">
-            <StatusPill status={item.visitorStatus} />
-            <span className="text-[11px] font-medium text-slate-400">
-              {formatTime(item.visitedAt)}
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function MobileAttendanceCard({ item }: { item: Attendance }) {
   return (
     <div className="rounded-xl border border-slate-200/70 bg-white p-3 shadow-[0_1px_2px_rgba(15,23,42,0.03)]">
@@ -415,23 +365,6 @@ function AttendanceListSkeleton() {
         </div>
       ))}
     </div>
-  );
-}
-
-function RecentAttendanceSkeleton() {
-  return (
-    <>
-      {Array.from({ length: 4 }).map((_, index) => (
-        <div key={index} className="flex animate-pulse items-start gap-3 rounded-xl px-2 py-3">
-          <div className="size-9 rounded-xl bg-slate-200" />
-          <div className="flex-1 space-y-2">
-            <div className="h-4 w-32 rounded bg-slate-200" />
-            <div className="h-3 w-24 rounded bg-slate-200" />
-            <div className="h-5 w-20 rounded-md bg-slate-200" />
-          </div>
-        </div>
-      ))}
-    </>
   );
 }
 
