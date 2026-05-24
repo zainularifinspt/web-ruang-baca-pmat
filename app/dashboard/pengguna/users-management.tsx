@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { roleLabels } from "@/lib/mock-data";
-import type { Role } from "@/lib/types";
+import type { Role, VisitorStatus } from "@/lib/types";
 import {
   deleteManagedUser,
   resetManagedUserPassword,
@@ -58,11 +58,9 @@ const emptyForm = {
 type ImportUserRow = {
   rowNumber: number;
   fullName: string;
-  email: string;
   nimNip: string;
-  phoneNumber: string;
-  role: ManagedUserRole;
-  password: string;
+  visitorStatus: VisitorStatus;
+  studyProgram: string;
   status: "ready" | "success" | "error";
   message: string;
 };
@@ -195,7 +193,6 @@ function ExportUsersButton({ users }: { users: ManagedUser[] }) {
 }
 
 function ImportUsersDialog() {
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [rows, setRows] = useState<ImportUserRow[]>([]);
@@ -227,42 +224,51 @@ function ImportUsersDialog() {
     }
 
     startTransition(async () => {
-      for (const row of importableRows) {
-        try {
-          const result = await saveManagedUser({
-            fullName: row.fullName,
-            email: row.email,
-            nimNip: row.nimNip,
-            phoneNumber: row.phoneNumber,
-            role: row.role,
-            password: row.password,
-            confirmPassword: row.password,
-          });
+      try {
+        const response = await fetch("/api/attendance/visitors", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            rows: importableRows.map((row) => ({
+              full_name: row.fullName,
+              nim_nip: row.nimNip,
+              visitor_status: row.visitorStatus,
+              study_program: row.studyProgram,
+            })),
+          }),
+        });
+        const payload = (await response.json()) as { imported?: number; error?: string };
 
-          setRows((currentRows) =>
-            currentRows.map((item) =>
-              item.rowNumber === row.rowNumber
-                ? { ...item, status: result.ok ? "success" : "error", message: result.message }
-                : item,
-            ),
-          );
-        } catch (error) {
-          setRows((currentRows) =>
-            currentRows.map((item) =>
-              item.rowNumber === row.rowNumber
-                ? {
-                    ...item,
-                    status: "error",
-                    message: error instanceof Error ? error.message : "Gagal mengimport pengguna.",
-                  }
-                : item,
-            ),
-          );
+        if (!response.ok || payload.error) {
+          throw new Error(payload.error ?? "Gagal mengimport data presensi.");
         }
-      }
 
-      toast.success("Import pengguna selesai.");
-      router.refresh();
+        setRows((currentRows) =>
+          currentRows.map((item) =>
+            item.status === "ready"
+              ? { ...item, status: "success", message: "Berhasil diimport untuk presensi." }
+              : item,
+          ),
+        );
+        toast.success("Import data presensi selesai.", {
+          description: `${payload.imported ?? importableRows.length} data pengunjung tersimpan.`,
+        });
+      } catch (error) {
+        setRows((currentRows) =>
+          currentRows.map((item) =>
+            item.status === "ready"
+              ? {
+                  ...item,
+                  status: "error",
+                  message: error instanceof Error ? error.message : "Gagal mengimport data presensi.",
+                }
+              : item,
+          ),
+        );
+        toast.error("Gagal import data presensi", {
+          description: error instanceof Error ? error.message : "Terjadi kesalahan saat import.",
+        });
+      }
     });
   }
 
@@ -278,7 +284,7 @@ function ImportUsersDialog() {
         <DialogHeader>
           <DialogTitle>Import pengguna</DialogTitle>
           <DialogDescription>
-            Upload XLSX/CSV berisi nama, email, NIM/NIP, role, nomor WhatsApp, dan password awal.
+            Upload XLSX/CSV berisi nama dan NIM/NIP untuk autofill form presensi. Import ini tidak membuat akun login.
           </DialogDescription>
         </DialogHeader>
 
@@ -287,7 +293,7 @@ function ImportUsersDialog() {
             <div>
               <p className="font-semibold text-slate-950">Template XLSX</p>
               <p className="mt-1">
-                Kolom: full_name, email, nim_nip, phone_number, role, password.
+                Kolom: full_name, nim_nip, role, study_program. Role berisi mahasiswa, dosen, atau umum.
               </p>
             </div>
             <Button type="button" variant="outline" size="sm" className="rounded-xl bg-white" onClick={downloadUsersTemplate}>
@@ -331,7 +337,7 @@ function ImportUsersDialog() {
                 <TableRow>
                   <TableHead>Baris</TableHead>
                   <TableHead>Nama</TableHead>
-                  <TableHead>Email</TableHead>
+                  <TableHead>NIM/NIP</TableHead>
                   <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
@@ -340,7 +346,7 @@ function ImportUsersDialog() {
                   <TableRow key={row.rowNumber}>
                     <TableCell>{row.rowNumber}</TableCell>
                     <TableCell>{row.fullName || "-"}</TableCell>
-                    <TableCell>{row.email || "-"}</TableCell>
+                    <TableCell>{row.nimNip || "-"}</TableCell>
                     <TableCell>
                       <span className={row.status === "error" ? "text-rose-700" : row.status === "success" ? "text-emerald-700" : "text-slate-600"}>
                         {row.status === "ready" ? "Siap" : row.status === "success" ? "Berhasil" : "Error"}
@@ -660,29 +666,24 @@ async function parseUsersSpreadsheet(file: File): Promise<ImportUserRow[]> {
 }
 
 function normalizeUserImportRow(record: Record<string, unknown>, rowNumber: number): ImportUserRow {
-  const parsedRole = normalizeImportRole(getText(record, ["role", "peran"]));
+  const parsedStatus = normalizeImportVisitorStatus(getText(record, ["role", "visitor_status", "status", "peran"]));
   const row: ImportUserRow = {
     rowNumber,
     fullName: getText(record, ["full_name", "nama", "nama_lengkap"]),
-    email: getText(record, ["email"]),
     nimNip: getText(record, ["nim_nip", "nim", "nip", "nim/nip"]),
-    phoneNumber: getText(record, ["phone_number", "no_whatsapp", "whatsapp", "no_hp"]),
-    role: parsedRole || "mahasiswa",
-    password: getText(record, ["password", "password_awal"]),
+    visitorStatus: parsedStatus || "Mahasiswa",
+    studyProgram: getText(record, ["study_program", "program_studi"]) || "Pendidikan Matematika",
     status: "ready",
     message: "",
   };
   const missing = [
     ["full_name", row.fullName],
-    ["email", row.email],
     ["nim_nip", row.nimNip],
-    ["phone_number", row.phoneNumber],
-    ["password", row.password],
   ]
     .filter(([, value]) => !value)
     .map(([label]) => label);
 
-  if (!parsedRole) missing.push("role");
+  if (!parsedStatus) missing.push("role");
   if (missing.length) {
     return {
       ...row,
@@ -694,12 +695,12 @@ function normalizeUserImportRow(record: Record<string, unknown>, rowNumber: numb
   return row;
 }
 
-function normalizeImportRole(value: string): ManagedUserRole | "" {
+function normalizeImportVisitorStatus(value: string): VisitorStatus | "" {
   const normalized = value.trim().toLowerCase();
 
-  if (normalized === "dosen") return "dosen";
-  if (normalized === "petugas") return "petugas";
-  if (normalized === "mahasiswa") return "mahasiswa";
+  if (normalized === "dosen") return "Dosen";
+  if (normalized === "umum") return "Umum";
+  if (normalized === "mahasiswa") return "Mahasiswa";
   return "";
 }
 
@@ -726,19 +727,15 @@ async function downloadUsersTemplate() {
   const worksheet = XLSX.utils.json_to_sheet([
     {
       full_name: "Ahmad Fauzi",
-      email: "ahmad.fauzi@example.com",
       nim_nip: "2311040007",
-      phone_number: "+6281234567890",
       role: "mahasiswa",
-      password: "password123",
+      study_program: "Pendidikan Matematika",
     },
     {
       full_name: "Dr. Siti Rahma, M.Pd.",
-      email: "siti.rahma@example.com",
       nim_nip: "198705142019032008",
-      phone_number: "+6281234567891",
       role: "dosen",
-      password: "password123",
+      study_program: "Pendidikan Matematika",
     },
   ]);
   const workbook = XLSX.utils.book_new();

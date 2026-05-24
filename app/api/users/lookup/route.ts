@@ -15,6 +15,24 @@ export async function GET(request: Request) {
 
   try {
     const supabaseAdmin = createSupabaseAdminClient();
+    const { data: visitorRow } = await supabaseAdmin
+      .from("attendance_visitors")
+      .select("nim_nip,full_name,visitor_status,study_program")
+      .eq("nim_nip", identifier)
+      .maybeSingle();
+
+    if (visitorRow) {
+      return NextResponse.json({
+        user: {
+          name: visitorRow.full_name ?? "",
+          nimNip: visitorRow.nim_nip ?? identifier,
+          role: "mahasiswa",
+          visitorStatus: getVisitorStatusFromText(visitorRow.visitor_status),
+          studyProgram: visitorRow.study_program ?? "Pendidikan Matematika",
+        },
+      });
+    }
+
     const { data, error } = await supabaseAdmin.auth.admin.listUsers({
       page: 1,
       perPage: 1000,
@@ -68,3 +86,10 @@ function getVisitorStatus(role: Role): VisitorStatus {
   return "Umum";
 }
 
+function getVisitorStatusFromText(value: unknown): VisitorStatus {
+  const normalized = String(value ?? "").trim().toLowerCase();
+
+  if (normalized === "dosen") return "Dosen";
+  if (normalized === "umum") return "Umum";
+  return "Mahasiswa";
+}

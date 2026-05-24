@@ -12,6 +12,7 @@ type ImportVisitorRow = {
   nip?: string;
   visitor_status?: string;
   status?: string;
+  role?: string;
   study_program?: string;
   program_studi?: string;
 };
@@ -58,7 +59,7 @@ function normalizeRow(row: ImportVisitorRow) {
   return {
     nim_nip: nimNip,
     full_name: fullName,
-    visitor_status: normalizeVisitorStatus(row.visitor_status ?? row.status),
+    visitor_status: normalizeVisitorStatus(row.visitor_status ?? row.status ?? row.role),
     study_program: String(row.study_program ?? row.program_studi ?? "Pendidikan Matematika").trim() || "Pendidikan Matematika",
     updated_at: new Date().toISOString(),
   };
@@ -71,4 +72,3 @@ function normalizeVisitorStatus(value: unknown): VisitorStatus {
   if (normalized === "umum") return "Umum";
   return "Mahasiswa";
 }
-

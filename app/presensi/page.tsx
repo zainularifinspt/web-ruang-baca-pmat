@@ -210,7 +210,7 @@ export default function AttendancePage() {
                           Catat kunjungan dalam satu menit
                         </h2>
                         <p className="mt-1 text-sm leading-6 text-emerald-50">
-                          Lengkapi identitas kunjungan dengan data yang akurat.
+                          Cukup ketik NIM/NIP, lalu nama dan status pengunjung akan muncul otomatis jika data sudah diimport admin.
                         </p>
                       </div>
                     </div>
@@ -222,6 +222,9 @@ export default function AttendancePage() {
                     <label className="text-sm font-semibold text-slate-800" htmlFor="identifier">
                       NIM/NIP
                     </label>
+                    <p className="text-sm leading-6 text-slate-500">
+                      Pengunjung hanya perlu mengetik NIM/NIP. Nama, status, dan program studi akan terisi otomatis dari data presensi.
+                    </p>
                     <div className="relative">
                       <Search className="absolute left-4 top-1/2 size-4 -translate-y-1/2 text-emerald-600/70" />
                       <Input
