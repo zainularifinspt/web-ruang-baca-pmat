@@ -2,7 +2,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { PublicNav } from "@/components/public-nav";
-import { StatusBadge } from "@/components/status-badge";
 import { ThesisPdfViewer } from "@/components/thesis-pdf-viewer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,9 +35,9 @@ export default async function CollectionDetailPage({
           <CardHeader className="space-y-3">
             <div className="flex flex-wrap gap-2">
               <Badge variant="secondary">{isBook ? "Buku" : "Skripsi"}</Badge>
-              {isBook ? <StatusBadge status={item.verificationStatus} /> : null}
             </div>
             <CardTitle className="text-xl leading-tight sm:text-2xl">{item.title}</CardTitle>
+            {isBook ? <BookCoverBlock coverUrl={item.coverUrl} title={item.title} /> : null}
           </CardHeader>
           <CardContent className="grid gap-5 text-sm">
             <div className="grid gap-3 sm:grid-cols-2">
@@ -46,16 +45,12 @@ export default async function CollectionDetailPage({
               <Meta label="Tahun" value={String(item.year)} />
               {isBook ? <Meta label="Kode" value={item.code} /> : null}
               {isBook ? <Meta label="Lokasi" value={item.rackLocation} /> : null}
-              {isBook ? <Meta label="Sumber input" value={item.inputSource} /> : null}
-              <Meta label="Diinput oleh" value={item.inputBy} />
-              <Meta label="Tanggal input" value={formatDate(item.createdAt)} />
-              {isBook ? <Meta label="Kata kunci" value={item.keywords.join(", ")} /> : null}
+              {!isBook ? <Meta label="Diinput oleh" value={item.inputBy} /> : null}
+              {!isBook ? <Meta label="Tanggal input" value={formatDate(item.createdAt)} /> : null}
             </div>
             {isBook ? (
               <div className="grid gap-3 rounded-2xl border bg-muted/35 p-4 sm:grid-cols-2">
-                <Meta label="Penerbit" value={item.publisher} />
                 <Meta label="Kategori" value={item.category} />
-                <Meta label="ISBN" value={item.isbn} />
                 <Meta label="Stok" value={`${item.available} tersedia dari ${item.stock}`} />
               </div>
             ) : (
@@ -81,6 +76,25 @@ export default async function CollectionDetailPage({
           </CardContent>
         </Card>
       </main>
+    </div>
+  );
+}
+
+function BookCoverBlock({ coverUrl, title }: { coverUrl?: string; title: string }) {
+  return (
+    <div className="w-fit rounded-2xl border bg-white p-3 shadow-sm">
+      {coverUrl ? (
+        <div
+          aria-label={`Cover ${title}`}
+          className="h-52 w-36 rounded-xl bg-slate-100 bg-cover bg-center ring-1 ring-slate-200"
+          role="img"
+          style={{ backgroundImage: `url(${coverUrl})` }}
+        />
+      ) : (
+        <div className="flex h-52 w-36 items-center justify-center rounded-xl bg-slate-100 px-3 text-center text-xs font-medium text-slate-500 ring-1 ring-slate-200">
+          Cover belum tersedia
+        </div>
+      )}
     </div>
   );
 }

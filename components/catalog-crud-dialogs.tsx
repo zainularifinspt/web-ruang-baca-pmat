@@ -344,7 +344,7 @@ function BookDialog({
                 onValueChange={(status) => onValuesChange({ ...values, status })}
               />
             </Field>
-            <Field label="Cover URL" className="sm:col-span-2">
+            <Field label="Cover buku (URL)" className="sm:col-span-2">
               <Input
                 type="url"
                 value={values.coverUrl}
@@ -352,12 +352,32 @@ function BookDialog({
                 placeholder="https://..."
                 disabled={form.isPending}
               />
+              <BookCoverFormPreview coverUrl={values.coverUrl} />
             </Field>
           </div>
           <DialogActions isPending={form.isPending} submitLabel={submitLabel} />
         </form>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function BookCoverFormPreview({ coverUrl }: { coverUrl: string }) {
+  const trimmedCoverUrl = coverUrl.trim();
+
+  if (!trimmedCoverUrl) {
+    return <p className="mt-2 text-xs text-slate-500">Masukkan URL gambar cover buku.</p>;
+  }
+
+  return (
+    <div className="mt-3 w-fit rounded-2xl border bg-slate-50 p-2">
+      <div
+        aria-label="Preview cover buku"
+        className="h-40 w-28 rounded-xl bg-slate-100 bg-cover bg-center ring-1 ring-slate-200"
+        role="img"
+        style={{ backgroundImage: `url(${trimmedCoverUrl})` }}
+      />
+    </div>
   );
 }
 

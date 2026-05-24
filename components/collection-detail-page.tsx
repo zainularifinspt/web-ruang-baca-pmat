@@ -6,9 +6,7 @@ import {
   FileText,
   GraduationCap,
   Hash,
-  LibraryBig,
   MapPin,
-  Sparkles,
   UserRound,
 } from "lucide-react";
 import { PublicNav } from "@/components/public-nav";
@@ -71,7 +69,7 @@ export function CollectionDetailPage({ item }: { item: DetailItem }) {
               </h1>
               <p className="mt-4 max-w-3xl text-base leading-8 text-slate-600">
                 {isBook
-                  ? `${item.author || "Penulis belum tercatat"} - ${item.publisher || "Penerbit belum tercatat"}`
+                  ? item.author || "Penulis belum tercatat"
                   : `${item.studentName || "Mahasiswa"} - ${item.year}`}
               </p>
             </div>
@@ -79,8 +77,6 @@ export function CollectionDetailPage({ item }: { item: DetailItem }) {
             {isBook ? (
               <div className="grid gap-4 sm:grid-cols-2">
                 <InfoCard icon={UserRound} label="Penulis" value={item.author} />
-                <InfoCard icon={LibraryBig} label="Sumber input" value={item.inputSource} />
-                <InfoCard icon={Calendar} label="Tanggal input" value={formatDate(item.createdAt)} />
                 <InfoCard icon={BookOpen} label="Kategori" value={item.category} />
               </div>
             ) : (
@@ -89,7 +85,7 @@ export function CollectionDetailPage({ item }: { item: DetailItem }) {
                 <InfoCard icon={UserRound} label="Mahasiswa" value={item.studentName} />
                 <InfoCard icon={GraduationCap} label="Dosen pembimbing" value={supervisorNames} />
                 <InfoCard icon={Calendar} label="Tanggal input" value={formatDate(item.createdAt)} />
-                <InfoCard icon={LibraryBig} label="Diinput oleh" value={item.inputBy} />
+                <InfoCard icon={BookOpen} label="Diinput oleh" value={item.inputBy} />
               </div>
             )}
 
@@ -98,34 +94,6 @@ export function CollectionDetailPage({ item }: { item: DetailItem }) {
                 {isBook ? <BookDetail item={item} /> : <ThesisDetail item={item} />}
               </CardContent>
             </Card>
-
-            {isBook ? (
-              <div className="grid gap-4 lg:grid-cols-[1fr_0.9fr]">
-                <Card className="rounded-[2rem] border-slate-200 bg-white shadow-sm">
-                  <CardContent className="p-6">
-                    <p className="text-sm font-semibold text-slate-950">Kata kunci</p>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {item.keywords.length ? (
-                        item.keywords.map((keyword) => (
-                          <Badge key={keyword} variant="secondary" className="rounded-full">
-                            {keyword}
-                          </Badge>
-                        ))
-                      ) : (
-                        <p className="text-sm text-slate-500">Belum ada kata kunci.</p>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="rounded-[2rem] border-emerald-100 bg-emerald-50 shadow-sm">
-                  <CardContent className="p-6 text-sm leading-6 text-emerald-950">
-                    <Sparkles className="mb-3 size-5" />
-                    Koleksi ini sudah melewati alur verifikasi dan tampil sebagai data publik ruang baca.
-                  </CardContent>
-                </Card>
-              </div>
-            ) : null}
 
             {item.notes ? (
               <div className="rounded-[1.5rem] border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-900">
@@ -236,9 +204,7 @@ function BookDetail({ item }: { item: Book }) {
     <div>
       <p className="text-lg font-semibold text-slate-950">Informasi buku</p>
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
-        <Meta label="Penerbit" value={item.publisher || "-"} />
         <Meta label="Kategori" value={item.category || "-"} />
-        <Meta label="ISBN" value={item.isbn || "-"} />
         <Meta label="Stok" value={`${item.available} tersedia dari ${item.stock}`} />
       </div>
       <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
