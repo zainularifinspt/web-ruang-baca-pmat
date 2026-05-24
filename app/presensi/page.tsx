@@ -1,6 +1,6 @@
 "use client";
 
-import { type ComponentType, type FormEvent, type ReactNode, useMemo, useState } from "react";
+import { type ComponentType, type FormEvent, type ReactNode, useEffect, useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { findUserByNimNip, getVisitorStatusFromRole, visitPurposes, visitorStatuses } from "@/lib/mock-data";
+import { visitPurposes, visitorStatuses } from "@/lib/mock-data";
 import type { VisitPurpose, VisitorStatus } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 
@@ -33,6 +33,13 @@ type SubmittedAttendance = {
   visitedAt: string;
 };
 
+type LookupUser = {
+  name: string;
+  nimNip: string;
+  visitorStatus: VisitorStatus;
+  studyProgram: string;
+};
+
 export default function AttendancePage() {
   const [identifier, setIdentifier] = useState("");
   const [name, setName] = useState("");
@@ -41,13 +48,52 @@ export default function AttendancePage() {
   const [purpose, setPurpose] = useState<VisitPurpose | "">("");
   const [submitted, setSubmitted] = useState<SubmittedAttendance | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [matchedUser, setMatchedUser] = useState<LookupUser | null>(null);
+  const [isLookupLoading, setIsLookupLoading] = useState(false);
 
-  const matchedUser = useMemo(
-    () => findUserByNimNip(identifier.trim()),
-    [identifier],
-  );
+  useEffect(() => {
+    const normalizedIdentifier = identifier.trim();
 
-  const isUnknownIdentifier = identifier.trim().length >= 5 && !matchedUser;
+    if (normalizedIdentifier.length < 4) {
+      return;
+    }
+
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      setIsLookupLoading(true);
+
+      try {
+        const response = await fetch(
+          `/api/users/lookup?identifier=${encodeURIComponent(normalizedIdentifier)}`,
+          { cache: "no-store", signal: controller.signal },
+        );
+        const payload = (await response.json()) as { user?: LookupUser | null; error?: string };
+
+        if (!response.ok || payload.error) {
+          throw new Error(payload.error ?? "Gagal mencari data pengguna.");
+        }
+
+        setMatchedUser(payload.user ?? null);
+        if (payload.user) {
+          setName(payload.user.name);
+          setVisitorStatus(payload.user.visitorStatus);
+          setStudyProgram(payload.user.studyProgram || "Pendidikan Matematika");
+        }
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") return;
+        setMatchedUser(null);
+      } finally {
+        setIsLookupLoading(false);
+      }
+    }, 320);
+
+    return () => {
+      controller.abort();
+      window.clearTimeout(timer);
+    };
+  }, [identifier]);
+
+  const isUnknownIdentifier = identifier.trim().length >= 5 && !matchedUser && !isLookupLoading;
   const canSubmit =
     identifier.trim().length >= 4 &&
     name.trim().length >= 3 &&
@@ -56,15 +102,8 @@ export default function AttendancePage() {
 
   function handleIdentifierChange(value: string) {
     setIdentifier(value);
-
-    const user = findUserByNimNip(value.trim());
-    if (!user) {
-      return;
-    }
-
-    setName(user.name);
-    setVisitorStatus(getVisitorStatusFromRole(user.role));
-    setStudyProgram(user.studyProgram ?? "Pendidikan Matematika");
+    setMatchedUser(null);
+    setIsLookupLoading(value.trim().length >= 4);
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -198,6 +237,10 @@ export default function AttendancePage() {
                         <CheckCircle2 className="size-3.5" />
                         Data ditemukan
                       </div>
+                    ) : isLookupLoading ? (
+                      <p className="rounded-2xl bg-cyan-50 px-3 py-2 text-sm text-cyan-800 ring-1 ring-cyan-100">
+                        Mencari data NIM/NIP...
+                      </p>
                     ) : isUnknownIdentifier ? (
                       <p className="rounded-2xl bg-amber-50 px-3 py-2 text-sm text-amber-800 ring-1 ring-amber-100">
                         Data belum ditemukan, silakan lengkapi manual.

@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useMemo, useState, useTransition } from "react";
-import { KeyRound, Pencil, Plus, Trash2 } from "lucide-react";
+import { Download, FileSpreadsheet, KeyRound, Pencil, Plus, Trash2, Upload } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { InitialAvatar } from "@/components/data-table";
@@ -53,6 +53,18 @@ const emptyForm = {
   nimNip: "",
   phoneNumber: "",
   role: "mahasiswa" as ManagedUserRole,
+};
+
+type ImportUserRow = {
+  rowNumber: number;
+  fullName: string;
+  email: string;
+  nimNip: string;
+  phoneNumber: string;
+  role: ManagedUserRole;
+  password: string;
+  status: "ready" | "success" | "error";
+  message: string;
 };
 
 export function UsersManagement({ users }: { users: ManagedUser[] }) {
@@ -125,8 +137,225 @@ export function UsersManagement({ users }: { users: ManagedUser[] }) {
   );
 }
 
+export function UsersPageActions({ users }: { users: ManagedUser[] }) {
+  return (
+    <section className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/70 sm:p-5">
+      <div className="mb-4">
+        <p className="text-sm font-semibold text-primary">Aksi pengguna</p>
+        <h2 className="mt-1 text-xl font-semibold text-slate-950 sm:text-2xl">
+          Kelola data akun dan identitas presensi
+        </h2>
+      </div>
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+        <AddUserButton />
+        <ImportUsersDialog />
+        <ExportUsersButton users={users} />
+      </div>
+    </section>
+  );
+}
+
 export function AddUserButton() {
   return <UserDialog />;
+}
+
+function ExportUsersButton({ users }: { users: ManagedUser[] }) {
+  async function handleExport() {
+    try {
+      const XLSX = await import("xlsx");
+      const rows = users.map((user) => ({
+        full_name: user.fullName,
+        email: user.email,
+        nim_nip: user.nimNip,
+        phone_number: user.phoneNumber,
+        role: user.role,
+        role_label: roleLabels[user.role],
+      }));
+      const worksheet = XLSX.utils.json_to_sheet(rows);
+      const workbook = XLSX.utils.book_new();
+
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Pengguna");
+      XLSX.writeFile(workbook, "export-pengguna.xlsx");
+      toast.success("Ekspor pengguna selesai", {
+        description: `${rows.length} pengguna diunduh sebagai XLSX.`,
+      });
+    } catch (error) {
+      toast.error("Gagal ekspor pengguna", {
+        description: error instanceof Error ? error.message : "Terjadi kesalahan saat membuat XLSX.",
+      });
+    }
+  }
+
+  return (
+    <Button type="button" size="sm" variant="outline" className="rounded-xl bg-white" onClick={handleExport}>
+      <Download />
+      Ekspor pengguna
+    </Button>
+  );
+}
+
+function ImportUsersDialog() {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const [rows, setRows] = useState<ImportUserRow[]>([]);
+  const [isPending, startTransition] = useTransition();
+  const readyCount = rows.filter((row) => row.status === "ready").length;
+
+  function handlePrepare() {
+    if (!file) {
+      toast.error("File XLSX/CSV wajib dipilih.");
+      return;
+    }
+
+    startTransition(async () => {
+      try {
+        setRows(await parseUsersSpreadsheet(file));
+      } catch (error) {
+        toast.error("Gagal membaca file import pengguna", {
+          description: error instanceof Error ? error.message : "Periksa format spreadsheet.",
+        });
+      }
+    });
+  }
+
+  function handleImport() {
+    const importableRows = rows.filter((row) => row.status === "ready");
+    if (!importableRows.length) {
+      toast.error("Tidak ada baris yang siap diimport.");
+      return;
+    }
+
+    startTransition(async () => {
+      for (const row of importableRows) {
+        try {
+          const result = await saveManagedUser({
+            fullName: row.fullName,
+            email: row.email,
+            nimNip: row.nimNip,
+            phoneNumber: row.phoneNumber,
+            role: row.role,
+            password: row.password,
+            confirmPassword: row.password,
+          });
+
+          setRows((currentRows) =>
+            currentRows.map((item) =>
+              item.rowNumber === row.rowNumber
+                ? { ...item, status: result.ok ? "success" : "error", message: result.message }
+                : item,
+            ),
+          );
+        } catch (error) {
+          setRows((currentRows) =>
+            currentRows.map((item) =>
+              item.rowNumber === row.rowNumber
+                ? {
+                    ...item,
+                    status: "error",
+                    message: error instanceof Error ? error.message : "Gagal mengimport pengguna.",
+                  }
+                : item,
+            ),
+          );
+        }
+      }
+
+      toast.success("Import pengguna selesai.");
+      router.refresh();
+    });
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button type="button" size="sm" variant="outline" className="rounded-xl bg-white">
+          <Upload />
+          Import pengguna
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-3xl rounded-2xl">
+        <DialogHeader>
+          <DialogTitle>Import pengguna</DialogTitle>
+          <DialogDescription>
+            Upload XLSX/CSV berisi nama, email, NIM/NIP, role, nomor WhatsApp, dan password awal.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="rounded-2xl border bg-slate-50 p-4 text-sm leading-6 text-slate-600">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="font-semibold text-slate-950">Template XLSX</p>
+              <p className="mt-1">
+                Kolom: full_name, email, nim_nip, phone_number, role, password.
+              </p>
+            </div>
+            <Button type="button" variant="outline" size="sm" className="rounded-xl bg-white" onClick={downloadUsersTemplate}>
+              <Download className="size-4" />
+              Download template
+            </Button>
+          </div>
+        </div>
+
+        <label>
+          <span className="mb-2 flex items-center gap-2 text-xs font-medium text-slate-500">
+            <FileSpreadsheet className="size-4" />
+            Spreadsheet pengguna
+          </span>
+          <Input
+            type="file"
+            accept=".xlsx,.xls,.csv"
+            disabled={isPending}
+            onChange={(event) => setFile(event.target.files?.[0] ?? null)}
+          />
+        </label>
+
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-slate-500">
+            {rows.length ? `${rows.length} baris dibaca. ${readyCount} siap import.` : "Pilih file lalu klik Baca file import."}
+          </p>
+          <div className="flex flex-col-reverse gap-2 sm:flex-row">
+            <Button type="button" variant="outline" className="rounded-xl" disabled={isPending || !file} onClick={handlePrepare}>
+              {isPending ? "Membaca..." : "Baca file import"}
+            </Button>
+            <Button type="button" className="rounded-xl" disabled={isPending || readyCount === 0} onClick={handleImport}>
+              {isPending ? "Memproses..." : `Import ${readyCount} pengguna`}
+            </Button>
+          </div>
+        </div>
+
+        {rows.length ? (
+          <div className="max-h-72 overflow-auto rounded-2xl border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Baris</TableHead>
+                  <TableHead>Nama</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {rows.map((row) => (
+                  <TableRow key={row.rowNumber}>
+                    <TableCell>{row.rowNumber}</TableCell>
+                    <TableCell>{row.fullName || "-"}</TableCell>
+                    <TableCell>{row.email || "-"}</TableCell>
+                    <TableCell>
+                      <span className={row.status === "error" ? "text-rose-700" : row.status === "success" ? "text-emerald-700" : "text-slate-600"}>
+                        {row.status === "ready" ? "Siap" : row.status === "success" ? "Berhasil" : "Error"}
+                      </span>
+                      {row.message ? <p className="mt-1 text-xs text-slate-500">{row.message}</p> : null}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        ) : null}
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 function UserDialog({ user }: { user?: ManagedUser }) {
@@ -412,4 +641,108 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       {children}
     </label>
   );
+}
+
+async function parseUsersSpreadsheet(file: File): Promise<ImportUserRow[]> {
+  const XLSX = await import("xlsx");
+  const buffer = await file.arrayBuffer();
+  const workbook = XLSX.read(buffer, { type: "array" });
+  const sheetName = workbook.SheetNames[0];
+  const sheet = sheetName ? workbook.Sheets[sheetName] : null;
+
+  if (!sheet) throw new Error("Sheet pertama tidak ditemukan.");
+
+  const records = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, {
+    defval: "",
+  });
+
+  return records.map((record, index) => normalizeUserImportRow(record, index + 2));
+}
+
+function normalizeUserImportRow(record: Record<string, unknown>, rowNumber: number): ImportUserRow {
+  const parsedRole = normalizeImportRole(getText(record, ["role", "peran"]));
+  const row: ImportUserRow = {
+    rowNumber,
+    fullName: getText(record, ["full_name", "nama", "nama_lengkap"]),
+    email: getText(record, ["email"]),
+    nimNip: getText(record, ["nim_nip", "nim", "nip", "nim/nip"]),
+    phoneNumber: getText(record, ["phone_number", "no_whatsapp", "whatsapp", "no_hp"]),
+    role: parsedRole || "mahasiswa",
+    password: getText(record, ["password", "password_awal"]),
+    status: "ready",
+    message: "",
+  };
+  const missing = [
+    ["full_name", row.fullName],
+    ["email", row.email],
+    ["nim_nip", row.nimNip],
+    ["phone_number", row.phoneNumber],
+    ["password", row.password],
+  ]
+    .filter(([, value]) => !value)
+    .map(([label]) => label);
+
+  if (!parsedRole) missing.push("role");
+  if (missing.length) {
+    return {
+      ...row,
+      status: "error",
+      message: `Kolom wajib kosong/tidak valid: ${missing.join(", ")}.`,
+    };
+  }
+
+  return row;
+}
+
+function normalizeImportRole(value: string): ManagedUserRole | "" {
+  const normalized = value.trim().toLowerCase();
+
+  if (normalized === "dosen") return "dosen";
+  if (normalized === "petugas") return "petugas";
+  if (normalized === "mahasiswa") return "mahasiswa";
+  return "";
+}
+
+function getText(record: Record<string, unknown>, keys: string[]) {
+  const normalizedRecord = Object.fromEntries(
+    Object.entries(record).map(([key, value]) => [normalizeKey(key), value]),
+  );
+
+  for (const key of keys) {
+    const value = normalizedRecord[normalizeKey(key)];
+    if (typeof value === "string") return value.trim();
+    if (typeof value === "number") return String(value);
+  }
+
+  return "";
+}
+
+function normalizeKey(key: string) {
+  return key.trim().toLowerCase().replace(/\s+/g, "_");
+}
+
+async function downloadUsersTemplate() {
+  const XLSX = await import("xlsx");
+  const worksheet = XLSX.utils.json_to_sheet([
+    {
+      full_name: "Ahmad Fauzi",
+      email: "ahmad.fauzi@example.com",
+      nim_nip: "2311040007",
+      phone_number: "+6281234567890",
+      role: "mahasiswa",
+      password: "password123",
+    },
+    {
+      full_name: "Dr. Siti Rahma, M.Pd.",
+      email: "siti.rahma@example.com",
+      nim_nip: "198705142019032008",
+      phone_number: "+6281234567891",
+      role: "dosen",
+      password: "password123",
+    },
+  ]);
+  const workbook = XLSX.utils.book_new();
+
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Import Pengguna");
+  XLSX.writeFile(workbook, "template-import-pengguna.xlsx");
 }
