@@ -18,13 +18,15 @@
     "@supabase/supabase-js": "^2.106.0",
     "class-variance-authority": "latest",
     "clsx": "latest",
+    "jszip": "^3.10.1",
     "lucide-react": "latest",
     "next": "latest",
     "pdfjs-dist": "^5.7.284",
     "react": "latest",
     "react-dom": "latest",
     "sonner": "latest",
-    "tailwind-merge": "latest"
+    "tailwind-merge": "latest",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "latest",

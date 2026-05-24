@@ -7,6 +7,7 @@ import {
   DeleteCollectionDialog,
   EditCollectionDialog,
 } from "@/components/catalog-crud-dialogs";
+import { CatalogImportDialog } from "@/components/catalog-import-dialog";
 import { ExportButton } from "@/components/export-button";
 import { useRole } from "@/components/role-provider";
 import type { Book, Thesis } from "@/lib/types";
@@ -46,6 +47,7 @@ export function DashboardCatalogActions() {
   const canExport = canAccess(role, "export_data");
   const canAddBook = role === "admin" || role === "petugas";
   const canAddThesis = role === "admin" || role === "petugas" || role === "dosen";
+  const canImport = role === "admin" || role === "petugas";
 
   return (
     <>
@@ -57,6 +59,7 @@ export function DashboardCatalogActions() {
       ) : null}
       {canAddBook ? <AddBookDialog /> : null}
       {canAddThesis ? <AddThesisDialog /> : null}
+      {canImport ? <CatalogImportDialog /> : null}
     </>
   );
 }
