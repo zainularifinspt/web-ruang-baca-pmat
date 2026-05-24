@@ -6,7 +6,6 @@ import { AvailabilityBadge } from "@/components/status-badge";
 import { ThesisPdfViewer } from "@/components/thesis-pdf-viewer";
 import { splitBookAuthors } from "@/lib/book-authors";
 import type { Book, Thesis } from "@/lib/types";
-import { formatDate } from "@/lib/utils";
 
 type CollectionItem = Book | Thesis;
 
@@ -68,12 +67,6 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
             </div>
           )}
         </div>
-        {!isBook ? (
-          <div className="grid gap-2 text-sm sm:grid-cols-2">
-            <Meta label="Diinput oleh" value={item.inputBy} />
-            <Meta label="Tanggal input" value={formatDate(item.createdAt)} />
-          </div>
-        ) : null}
         {!isBook ? (
           <div className="space-y-4">
             <div className="rounded-2xl border bg-white p-4">
