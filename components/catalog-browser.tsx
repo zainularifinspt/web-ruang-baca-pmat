@@ -54,6 +54,7 @@ export function CatalogBrowser({
   initialVerificationStatus = "all",
   showAllTab = true,
   itemActions,
+  toolbar,
   enableRealtime = true,
 }: {
   books: Book[];
@@ -63,6 +64,7 @@ export function CatalogBrowser({
   initialVerificationStatus?: VerificationFilter;
   showAllTab?: boolean;
   itemActions?: (item: CollectionItem) => ReactNode;
+  toolbar?: ReactNode;
   enableRealtime?: boolean;
 }) {
   const router = useRouter();
@@ -230,6 +232,8 @@ export function CatalogBrowser({
 
   return (
     <div className="space-y-6">
+      {toolbar ? toolbar : null}
+
       <div className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/70 sm:p-5">
         <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
