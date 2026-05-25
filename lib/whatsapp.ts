@@ -56,7 +56,7 @@ export async function sendWhatsappTextMessage({
     method: "POST",
     headers: buildWhatsappHeaders(config),
     body: JSON.stringify({
-      phone: `${normalizedPhone}@s.whatsapp.net`,
+      phone: normalizedPhone,
       message,
       is_forwarded: false,
     }),
