@@ -184,7 +184,7 @@ export function CatalogImportDialog({
               <p className="mt-1">
                 {importType === "book"
                   ? "Kolom: title, author, year, category, rack_location, stock, status, cover_url atau cover_filename."
-                  : "Kolom: title, student_name, year, topic, abstract, supervisor_1, supervisor_2, physical_location, access_note, cover_url atau cover_filename, pdf_url atau pdf_filename."}
+                  : "Kolom: title, student_name, year, abstract, supervisor_1, supervisor_2, pdf_url atau pdf_filename."}
               </p>
               <p className="mt-2 flex items-center gap-2 text-xs text-slate-500">
                 <Link className="size-3.5" />
@@ -353,7 +353,7 @@ function validateImportRows(rows: ImportRow[], assets: ZipAssetMap) {
     const requiredFields =
       row.type === "book"
         ? ["title", "author", "category", "rack_location"]
-        : ["title", "student_name", "year", "topic", "abstract", "supervisor_1", "supervisor_2"];
+        : ["title", "student_name", "year", "abstract", "supervisor_1", "supervisor_2"];
 
     requiredFields.forEach((field) => {
       if (!getText(row.data, fieldAliases(field))) {
@@ -400,15 +400,10 @@ async function downloadImportTemplate(importType: ImportType) {
             title: "Analisis Kemampuan Berpikir Kritis Siswa",
             student_name: "Ahmad Fauzi",
             year: "2026",
-            topic: "Pendidikan Matematika",
             abstract: "Ringkasan penelitian skripsi.",
             supervisor_1: "Dr. Pembimbing Satu, M.Pd.",
             supervisor_2: "Dr. Pembimbing Dua, M.Pd.",
-            physical_location: "Lemari Skripsi",
-            access_note: defaultAccessNote,
-            cover_url: "https://drive.google.com/file/d/cover-file-id/view?usp=sharing",
             pdf_url: "https://drive.google.com/file/d/pdf-file-id/view?usp=sharing",
-            cover_filename: "covers/ahmad-fauzi.jpg",
             pdf_filename: "pdf/ahmad-fauzi.pdf",
           },
         ];
