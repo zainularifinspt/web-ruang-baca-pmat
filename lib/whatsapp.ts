@@ -53,6 +53,13 @@ export async function sendWhatsappTextMessage({
 
   const { config } = configResult;
 
+  console.log("[whatsapp] Preparing WhatsApp text message", {
+    baseUrlConfigured: Boolean(config.baseUrl),
+    deviceId: config.deviceId,
+    hasBasicAuth: Boolean(config.username && config.password),
+    to: normalizedPhone,
+  });
+
   if (!isValidWhatsappNumber(normalizedPhone)) {
     console.error("[whatsapp] Nomor tujuan tidak valid", {
       phoneLength: normalizedPhone.length,
