@@ -77,7 +77,7 @@ export default function AttendanceReportPage() {
         <div className="pointer-events-none absolute -right-16 -top-20 size-72 rounded-full bg-cyan-300 opacity-25 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-24 left-1/3 size-72 rounded-full bg-violet-300 opacity-20 blur-3xl" />
         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:40px_40px] opacity-30" />
-        <div className="relative grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
+        <div className="relative">
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 text-sm font-semibold text-emerald-50 shadow-sm ring-1 ring-white/25 backdrop-blur">
               <Sparkles className="size-3.5" />
@@ -90,21 +90,22 @@ export default function AttendanceReportPage() {
               Pantau aktivitas pengunjung, saring data operasional, dan siapkan laporan presensi ruang baca.
             </p>
           </div>
-          <div className="flex flex-col gap-2 sm:flex-row lg:justify-end">
-            <Button asChild size="sm" className="h-10 rounded-xl bg-white px-4 text-sm font-semibold text-emerald-800 shadow-sm hover:bg-emerald-50">
-              <Link href="/presensi">
-                <CalendarCheck className="size-4" />
-                Buka Mode Presensi QR
-              </Link>
-            </Button>
-            <ExportButton
-              type="attendance"
-              label="Ekspor presensi"
-              className="h-10 rounded-xl border-white/70 bg-white/95 px-4 text-sm font-semibold text-slate-700 shadow-sm hover:bg-white"
-            />
-          </div>
         </div>
       </section>
+
+      <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+        <Button asChild size="sm" className="h-10 rounded-xl bg-emerald-700 px-4 text-sm font-semibold shadow-sm hover:bg-emerald-800">
+          <Link href="/presensi">
+            <CalendarCheck className="size-4" />
+            Buka Mode Presensi QR
+          </Link>
+        </Button>
+        <ExportButton
+          type="attendance"
+          label="Ekspor presensi"
+          className="h-10 rounded-xl px-4 text-sm"
+        />
+      </div>
 
       <div className="grid items-stretch gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <AttendanceStatCard

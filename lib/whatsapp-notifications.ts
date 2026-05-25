@@ -2,6 +2,7 @@ import {
   normalizePhoneNumber,
   type DraftSubmissionType,
 } from "@/lib/whatsapp-drafts";
+import { sendWhatsappTextMessage } from "@/lib/whatsapp";
 
 type SubmissionNotificationInput = {
   senderPhone: string;
@@ -13,80 +14,36 @@ type SubmissionNotificationInput = {
   unknownSender: boolean;
 };
 
-type WhatsappConfig = {
-  to: string;
-  phoneNumberId: string;
-  accessToken: string;
-};
-
 export async function sendWhatsappSubmissionNotification(
   input: SubmissionNotificationInput,
 ) {
-  const config = getWhatsappConfig();
+  const toNumber = getNotificationTargetNumber();
 
-  if (!config) {
-    return { ok: false, message: "Konfigurasi WhatsApp belum lengkap." };
+  if (!toNumber) {
+    return { ok: false, message: "Nomor tujuan notifikasi WhatsApp belum valid." };
   }
 
-  const body = buildSubmissionNotificationMessage(input);
-  const response = await fetch(
-    `https://graph.facebook.com/v20.0/${config.phoneNumberId}/messages`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${config.accessToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        messaging_product: "whatsapp",
-        to: config.to,
-        type: "text",
-        text: { body },
-      }),
-    },
-  );
-
-  if (!response.ok) {
-    const responseText = await response.text();
-    console.error("[whatsapp-notification] WhatsApp API request failed", {
-      status: response.status,
-      statusText: response.statusText,
-      response: responseText.slice(0, 1000),
-    });
-
-    return {
-      ok: false,
-      message: `WhatsApp API request failed with status ${response.status}.`,
-    };
-  }
-
-  console.log("[whatsapp-notification] Submission notification sent", {
-    to: config.to,
-    senderPhone: input.senderPhone,
-    type: input.type,
+  const result = await sendWhatsappTextMessage({
+    phone: toNumber,
+    message: buildSubmissionNotificationMessage(input),
   });
 
-  return { ok: true, message: "Notifikasi WhatsApp terkirim." };
+  if (result.ok) {
+    console.log("[whatsapp-notification] Submission notification sent", {
+      to: toNumber,
+      senderPhone: input.senderPhone,
+      type: input.type,
+    });
+  }
+
+  return result;
 }
 
-function getWhatsappConfig(): WhatsappConfig | null {
+function getNotificationTargetNumber() {
   const toNumber = process.env.WHATSAPP_TO_NUMBER?.trim();
-  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID?.trim();
-  const accessToken = process.env.WHATSAPP_ACCESS_TOKEN?.trim();
 
   if (!toNumber) {
     console.error("[whatsapp-notification] WHATSAPP_TO_NUMBER kosong.");
-  }
-
-  if (!phoneNumberId) {
-    console.error("[whatsapp-notification] WHATSAPP_PHONE_NUMBER_ID kosong.");
-  }
-
-  if (!accessToken) {
-    console.error("[whatsapp-notification] WHATSAPP_ACCESS_TOKEN kosong.");
-  }
-
-  if (!toNumber || !phoneNumberId || !accessToken) {
     return null;
   }
 
@@ -103,11 +60,7 @@ function getWhatsappConfig(): WhatsappConfig | null {
     return null;
   }
 
-  return {
-    to: normalizedToNumber,
-    phoneNumberId,
-    accessToken,
-  };
+  return normalizedToNumber;
 }
 
 function buildSubmissionNotificationMessage(input: SubmissionNotificationInput) {

@@ -12,87 +12,62 @@ type WhatsappSendResult = {
   message: string;
 };
 
-type TemplateConfig = {
-  envName: string;
-  templateName?: string;
-  languageCode: string;
-};
-
 type WhatsappConfig = {
-  phoneNumberId: string;
-  accessToken: string;
+  baseUrl: string;
+  deviceId: string | null;
+  username: string | null;
+  password: string | null;
 };
 
 export async function sendLoanSuccessNotification(input: LoanWhatsappInput) {
-  return sendLoanWhatsappMessage(input, {
-    envName: "WHATSAPP_TEMPLATE_LOAN_SUCCESS",
-    templateName: process.env.WHATSAPP_TEMPLATE_LOAN_SUCCESS?.trim(),
-    languageCode: "id",
-  }, buildLoanSuccessMessage(input));
+  return sendLoanWhatsappMessage(input, buildLoanSuccessMessage(input));
 }
 
 export async function sendLoanReminderH1(input: LoanWhatsappInput) {
-  return sendLoanWhatsappMessage(input, {
-    envName: "WHATSAPP_TEMPLATE_LOAN_REMINDER_H1",
-    templateName: process.env.WHATSAPP_TEMPLATE_LOAN_REMINDER_H1?.trim(),
-    languageCode: "id",
-  }, buildLoanReminderH1Message(input));
+  return sendLoanWhatsappMessage(input, buildLoanReminderH1Message(input));
 }
 
 export async function sendLoanDueTodayReminder(input: LoanWhatsappInput) {
-  return sendLoanWhatsappMessage(input, {
-    envName: "WHATSAPP_TEMPLATE_LOAN_DUE_TODAY",
-    templateName: process.env.WHATSAPP_TEMPLATE_LOAN_DUE_TODAY?.trim(),
-    languageCode: "id",
-  }, buildLoanDueTodayMessage(input));
+  return sendLoanWhatsappMessage(input, buildLoanDueTodayMessage(input));
 }
 
-async function sendLoanWhatsappMessage(
-  input: LoanWhatsappInput,
-  template: TemplateConfig,
-  textBody: string,
-): Promise<WhatsappSendResult> {
+export async function sendWhatsappTextMessage({
+  phone,
+  message,
+}: {
+  phone: string;
+  message: string;
+}): Promise<WhatsappSendResult> {
   const config = getWhatsappConfig();
-  const normalizedPhone = normalizePhoneNumber(input.phone);
+  const normalizedPhone = normalizePhoneNumber(phone);
 
   if (!config) {
-    return { ok: false, message: "Konfigurasi WhatsApp belum lengkap." };
+    return { ok: false, message: "Konfigurasi WhatsApp API belum lengkap." };
   }
 
   if (!isValidWhatsappNumber(normalizedPhone)) {
-    console.error("[whatsapp-loans] Nomor tujuan peminjaman tidak valid", {
+    console.error("[whatsapp] Nomor tujuan tidak valid", {
       phoneLength: normalizedPhone.length,
     });
-    return { ok: false, message: "Nomor WhatsApp peminjam tidak valid." };
+    return { ok: false, message: "Nomor WhatsApp tujuan tidak valid." };
   }
 
-  if (!template.templateName) {
-    console.warn(`[whatsapp-loans] ${template.envName} kosong. Mengirim pesan teks biasa.`);
-  }
-
-  const response = await fetch(
-    `https://graph.facebook.com/v20.0/${config.phoneNumberId}/messages`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${config.accessToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(
-        template.templateName
-          ? buildTemplatePayload(normalizedPhone, template, input)
-          : buildTextPayload(normalizedPhone, textBody),
-      ),
-    },
-  );
+  const response = await fetch(`${config.baseUrl}/send/message`, {
+    method: "POST",
+    headers: buildWhatsappHeaders(config),
+    body: JSON.stringify({
+      phone: `${normalizedPhone}@s.whatsapp.net`,
+      message,
+      is_forwarded: false,
+    }),
+  });
 
   if (!response.ok) {
     const responseText = await response.text();
-    console.error("[whatsapp-loans] WhatsApp API request failed", {
+    console.error("[whatsapp] GOWA API request failed", {
       status: response.status,
       statusText: response.statusText,
       response: responseText.slice(0, 1000),
-      template: template.templateName || null,
     });
     return {
       ok: false,
@@ -100,60 +75,62 @@ async function sendLoanWhatsappMessage(
     };
   }
 
-  console.log("[whatsapp-loans] Loan WhatsApp notification sent", {
+  console.log("[whatsapp] WhatsApp text message sent", {
     to: normalizedPhone,
-    template: template.templateName || "text",
+    deviceId: config.deviceId,
   });
 
   return { ok: true, message: "Notifikasi WhatsApp terkirim." };
 }
 
+async function sendLoanWhatsappMessage(
+  input: LoanWhatsappInput,
+  textBody: string,
+): Promise<WhatsappSendResult> {
+  return sendWhatsappTextMessage({
+    phone: input.phone,
+    message: textBody,
+  });
+}
+
 function getWhatsappConfig(): WhatsappConfig | null {
-  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID?.trim();
-  const accessToken = process.env.WHATSAPP_ACCESS_TOKEN?.trim();
+  const baseUrl = process.env.WHATSAPP_API_BASE_URL?.trim().replace(/\/+$/, "");
+  const deviceId = process.env.WHATSAPP_DEVICE_ID?.trim() || null;
+  const username = process.env.WHATSAPP_API_USERNAME?.trim() || null;
+  const password = process.env.WHATSAPP_API_PASSWORD?.trim() || null;
 
-  if (!phoneNumberId) {
-    console.error("[whatsapp-loans] WHATSAPP_PHONE_NUMBER_ID kosong.");
+  if (!baseUrl) {
+    console.error("[whatsapp] WHATSAPP_API_BASE_URL kosong.");
   }
 
-  if (!accessToken) {
-    console.error("[whatsapp-loans] WHATSAPP_ACCESS_TOKEN kosong.");
+  if ((username && !password) || (!username && password)) {
+    console.error(
+      "[whatsapp] WHATSAPP_API_USERNAME dan WHATSAPP_API_PASSWORD harus diisi bersamaan.",
+    );
+    return null;
   }
 
-  if (!phoneNumberId || !accessToken) return null;
+  if (!baseUrl) return null;
 
-  return { phoneNumberId, accessToken };
+  return { baseUrl, deviceId, username, password };
 }
 
-function buildTextPayload(to: string, body: string) {
-  return {
-    messaging_product: "whatsapp",
-    to,
-    type: "text",
-    text: { body },
+function buildWhatsappHeaders(config: WhatsappConfig) {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
   };
-}
 
-function buildTemplatePayload(to: string, template: TemplateConfig, input: LoanWhatsappInput) {
-  return {
-    messaging_product: "whatsapp",
-    to,
-    type: "template",
-    template: {
-      name: template.templateName,
-      language: { code: template.languageCode },
-      components: [
-        {
-          type: "body",
-          parameters: [
-            { type: "text", text: input.borrowerName },
-            { type: "text", text: input.itemTitle },
-            { type: "text", text: formatDisplayDate(input.dueDate) },
-          ],
-        },
-      ],
-    },
-  };
+  if (config.deviceId) {
+    headers["X-Device-Id"] = config.deviceId;
+  }
+
+  if (config.username && config.password) {
+    headers.Authorization = `Basic ${Buffer.from(
+      `${config.username}:${config.password}`,
+    ).toString("base64")}`;
+  }
+
+  return headers;
 }
 
 function buildLoanSuccessMessage(input: LoanWhatsappInput) {
