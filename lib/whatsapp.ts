@@ -19,6 +19,10 @@ type WhatsappConfig = {
   password: string | null;
 };
 
+type WhatsappConfigResult =
+  | { ok: true; config: WhatsappConfig }
+  | { ok: false; message: string };
+
 export async function sendLoanSuccessNotification(input: LoanWhatsappInput) {
   return sendLoanWhatsappMessage(input, buildLoanSuccessMessage(input));
 }
@@ -38,12 +42,14 @@ export async function sendWhatsappTextMessage({
   phone: string;
   message: string;
 }): Promise<WhatsappSendResult> {
-  const config = getWhatsappConfig();
+  const configResult = getWhatsappConfig();
   const normalizedPhone = normalizePhoneNumber(phone);
 
-  if (!config) {
-    return { ok: false, message: "Konfigurasi WhatsApp API belum lengkap." };
+  if (!configResult.ok) {
+    return { ok: false, message: configResult.message };
   }
+
+  const { config } = configResult;
 
   if (!isValidWhatsappNumber(normalizedPhone)) {
     console.error("[whatsapp] Nomor tujuan tidak valid", {
@@ -93,13 +99,15 @@ async function sendLoanWhatsappMessage(
   });
 }
 
-function getWhatsappConfig(): WhatsappConfig | null {
+function getWhatsappConfig(): WhatsappConfigResult {
   const baseUrl = process.env.WHATSAPP_API_BASE_URL?.trim().replace(/\/+$/, "");
   const deviceId = process.env.WHATSAPP_DEVICE_ID?.trim() || null;
   const username = process.env.WHATSAPP_API_USERNAME?.trim() || null;
   const password = process.env.WHATSAPP_API_PASSWORD?.trim() || null;
+  const missingFields: string[] = [];
 
   if (!baseUrl) {
+    missingFields.push("WHATSAPP_API_BASE_URL");
     console.error("[whatsapp] WHATSAPP_API_BASE_URL kosong.");
   }
 
@@ -107,12 +115,28 @@ function getWhatsappConfig(): WhatsappConfig | null {
     console.error(
       "[whatsapp] WHATSAPP_API_USERNAME dan WHATSAPP_API_PASSWORD harus diisi bersamaan.",
     );
-    return null;
+    return {
+      ok: false,
+      message:
+        "WHATSAPP_API_USERNAME dan WHATSAPP_API_PASSWORD harus diisi bersamaan atau sama-sama dikosongkan.",
+    };
   }
 
-  if (!baseUrl) return null;
+  if (missingFields.length) {
+    return {
+      ok: false,
+      message: `Konfigurasi WhatsApp API belum lengkap. Variabel kosong: ${missingFields.join(", ")}.`,
+    };
+  }
 
-  return { baseUrl, deviceId, username, password };
+  if (!baseUrl) {
+    return {
+      ok: false,
+      message: "Konfigurasi WhatsApp API belum lengkap. Variabel kosong: WHATSAPP_API_BASE_URL.",
+    };
+  }
+
+  return { ok: true, config: { baseUrl, deviceId, username, password } };
 }
 
 function buildWhatsappHeaders(config: WhatsappConfig) {
