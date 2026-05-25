@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import { normalizePhoneNumber } from "@/lib/whatsapp-drafts";
 
 type LoanWhatsappInput = {
@@ -100,10 +102,10 @@ async function sendLoanWhatsappMessage(
 }
 
 function getWhatsappConfig(): WhatsappConfigResult {
-  const baseUrl = process.env.WHATSAPP_API_BASE_URL?.trim().replace(/\/+$/, "");
-  const deviceId = process.env.WHATSAPP_DEVICE_ID?.trim() || null;
-  const username = process.env.WHATSAPP_API_USERNAME?.trim() || null;
-  const password = process.env.WHATSAPP_API_PASSWORD?.trim() || null;
+  const baseUrl = getEnvValue("WHATSAPP_API_BASE_URL").replace(/\/+$/, "");
+  const deviceId = getEnvValue("WHATSAPP_DEVICE_ID") || null;
+  const username = getEnvValue("WHATSAPP_API_USERNAME") || null;
+  const password = getEnvValue("WHATSAPP_API_PASSWORD") || null;
   const missingFields: string[] = [];
 
   if (!baseUrl) {
@@ -137,6 +139,42 @@ function getWhatsappConfig(): WhatsappConfigResult {
   }
 
   return { ok: true, config: { baseUrl, deviceId, username, password } };
+}
+
+function getEnvValue(key: string) {
+  return process.env[key]?.trim() || readLocalEnvValue(key);
+}
+
+function readLocalEnvValue(key: string) {
+  for (const filename of [".env.local", ".env"]) {
+    const filePath = path.join(process.cwd(), filename);
+    if (!fs.existsSync(filePath)) continue;
+
+    const value = parseEnvFileValue(fs.readFileSync(filePath, "utf8"), key);
+    if (value) return value;
+  }
+
+  return "";
+}
+
+function parseEnvFileValue(fileText: string, key: string) {
+  for (const line of fileText.split(/\r?\n/)) {
+    const trimmedLine = line.trim();
+    if (!trimmedLine || trimmedLine.startsWith("#")) continue;
+
+    const separatorIndex = trimmedLine.indexOf("=");
+    if (separatorIndex < 0) continue;
+
+    const lineKey = trimmedLine.slice(0, separatorIndex).trim();
+    if (lineKey !== key) continue;
+
+    return trimmedLine
+      .slice(separatorIndex + 1)
+      .trim()
+      .replace(/^['"]|['"]$/g, "");
+  }
+
+  return "";
 }
 
 function buildWhatsappHeaders(config: WhatsappConfig) {
