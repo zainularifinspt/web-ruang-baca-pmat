@@ -108,7 +108,7 @@ export async function createLoan(input: CreateLoanInput): Promise<LoanActionResu
       whatsappOk: whatsappResult.ok,
       message: whatsappResult.ok
         ? "Peminjaman berhasil dicatat dan notifikasi WhatsApp sedang dikirim."
-        : "Peminjaman berhasil dicatat, tetapi notifikasi WhatsApp gagal dikirim. Silakan cek konfigurasi WhatsApp.",
+        : `Peminjaman berhasil dicatat, tetapi notifikasi WhatsApp gagal dikirim: ${whatsappResult.message}`,
     };
   } catch (error) {
     console.error("[loans] Failed to create loan", {
