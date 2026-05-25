@@ -67,17 +67,35 @@ export function ThesisPdfViewer({ pdfUrl, studentName }: ThesisPdfViewerProps) {
               onSelect={(event) => event.preventDefault()}
               onSelectCapture={(event) => event.preventDefault()}
             >
-              <PdfCanvasReader
-                active={open}
-                pdfUrl={resolvedPdfUrl}
-                title={readerTitle}
-              />
+              {isGoogleDrivePreviewUrl(resolvedPdfUrl) ? (
+                <iframe
+                  src={resolvedPdfUrl}
+                  title={readerTitle}
+                  className="h-full w-full border-0"
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
+              ) : (
+                <PdfCanvasReader
+                  active={open}
+                  pdfUrl={resolvedPdfUrl}
+                  title={readerTitle}
+                />
+              )}
             </div>
           </DialogContent>
         </Dialog>
       </div>
     </div>
   );
+}
+
+function isGoogleDrivePreviewUrl(value: string) {
+  try {
+    const url = new URL(value);
+    return url.hostname === "drive.google.com" && url.pathname.includes("/preview");
+  } catch {
+    return false;
+  }
 }
 
 function PdfCanvasReader({

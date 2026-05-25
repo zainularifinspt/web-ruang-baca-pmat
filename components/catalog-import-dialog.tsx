@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { Archive, Download, FileSpreadsheet, Upload } from "lucide-react";
+import { Archive, Download, FileSpreadsheet, Link, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { createBook, createThesis } from "@/app/dashboard/katalog/actions";
 import { Button } from "@/components/ui/button";
@@ -29,7 +29,9 @@ type ImportRow = {
   title: string;
   data: Record<string, unknown>;
   coverFilename: string;
+  coverUrl: string;
   pdfFilename: string;
+  pdfUrl: string;
   status: ImportStatus;
   message: string;
 };
@@ -144,7 +146,7 @@ export function CatalogImportDialog({
         <DialogHeader>
           <DialogTitle>Import {importType === "book" ? "Buku" : "Skripsi"}</DialogTitle>
           <DialogDescription>
-            Upload spreadsheet data dan ZIP aset untuk import massal {importType === "book" ? "buku" : "skripsi"}.
+            Upload spreadsheet data. Aset bisa memakai link Google Drive atau ZIP opsional.
           </DialogDescription>
         </DialogHeader>
 
@@ -164,7 +166,7 @@ export function CatalogImportDialog({
           <label>
             <span className="mb-2 flex items-center gap-2 text-xs font-medium text-slate-500">
               <Archive className="size-4" />
-              ZIP aset cover/PDF
+              ZIP aset cover/PDF opsional
             </span>
             <Input
               type="file"
@@ -181,8 +183,12 @@ export function CatalogImportDialog({
               <p className="font-semibold text-slate-950">Template XLSX</p>
               <p className="mt-1">
                 {importType === "book"
-                  ? "Kolom: title, author, year, category, rack_location, stock, status, cover_filename."
-                  : "Kolom: title, student_name, year, topic, abstract, supervisor_1, supervisor_2, physical_location, access_note, cover_filename, pdf_filename."}
+                  ? "Kolom: title, author, year, category, rack_location, stock, status, cover_url atau cover_filename."
+                  : "Kolom: title, student_name, year, topic, abstract, supervisor_1, supervisor_2, physical_location, access_note, cover_url atau cover_filename, pdf_url atau pdf_filename."}
+              </p>
+              <p className="mt-2 flex items-center gap-2 text-xs text-slate-500">
+                <Link className="size-3.5" />
+                Link Google Drive harus bisa diakses publik atau oleh browser/admin yang sedang login.
               </p>
             </div>
             <Button
@@ -333,7 +339,9 @@ function normalizeImportRow(
     title: getText(record, ["title", "judul"]),
     data: record,
     coverFilename: getText(record, ["cover_filename", "cover_file", "cover"]),
+    coverUrl: getText(record, ["cover_url", "cover_link", "cover_drive_url", "link_cover"]),
     pdfFilename: getText(record, ["pdf_filename", "pdf_file", "pdf"]),
+    pdfUrl: getText(record, ["pdf_url", "pdf_link", "pdf_drive_url", "link_pdf"]),
     status: "ready",
     message: "",
   };
@@ -353,12 +361,15 @@ function validateImportRows(rows: ImportRow[], assets: ZipAssetMap) {
       }
     });
 
-    if (row.coverFilename && !findAsset(assets, row.coverFilename)) {
+    const coverReference = row.coverUrl || row.coverFilename;
+    const pdfReference = row.pdfUrl || row.pdfFilename;
+
+    if (coverReference && !isUrl(coverReference) && !findAsset(assets, coverReference)) {
       errors.push(`Cover ${row.coverFilename} tidak ditemukan di ZIP.`);
     }
 
-    if (row.type === "thesis" && row.pdfFilename && !findAsset(assets, row.pdfFilename)) {
-      errors.push(`PDF ${row.pdfFilename} tidak ditemukan di ZIP.`);
+    if (row.type === "thesis" && pdfReference && !isUrl(pdfReference) && !findAsset(assets, pdfReference)) {
+      errors.push(`PDF ${pdfReference} tidak ditemukan di ZIP.`);
     }
 
     return errors.length
@@ -380,6 +391,7 @@ async function downloadImportTemplate(importType: ImportType) {
             rack_location: "Ruang Baca",
             stock: "1",
             status: "tersedia",
+            cover_url: "https://drive.google.com/file/d/cover-file-id/view?usp=sharing",
             cover_filename: "covers/kalkulus-dasar.jpg",
           },
         ]
@@ -394,6 +406,8 @@ async function downloadImportTemplate(importType: ImportType) {
             supervisor_2: "Dr. Pembimbing Dua, M.Pd.",
             physical_location: "Lemari Skripsi",
             access_note: defaultAccessNote,
+            cover_url: "https://drive.google.com/file/d/cover-file-id/view?usp=sharing",
+            pdf_url: "https://drive.google.com/file/d/pdf-file-id/view?usp=sharing",
             cover_filename: "covers/ahmad-fauzi.jpg",
             pdf_filename: "pdf/ahmad-fauzi.pdf",
           },
@@ -406,7 +420,7 @@ async function downloadImportTemplate(importType: ImportType) {
 }
 
 async function buildBookValues(row: ImportRow, assets: ZipAssetMap): Promise<BookFormValues> {
-  const coverUrl = row.coverFilename ? await uploadCoverAsset(row.coverFilename, assets) : "";
+  const coverUrl = await resolveCoverUrl(row, assets);
 
   return {
     title: getText(row.data, ["title", "judul"]),
@@ -420,10 +434,8 @@ async function buildBookValues(row: ImportRow, assets: ZipAssetMap): Promise<Boo
 }
 
 async function buildThesisValues(row: ImportRow, assets: ZipAssetMap): Promise<ThesisFormValues> {
-  const coverUrl = row.coverFilename ? await uploadCoverAsset(row.coverFilename, assets) : "";
-  const pdfMetadata = row.pdfFilename
-    ? await uploadPdfAsset(row.pdfFilename, assets)
-    : { pdfUrl: "", pdfFilename: "", pdfSize: 0 };
+  const coverUrl = await resolveCoverUrl(row, assets);
+  const pdfMetadata = await resolvePdfMetadata(row, assets);
 
   return {
     title: getText(row.data, ["title", "judul"]),
@@ -441,6 +453,28 @@ async function buildThesisValues(row: ImportRow, assets: ZipAssetMap): Promise<T
     pdfFilename: pdfMetadata.pdfFilename,
     pdfSize: pdfMetadata.pdfSize,
   };
+}
+
+async function resolveCoverUrl(row: ImportRow, assets: ZipAssetMap) {
+  const coverReference = row.coverUrl || row.coverFilename;
+  if (!coverReference) return "";
+  if (isUrl(coverReference)) return toGoogleDriveCoverUrl(coverReference);
+  return uploadCoverAsset(coverReference, assets);
+}
+
+async function resolvePdfMetadata(row: ImportRow, assets: ZipAssetMap) {
+  const pdfReference = row.pdfUrl || row.pdfFilename;
+  if (!pdfReference) return { pdfUrl: "", pdfFilename: "", pdfSize: 0 };
+
+  if (isUrl(pdfReference)) {
+    return {
+      pdfUrl: toGoogleDrivePdfUrl(pdfReference),
+      pdfFilename: pdfFilenameFromReference(row.pdfFilename || pdfReference),
+      pdfSize: 0,
+    };
+  }
+
+  return uploadPdfAsset(pdfReference, assets);
 }
 
 async function uploadCoverAsset(filename: string, assets: ZipAssetMap) {
@@ -513,6 +547,41 @@ function findAsset(assets: ZipAssetMap, filename: string) {
 
 function normalizeFilename(filename: string) {
   return filename.trim().replaceAll("\\", "/").toLowerCase();
+}
+
+function isUrl(value: string) {
+  return /^https?:\/\//i.test(value.trim());
+}
+
+function toGoogleDriveCoverUrl(value: string) {
+  const trimmedValue = value.trim();
+  const fileId = extractGoogleDriveFileId(trimmedValue);
+  return fileId ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000` : trimmedValue;
+}
+
+function toGoogleDrivePdfUrl(value: string) {
+  const trimmedValue = value.trim();
+  const fileId = extractGoogleDriveFileId(trimmedValue);
+  return fileId ? `https://drive.google.com/file/d/${fileId}/preview` : trimmedValue;
+}
+
+function extractGoogleDriveFileId(value: string) {
+  try {
+    const url = new URL(value);
+    const pathMatch = url.pathname.match(/\/file\/d\/([^/]+)/);
+    if (pathMatch?.[1]) return pathMatch[1];
+
+    return url.searchParams.get("id") || "";
+  } catch {
+    return "";
+  }
+}
+
+function pdfFilenameFromReference(reference: string) {
+  if (!reference || isUrl(reference)) return "google-drive-skripsi.pdf";
+
+  const filename = reference.split("/").pop()?.trim() || "skripsi.pdf";
+  return filename.toLowerCase().endsWith(".pdf") ? filename : `${filename}.pdf`;
 }
 
 function getText(record: Record<string, unknown>, keys: string[], fallback = "") {
