@@ -88,55 +88,57 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
           </GlassPanel>
         ) : null}
         {!isBook ? (
-          <div className="grid gap-4 md:grid-cols-12">
-            <div className="md:col-span-7">
-              <GlassPanel className="p-4 sm:p-5 h-full flex flex-col justify-between">
-                <div>
-                  <div className="mb-3.5 flex items-center gap-2 text-slate-900">
-                    <UsersRound className="size-5 text-emerald-700" />
-                    <p className="text-lg font-bold">Dosen Pembimbing</p>
-                  </div>
-                  <div className="flex flex-col gap-3">
-                    <Info
-                      icon={<UserRound />}
-                      label="Pembimbing 1"
-                      value={
-                        <span className="whitespace-nowrap block truncate" title={item.supervisor1}>
-                          {item.supervisor1}
-                        </span>
-                      }
-                    />
-                    <Info
-                      icon={<UserRound />}
-                      label="Pembimbing 2"
-                      value={
-                        <span className="whitespace-nowrap block truncate" title={item.supervisor2}>
-                          {item.supervisor2}
-                        </span>
-                      }
-                    />
-                  </div>
+          <GlassPanel className="p-5 sm:p-6">
+            <div className="grid gap-6 md:grid-cols-12">
+              {/* Left side: Dosen Pembimbing */}
+              <div className="md:col-span-7 md:border-r md:border-emerald-100/60 md:pr-6">
+                <div className="mb-3.5 flex items-center gap-2 text-slate-900">
+                  <UsersRound className="size-5 text-emerald-700" />
+                  <p className="text-lg font-bold">Dosen Pembimbing</p>
                 </div>
-              </GlassPanel>
-            </div>
-            <div className="md:col-span-5">
-              <GlassPanel className="p-4 sm:p-5 h-full flex flex-col justify-between">
+                <div className="flex flex-col gap-3">
+                  <Info
+                    icon={<UserRound />}
+                    label="Pembimbing 1"
+                    value={
+                      <span className="whitespace-nowrap block truncate" title={item.supervisor1}>
+                        {item.supervisor1}
+                      </span>
+                    }
+                  />
+                  <Info
+                    icon={<UserRound />}
+                    label="Pembimbing 2"
+                    value={
+                      <span className="whitespace-nowrap block truncate" title={item.supervisor2}>
+                        {item.supervisor2}
+                      </span>
+                    }
+                  />
+                </div>
+              </div>
+
+              {/* Right side: File Skripsi */}
+              <div className="md:col-span-5 flex flex-col justify-between md:pl-2">
                 <div>
                   <div className="mb-3.5 flex items-center gap-2 text-slate-900">
                     <FileText className="size-5 text-emerald-700" />
                     <p className="text-lg font-bold">File Skripsi</p>
                   </div>
+                  <p className="text-sm text-slate-500 leading-relaxed">
+                    Dokumen skripsi lengkap tersedia untuk dibaca secara digital melalui viewer PDF interaktif.
+                  </p>
                 </div>
-                <div className="mt-auto">
+                <div className="mt-6 md:mt-0">
                   <ThesisPdfViewer
                     pdfUrl={item.pdfUrl}
                     pdfFilename={item.pdfFilename}
                     studentName={item.studentName}
                   />
                 </div>
-              </GlassPanel>
+              </div>
             </div>
-          </div>
+          </GlassPanel>
         ) : null}
         {item.notes ? (
           <div className="rounded-2xl border border-emerald-200 bg-white/70 p-3.5 text-sm text-emerald-900 shadow-sm backdrop-blur-md">
