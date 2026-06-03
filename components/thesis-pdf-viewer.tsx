@@ -61,26 +61,22 @@ export function ThesisPdfViewer({ pdfUrl, studentName }: ThesisPdfViewerProps) {
             </DialogHeader>
             <div
               className="min-h-0 select-none overflow-hidden rounded-b-[2rem] border-t bg-slate-100"
+              onKeyDown={(event) => {
+                if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "c") {
+                  event.preventDefault();
+                }
+              }}
               onContextMenu={(event) => event.preventDefault()}
               onCopy={(event) => event.preventDefault()}
               onCut={(event) => event.preventDefault()}
               onSelect={(event) => event.preventDefault()}
               onSelectCapture={(event) => event.preventDefault()}
             >
-              {isGoogleDrivePreviewUrl(resolvedPdfUrl) ? (
-                <iframe
-                  src={resolvedPdfUrl}
-                  title={readerTitle}
-                  className="h-full w-full border-0"
-                  referrerPolicy="no-referrer-when-downgrade"
-                />
-              ) : (
-                <PdfCanvasReader
-                  active={open}
-                  pdfUrl={resolvedPdfUrl}
-                  title={readerTitle}
-                />
-              )}
+              <PdfCanvasReader
+                active={open}
+                pdfUrl={readerPdfUrl(resolvedPdfUrl)}
+                title={readerTitle}
+              />
             </div>
           </DialogContent>
         </Dialog>
@@ -89,10 +85,14 @@ export function ThesisPdfViewer({ pdfUrl, studentName }: ThesisPdfViewerProps) {
   );
 }
 
-function isGoogleDrivePreviewUrl(value: string) {
+function readerPdfUrl(value: string) {
+  return isGoogleDriveUrl(value) ? `/api/theses/pdf/proxy?url=${encodeURIComponent(value)}` : value;
+}
+
+function isGoogleDriveUrl(value: string) {
   try {
     const url = new URL(value);
-    return url.hostname === "drive.google.com" && url.pathname.includes("/preview");
+    return url.hostname === "drive.google.com";
   } catch {
     return false;
   }
@@ -217,8 +217,9 @@ function PdfCanvasReader({
   return (
     <div
       aria-label={title}
-      className="h-full overflow-auto bg-slate-200 px-4 py-6"
+      className="h-full overflow-auto bg-slate-200 px-4 py-6 select-none"
       role="document"
+      tabIndex={0}
     >
       <div className="sticky top-0 z-10 mx-auto mb-4 flex w-fit items-center gap-2 rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-sm">
         <Button
@@ -400,7 +401,7 @@ function PdfCanvasPage({
       <canvas
         ref={canvasRef}
         aria-label={`Halaman ${pageNumber}`}
-        className="rounded-sm bg-white shadow-lg ring-1 ring-slate-300"
+        className="select-none rounded-sm bg-white shadow-lg ring-1 ring-slate-300"
       />
     </div>
   );
