@@ -51,9 +51,9 @@ export function ThesisPdfViewer({ pdfUrl, studentName }: ThesisPdfViewerProps) {
           <DialogTrigger asChild>
             <Button
               type="button"
-              className="rounded-2xl border border-sky-300/70 bg-sky-600 px-5 text-white shadow-[0_16px_28px_rgba(2,132,199,0.28)] hover:bg-sky-500 hover:shadow-[0_20px_36px_rgba(2,132,199,0.34)]"
+              className="w-full sm:w-auto rounded-2xl border border-emerald-300/70 bg-emerald-600 px-6 py-2.5 font-semibold text-white shadow-[0_12px_24px_rgba(16,185,129,0.25)] hover:bg-emerald-500 hover:shadow-[0_16px_32px_rgba(16,185,129,0.35)] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
             >
-              <Eye className="size-4" />
+              <Eye className="size-4 shrink-0" />
               Lihat PDF
             </Button>
           </DialogTrigger>
