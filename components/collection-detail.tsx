@@ -33,12 +33,12 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
   const isBook = item.type === "book";
 
   return (
-    <DialogContent className="max-w-5xl overflow-hidden rounded-[2rem] border border-sky-200/70 bg-sky-50/70 p-0 shadow-[0_30px_90px_rgba(14,116,144,0.28)] backdrop-blur-2xl [&>button]:right-5 [&>button]:top-5 [&>button]:rounded-full [&>button]:bg-white/65 [&>button]:p-2 [&>button]:shadow-lg [&>button]:shadow-sky-900/10 [&>button]:backdrop-blur-xl">
-      <div className="relative overflow-hidden border-b border-white/70 bg-[linear-gradient(135deg,rgba(239,246,255,0.95),rgba(219,234,254,0.7),rgba(255,255,255,0.9))] px-5 pb-8 pt-5 pr-14 sm:px-8 sm:pb-10 sm:pt-7 sm:pr-16">
+    <DialogContent className="grid h-[min(90vh,860px)] max-w-4xl grid-rows-[auto_minmax(0,1fr)] overflow-hidden rounded-[1.75rem] border border-sky-200/70 bg-sky-50/70 p-0 shadow-[0_26px_70px_rgba(14,116,144,0.24)] backdrop-blur-2xl sm:w-[calc(100%-3rem)] [&>button]:right-5 [&>button]:top-5 [&>button]:rounded-full [&>button]:bg-white/75 [&>button]:p-2 [&>button]:shadow-lg [&>button]:shadow-sky-900/10 [&>button]:backdrop-blur-xl">
+      <div className="relative overflow-hidden border-b border-white/70 bg-[linear-gradient(135deg,rgba(239,246,255,0.96),rgba(219,234,254,0.68),rgba(255,255,255,0.92))] px-5 pb-6 pt-5 pr-14 sm:px-7 sm:pb-7 sm:pt-6 sm:pr-16">
         <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-sky-300 to-transparent" />
-        <DialogHeader className="relative space-y-4">
+        <DialogHeader className="relative space-y-3">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge className="rounded-full border border-sky-200/80 bg-white/65 px-4 py-1.5 text-sm font-semibold text-sky-900 shadow-sm shadow-sky-900/5 backdrop-blur-md">
+            <Badge className="rounded-full border border-sky-200/80 bg-white/70 px-3.5 py-1.5 text-sm font-semibold text-sky-900 shadow-sm shadow-sky-900/5 backdrop-blur-md">
               <GraduationCap className="mr-1.5 size-4" />
               {isBook ? "Buku" : "Skripsi"}
             </Badge>
@@ -50,14 +50,14 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
               </span>
             ) : null}
           </div>
-          <DialogTitle className="max-w-5xl text-balance text-2xl font-black leading-tight tracking-normal text-slate-950 sm:text-4xl">
+          <DialogTitle className="max-w-4xl text-balance text-2xl font-black leading-tight tracking-normal text-slate-950 sm:text-3xl">
             {item.title}
           </DialogTitle>
           {isBook ? <BookCoverPreview coverUrl={item.coverUrl} title={item.title} /> : null}
         </DialogHeader>
       </div>
-      <div className="relative space-y-6 bg-[linear-gradient(180deg,rgba(248,250,252,0.72),rgba(219,234,254,0.42))] p-5 sm:p-8">
-        <div className="grid gap-4 sm:grid-cols-2">
+      <div className="relative min-h-0 space-y-5 overflow-y-auto bg-[linear-gradient(180deg,rgba(248,250,252,0.72),rgba(219,234,254,0.42))] p-5 sm:p-7">
+        <div className="grid gap-4 md:grid-cols-2">
           <Info
             icon={<UserRound />}
             label={isBook ? "Penulis" : "Mahasiswa"}
@@ -67,7 +67,7 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
           {isBook ? <Info icon={<BookOpen />} label="Kode Koleksi" value={item.code} /> : null}
           {isBook ? <Info icon={<MapPin />} label="Lokasi Fisik" value={item.rackLocation} /> : null}
         </div>
-        <GlassPanel className="p-5 text-sm leading-7 sm:p-6">
+        <GlassPanel className="p-4 text-sm leading-7 sm:p-5">
           {isBook ? (
             <div className="grid gap-2 sm:grid-cols-2">
               <Meta label="Kategori" value={item.category} />
@@ -79,24 +79,24 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
                 <FileText className="size-5 text-sky-700" />
                 <p className="text-lg font-bold">Abstrak</p>
               </div>
-              <p className="text-base leading-8 text-slate-600">{item.abstract}</p>
+              <p className="text-sm leading-7 text-slate-600 sm:text-base">{item.abstract}</p>
             </div>
           )}
         </GlassPanel>
         {!isBook ? (
-          <div className="space-y-6">
-            <GlassPanel className="p-5 sm:p-6">
-              <div className="mb-4 flex items-center gap-2 text-slate-950">
+          <div className="space-y-5">
+            <GlassPanel className="p-4 sm:p-5">
+              <div className="mb-3 flex items-center gap-2 text-slate-950">
                 <UsersRound className="size-5 text-sky-700" />
                 <p className="text-lg font-bold">Dosen Pembimbing</p>
               </div>
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-4 md:grid-cols-2">
                 <Info icon={<UserRound />} label="Pembimbing 1" value={item.supervisor1} />
                 <Info icon={<UserRound />} label="Pembimbing 2" value={item.supervisor2} />
               </div>
             </GlassPanel>
-            <GlassPanel className="p-5 text-sm leading-6 sm:p-6">
-              <div className="mb-4 flex items-center gap-2 text-slate-950">
+            <GlassPanel className="p-4 text-sm leading-6 sm:p-5">
+              <div className="mb-3 flex items-center gap-2 text-slate-950">
                 <FileText className="size-5 text-sky-700" />
                 <p className="text-lg font-bold">File Skripsi</p>
               </div>
@@ -168,11 +168,11 @@ function Info({
   value: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-24 gap-4 rounded-[1.35rem] border border-white/80 bg-white/70 p-4 shadow-[0_14px_30px_rgba(15,23,42,0.12),inset_0_1px_0_rgba(255,255,255,0.95)] backdrop-blur-xl transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-[0_20px_38px_rgba(14,116,144,0.16),inset_0_1px_0_rgba(255,255,255,0.95)]">
-      <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-sky-100/80 text-sky-700 shadow-inner shadow-white/70 [&_svg]:size-5">{icon}</div>
-      <div>
+    <div className="flex min-h-20 gap-3 rounded-[1.25rem] border border-white/80 bg-white/70 p-4 shadow-[0_12px_26px_rgba(15,23,42,0.10),inset_0_1px_0_rgba(255,255,255,0.95)] backdrop-blur-xl transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_34px_rgba(14,116,144,0.15),inset_0_1px_0_rgba(255,255,255,0.95)]">
+      <div className="flex size-9 shrink-0 items-center justify-center rounded-2xl bg-sky-100/80 text-sky-700 shadow-inner shadow-white/70 [&_svg]:size-5">{icon}</div>
+      <div className="min-w-0">
         <p className="text-sm font-medium text-slate-500">{label}</p>
-        <div className="mt-1 text-lg font-bold leading-snug text-slate-950">{value || "-"}</div>
+        <div className="mt-1 break-words text-base font-bold leading-snug text-slate-950 sm:text-lg">{value || "-"}</div>
       </div>
     </div>
   );
