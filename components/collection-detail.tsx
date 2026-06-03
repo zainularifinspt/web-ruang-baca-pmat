@@ -1,10 +1,11 @@
-import { BookOpen, Calendar, MapPin, UserRound } from "lucide-react";
+import { BookOpen, Calendar, FileText, GraduationCap, MapPin, Sparkles, UserRound, UsersRound } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { AvailabilityBadge } from "@/components/status-badge";
 import { ThesisPdfViewer } from "@/components/thesis-pdf-viewer";
 import { splitBookAuthors } from "@/lib/book-authors";
+import { cn } from "@/lib/utils";
 import type { Book, Thesis } from "@/lib/types";
 
 type CollectionItem = Book | Thesis;
@@ -32,19 +33,31 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
   const isBook = item.type === "book";
 
   return (
-    <DialogContent className="max-w-3xl rounded-2xl border-slate-200 p-0">
-      <div className="rounded-t-2xl bg-gradient-to-br from-emerald-50 to-white px-5 pb-5 pt-4 pr-12 sm:px-6 sm:pb-6 sm:pt-5 sm:pr-14">
-        <DialogHeader className="space-y-1">
-          <div className="flex flex-wrap gap-2">
-            <Badge variant="secondary" className="rounded-full">{isBook ? "Buku" : "Skripsi"}</Badge>
+    <DialogContent className="max-w-5xl overflow-hidden rounded-[2rem] border border-sky-200/70 bg-sky-50/70 p-0 shadow-[0_30px_90px_rgba(14,116,144,0.28)] backdrop-blur-2xl [&>button]:right-5 [&>button]:top-5 [&>button]:rounded-full [&>button]:bg-white/65 [&>button]:p-2 [&>button]:shadow-lg [&>button]:shadow-sky-900/10 [&>button]:backdrop-blur-xl">
+      <div className="relative overflow-hidden border-b border-white/70 bg-[linear-gradient(135deg,rgba(239,246,255,0.95),rgba(219,234,254,0.7),rgba(255,255,255,0.9))] px-5 pb-8 pt-5 pr-14 sm:px-8 sm:pb-10 sm:pt-7 sm:pr-16">
+        <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-sky-300 to-transparent" />
+        <DialogHeader className="relative space-y-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge className="rounded-full border border-sky-200/80 bg-white/65 px-4 py-1.5 text-sm font-semibold text-sky-900 shadow-sm shadow-sky-900/5 backdrop-blur-md">
+              <GraduationCap className="mr-1.5 size-4" />
+              {isBook ? "Buku" : "Skripsi"}
+            </Badge>
             {isBook ? <AvailabilityBadge available={item.available} stock={item.stock} /> : null}
+            {!isBook ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-200/80 bg-cyan-50/70 px-3 py-1 text-xs font-semibold text-cyan-800 shadow-sm backdrop-blur-md">
+                <Sparkles className="size-3.5" />
+                Repositori Digital
+              </span>
+            ) : null}
           </div>
-          <DialogTitle className="text-xl leading-snug text-slate-950 sm:text-2xl">{item.title}</DialogTitle>
+          <DialogTitle className="max-w-5xl text-balance text-2xl font-black leading-tight tracking-normal text-slate-950 sm:text-4xl">
+            {item.title}
+          </DialogTitle>
           {isBook ? <BookCoverPreview coverUrl={item.coverUrl} title={item.title} /> : null}
         </DialogHeader>
       </div>
-      <div className="space-y-5 p-5 sm:p-6">
-        <div className="grid gap-3 sm:grid-cols-2">
+      <div className="relative space-y-6 bg-[linear-gradient(180deg,rgba(248,250,252,0.72),rgba(219,234,254,0.42))] p-5 sm:p-8">
+        <div className="grid gap-4 sm:grid-cols-2">
           <Info
             icon={<UserRound />}
             label={isBook ? "Penulis" : "Mahasiswa"}
@@ -54,45 +67,73 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
           {isBook ? <Info icon={<BookOpen />} label="Kode Koleksi" value={item.code} /> : null}
           {isBook ? <Info icon={<MapPin />} label="Lokasi Fisik" value={item.rackLocation} /> : null}
         </div>
-        <div className="rounded-2xl border bg-slate-50 p-4 text-sm leading-6">
+        <GlassPanel className="p-5 text-sm leading-7 sm:p-6">
           {isBook ? (
             <div className="grid gap-2 sm:grid-cols-2">
               <Meta label="Kategori" value={item.category} />
               <Meta label="Stok tersedia" value={`${item.available} dari ${item.stock}`} />
             </div>
           ) : (
-            <div className="space-y-2">
-              <p className="font-medium text-foreground">Abstrak</p>
-              <p className="text-muted-foreground">{item.abstract}</p>
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-slate-950">
+                <FileText className="size-5 text-sky-700" />
+                <p className="text-lg font-bold">Abstrak</p>
+              </div>
+              <p className="text-base leading-8 text-slate-600">{item.abstract}</p>
             </div>
           )}
-        </div>
+        </GlassPanel>
         {!isBook ? (
-          <div className="space-y-4">
-            <div className="rounded-2xl border bg-white p-4">
-              <p className="mb-3 text-sm font-semibold text-slate-950">Dosen Pembimbing</p>
-              <div className="grid gap-3 sm:grid-cols-2">
+          <div className="space-y-6">
+            <GlassPanel className="p-5 sm:p-6">
+              <div className="mb-4 flex items-center gap-2 text-slate-950">
+                <UsersRound className="size-5 text-sky-700" />
+                <p className="text-lg font-bold">Dosen Pembimbing</p>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
                 <Info icon={<UserRound />} label="Pembimbing 1" value={item.supervisor1} />
                 <Info icon={<UserRound />} label="Pembimbing 2" value={item.supervisor2} />
               </div>
-            </div>
-            <div className="rounded-2xl border bg-white p-4 text-sm leading-6">
-              <p className="mb-3 font-medium text-foreground">File Skripsi</p>
+            </GlassPanel>
+            <GlassPanel className="p-5 text-sm leading-6 sm:p-6">
+              <div className="mb-4 flex items-center gap-2 text-slate-950">
+                <FileText className="size-5 text-sky-700" />
+                <p className="text-lg font-bold">File Skripsi</p>
+              </div>
               <ThesisPdfViewer
                 pdfUrl={item.pdfUrl}
                 pdfFilename={item.pdfFilename}
                 studentName={item.studentName}
               />
-            </div>
+            </GlassPanel>
           </div>
         ) : null}
         {item.notes ? (
-          <div className="rounded-2xl border border-sky-200 bg-sky-50 p-3 text-sm text-sky-900">
+          <div className="rounded-2xl border border-sky-200 bg-white/70 p-3 text-sm text-sky-900 shadow-sm backdrop-blur-md">
             Catatan: {item.notes}
           </div>
         ) : null}
       </div>
     </DialogContent>
+  );
+}
+
+function GlassPanel({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "rounded-[1.5rem] border border-white/75 bg-white/55 shadow-[0_18px_45px_rgba(15,23,42,0.10),inset_0_1px_0_rgba(255,255,255,0.95)] backdrop-blur-xl ring-1 ring-sky-100/80",
+        className,
+      )}
+    >
+      {children}
+    </div>
   );
 }
 
@@ -127,11 +168,11 @@ function Info({
   value: React.ReactNode;
 }) {
   return (
-    <div className="flex gap-3 rounded-2xl border bg-white p-3 shadow-sm">
-      <div className="mt-0.5 text-primary [&_svg]:size-4">{icon}</div>
+    <div className="flex min-h-24 gap-4 rounded-[1.35rem] border border-white/80 bg-white/70 p-4 shadow-[0_14px_30px_rgba(15,23,42,0.12),inset_0_1px_0_rgba(255,255,255,0.95)] backdrop-blur-xl transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-[0_20px_38px_rgba(14,116,144,0.16),inset_0_1px_0_rgba(255,255,255,0.95)]">
+      <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-sky-100/80 text-sky-700 shadow-inner shadow-white/70 [&_svg]:size-5">{icon}</div>
       <div>
-        <p className="text-xs text-muted-foreground">{label}</p>
-        <div className="font-medium">{value || "-"}</div>
+        <p className="text-sm font-medium text-slate-500">{label}</p>
+        <div className="mt-1 text-lg font-bold leading-snug text-slate-950">{value || "-"}</div>
       </div>
     </div>
   );

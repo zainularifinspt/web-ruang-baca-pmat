@@ -49,7 +49,10 @@ export function ThesisPdfViewer({ pdfUrl, studentName }: ThesisPdfViewerProps) {
       <div className="flex flex-col gap-2 sm:flex-row">
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button type="button" className="rounded-2xl">
+            <Button
+              type="button"
+              className="rounded-2xl border border-sky-300/70 bg-sky-600 px-5 text-white shadow-[0_16px_28px_rgba(2,132,199,0.28)] hover:bg-sky-500 hover:shadow-[0_20px_36px_rgba(2,132,199,0.34)]"
+            >
               <Eye className="size-4" />
               Lihat PDF
             </Button>
