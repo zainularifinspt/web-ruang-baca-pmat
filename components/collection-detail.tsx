@@ -33,7 +33,7 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
   const isBook = item.type === "book";
 
   return (
-    <DialogContent className="grid h-[min(88vh,780px)] max-w-4xl grid-rows-[auto_minmax(0,1fr)] overflow-hidden rounded-[1.75rem] border border-sky-200/70 bg-sky-50/70 p-0 shadow-[0_18px_44px_rgba(14,116,144,0.18)] backdrop-blur-2xl sm:w-[calc(100%-3rem)] [&>button]:right-5 [&>button]:top-5 [&>button]:rounded-full [&>button]:bg-white/75 [&>button]:p-2 [&>button]:shadow-md [&>button]:shadow-sky-900/10 [&>button]:backdrop-blur-xl">
+    <DialogContent className="grid max-h-[88vh] max-w-4xl grid-rows-[auto_minmax(0,1fr)] overflow-hidden rounded-[1.75rem] border border-sky-200/70 bg-sky-50/70 p-0 shadow-[0_18px_44px_rgba(14,116,144,0.18)] backdrop-blur-2xl sm:w-[calc(100%-3rem)] [&>button]:right-5 [&>button]:top-5 [&>button]:rounded-full [&>button]:bg-white/75 [&>button]:p-2 [&>button]:shadow-md [&>button]:shadow-sky-900/10 [&>button]:backdrop-blur-xl">
       <div className="relative overflow-hidden border-b border-white/70 bg-[linear-gradient(135deg,rgba(239,246,255,0.96),rgba(219,234,254,0.68),rgba(255,255,255,0.92))] px-5 pb-6 pt-5 pr-14 sm:px-7 sm:pb-7 sm:pt-6 sm:pr-16">
         <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-sky-300 to-transparent" />
         <DialogHeader className="relative space-y-3">
