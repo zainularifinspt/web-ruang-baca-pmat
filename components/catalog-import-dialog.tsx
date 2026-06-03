@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { Archive, Download, FileSpreadsheet, Link, Upload } from "lucide-react";
+import { Download, FileSpreadsheet, Link, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { createBook, createThesis } from "@/app/dashboard/katalog/actions";
 import { Button } from "@/components/ui/button";
@@ -21,26 +21,19 @@ import type { VerificationStatus } from "@/lib/types";
 
 type ImportType = "book" | "thesis";
 type ImportStatus = "ready" | "importing" | "success" | "error";
-type ZipAssetMap = Map<string, { name: string; blob: Blob }>;
 
 type ImportRow = {
   rowNumber: number;
   type: ImportType;
   title: string;
   data: Record<string, unknown>;
-  coverFilename: string;
   coverUrl: string;
-  pdfFilename: string;
+  deprecatedCoverFilename: string;
+  deprecatedPdfFilename: string;
   pdfUrl: string;
   status: ImportStatus;
   message: string;
 };
-
-const maxPdfSize = 5 * 1024 * 1024;
-const maxCoverOriginalSize = 15 * 1024 * 1024;
-const maxCoverUploadSize = 900 * 1024;
-const maxCoverDimension = 900;
-const allowedCoverTypes = ["image/jpeg", "image/png", "image/webp"];
 
 const defaultAccessNote =
   "Dokumen lengkap tersedia dalam bentuk fisik di Ruang Baca Program Studi Pendidikan Matematika.";
@@ -55,9 +48,7 @@ export function CatalogImportDialog({
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [spreadsheetFile, setSpreadsheetFile] = useState<File | null>(null);
-  const [assetZipFile, setAssetZipFile] = useState<File | null>(null);
   const [rows, setRows] = useState<ImportRow[]>([]);
-  const [assets, setAssets] = useState<ZipAssetMap>(new Map());
   const [summary, setSummary] = useState("");
   const [isPending, startTransition] = useTransition();
   const readyCount = rows.filter((row) => row.status === "ready").length;
@@ -72,20 +63,15 @@ export function CatalogImportDialog({
 
     startTransition(async () => {
       try {
-        const [parsedRows, parsedAssets] = await Promise.all([
-          parseSpreadsheet(spreadsheetFile, importType),
-          assetZipFile ? parseAssetZip(assetZipFile) : Promise.resolve(new Map() as ZipAssetMap),
-        ]);
-
-        const validatedRows = validateImportRows(parsedRows, parsedAssets);
+        const parsedRows = await parseSpreadsheet(spreadsheetFile, importType);
+        const validatedRows = validateImportRows(parsedRows);
         setRows(validatedRows);
-        setAssets(parsedAssets);
         setSummary(
           `${validatedRows.length} baris dibaca. ${validatedRows.filter((row) => row.status === "ready").length} siap import.`,
         );
       } catch (error) {
         toast.error("Gagal membaca file import", {
-          description: error instanceof Error ? error.message : "Periksa format spreadsheet dan ZIP aset.",
+          description: error instanceof Error ? error.message : "Periksa format spreadsheet.",
         });
       }
     });
@@ -100,15 +86,15 @@ export function CatalogImportDialog({
 
     startTransition(async () => {
       for (const row of importableRows) {
-        updateRowStatus(row.rowNumber, "importing", "Mengupload aset dan menyimpan data...");
+        updateRowStatus(row.rowNumber, "importing", "Menyimpan data...");
 
         try {
           if (row.type === "book") {
-            const values = await buildBookValues(row, assets);
+            const values = buildBookValues(row);
             const result = await createBook(values);
             if (!result.ok) throw new Error(result.message);
           } else {
-            const values = await buildThesisValues(row, assets);
+            const values = buildThesisValues(row);
             const result = await createThesis(values);
             if (!result.ok) throw new Error(result.message);
           }
@@ -146,11 +132,11 @@ export function CatalogImportDialog({
         <DialogHeader>
           <DialogTitle>Import {importType === "book" ? "Buku" : "Skripsi"}</DialogTitle>
           <DialogDescription>
-            Upload spreadsheet data. Aset bisa memakai link Google Drive atau ZIP opsional.
+            Upload spreadsheet data. Aset cover dan PDF memakai link Google Drive.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4">
           <label>
             <span className="mb-2 flex items-center gap-2 text-xs font-medium text-slate-500">
               <FileSpreadsheet className="size-4" />
@@ -163,18 +149,6 @@ export function CatalogImportDialog({
               onChange={(event) => setSpreadsheetFile(event.target.files?.[0] ?? null)}
             />
           </label>
-          <label>
-            <span className="mb-2 flex items-center gap-2 text-xs font-medium text-slate-500">
-              <Archive className="size-4" />
-              ZIP aset cover/PDF opsional
-            </span>
-            <Input
-              type="file"
-              accept=".zip,application/zip"
-              disabled={isPending}
-              onChange={(event) => setAssetZipFile(event.target.files?.[0] ?? null)}
-            />
-          </label>
         </div>
 
         <div className="rounded-2xl border bg-slate-50 p-4 text-sm leading-6 text-slate-600">
@@ -183,8 +157,8 @@ export function CatalogImportDialog({
               <p className="font-semibold text-slate-950">Template XLSX</p>
               <p className="mt-1">
                 {importType === "book"
-                  ? "Kolom: title, author, year, category, rack_location, stock, status, cover_url atau cover_filename."
-                  : "Kolom: title, student_name, year, abstract, supervisor_1, supervisor_2, pdf_url atau pdf_filename."}
+                  ? "Kolom: title, author, year, category, rack_location, stock, status, cover_url."
+                  : "Kolom: title/student_name atau format Google Form: JUDUL SKRIPSI, NAMA, PEMBIMBING 1, PEMBIMBING 2, File Skripsi PDF."}
               </p>
               <p className="mt-2 flex items-center gap-2 text-xs text-slate-500">
                 <Link className="size-3.5" />
@@ -297,28 +271,6 @@ async function parseSpreadsheet(file: File, importType: ImportType): Promise<Imp
     .filter((row): row is ImportRow => Boolean(row));
 }
 
-async function parseAssetZip(file: File): Promise<ZipAssetMap> {
-  const JSZip = (await import("jszip")).default;
-  const zip = await JSZip.loadAsync(file);
-  const assets: ZipAssetMap = new Map();
-
-  await Promise.all(
-    Object.values(zip.files).map(async (entry) => {
-      if (entry.dir) return;
-
-      const blob = await entry.async("blob");
-      const normalizedName = normalizeFilename(entry.name);
-      const basename = normalizeFilename(entry.name.split("/").pop() ?? entry.name);
-      const asset = { name: entry.name, blob };
-
-      assets.set(normalizedName, asset);
-      assets.set(basename, asset);
-    }),
-  );
-
-  return assets;
-}
-
 function normalizeImportRow(
   record: Record<string, unknown>,
   rowNumber: number,
@@ -336,24 +288,31 @@ function normalizeImportRow(
   return {
     rowNumber,
     type,
-    title: getText(record, ["title", "judul"]),
+    title: getText(record, ["title", "judul", "judul_skripsi", "judul skripsi"]),
     data: record,
-    coverFilename: getText(record, ["cover_filename", "cover_file", "cover"]),
     coverUrl: getText(record, ["cover_url", "cover_link", "cover_drive_url", "link_cover"]),
-    pdfFilename: getText(record, ["pdf_filename", "pdf_file", "pdf"]),
-    pdfUrl: getText(record, ["pdf_url", "pdf_link", "pdf_drive_url", "link_pdf"]),
+    deprecatedCoverFilename: getText(record, ["cover_filename", "cover_file", "cover"]),
+    deprecatedPdfFilename: getText(record, ["pdf_filename", "pdf_file", "pdf"]),
+    pdfUrl: getText(record, [
+      "pdf_url",
+      "pdf_link",
+      "pdf_drive_url",
+      "link_pdf",
+      "file_skripsi_pdf",
+      "file skripsi pdf",
+    ]),
     status: "ready",
     message: "",
   };
 }
 
-function validateImportRows(rows: ImportRow[], assets: ZipAssetMap) {
+function validateImportRows(rows: ImportRow[]) {
   return rows.map((row) => {
     const errors: string[] = [];
     const requiredFields =
       row.type === "book"
         ? ["title", "author", "category", "rack_location"]
-        : ["title", "student_name", "year", "abstract", "supervisor_1", "supervisor_2"];
+        : ["title", "student_name", "supervisor_1", "supervisor_2"];
 
     requiredFields.forEach((field) => {
       if (!getText(row.data, fieldAliases(field))) {
@@ -361,15 +320,17 @@ function validateImportRows(rows: ImportRow[], assets: ZipAssetMap) {
       }
     });
 
-    const coverReference = row.coverUrl || row.coverFilename;
-    const pdfReference = row.pdfUrl || row.pdfFilename;
-
-    if (coverReference && !isUrl(coverReference) && !findAsset(assets, coverReference)) {
-      errors.push(`Cover ${row.coverFilename} tidak ditemukan di ZIP.`);
+    if (row.coverUrl && !isUrl(row.coverUrl)) {
+      errors.push("Kolom cover_url harus berisi link Google Drive atau URL publik.");
     }
-
-    if (row.type === "thesis" && pdfReference && !isUrl(pdfReference) && !findAsset(assets, pdfReference)) {
-      errors.push(`PDF ${pdfReference} tidak ditemukan di ZIP.`);
+    if (row.pdfUrl && !isUrl(row.pdfUrl)) {
+      errors.push("Kolom pdf_url harus berisi link Google Drive atau URL publik.");
+    }
+    if (row.deprecatedCoverFilename) {
+      errors.push("Kolom cover_filename sudah tidak digunakan. Pakai cover_url.");
+    }
+    if (row.deprecatedPdfFilename) {
+      errors.push("Kolom pdf_filename sudah tidak digunakan. Pakai pdf_url.");
     }
 
     return errors.length
@@ -392,7 +353,6 @@ async function downloadImportTemplate(importType: ImportType) {
             stock: "1",
             status: "tersedia",
             cover_url: "https://drive.google.com/file/d/cover-file-id/view?usp=sharing",
-            cover_filename: "covers/kalkulus-dasar.jpg",
           },
         ]
       : [
@@ -403,8 +363,8 @@ async function downloadImportTemplate(importType: ImportType) {
             abstract: "Ringkasan penelitian skripsi.",
             supervisor_1: "Dr. Pembimbing Satu, M.Pd.",
             supervisor_2: "Dr. Pembimbing Dua, M.Pd.",
+            cover_url: "https://drive.google.com/file/d/cover-file-id/view?usp=sharing",
             pdf_url: "https://drive.google.com/file/d/pdf-file-id/view?usp=sharing",
-            pdf_filename: "pdf/ahmad-fauzi.pdf",
           },
         ];
   const worksheet = XLSX.utils.json_to_sheet(rows);
@@ -414,9 +374,7 @@ async function downloadImportTemplate(importType: ImportType) {
   XLSX.writeFile(workbook, importType === "book" ? "template-import-buku.xlsx" : "template-import-skripsi.xlsx");
 }
 
-async function buildBookValues(row: ImportRow, assets: ZipAssetMap): Promise<BookFormValues> {
-  const coverUrl = await resolveCoverUrl(row, assets);
-
+function buildBookValues(row: ImportRow): BookFormValues {
   return {
     title: getText(row.data, ["title", "judul"]),
     author: getText(row.data, ["author", "penulis"]),
@@ -424,124 +382,54 @@ async function buildBookValues(row: ImportRow, assets: ZipAssetMap): Promise<Boo
     rackLocation: getText(row.data, ["rack_location", "lokasi_rak", "lokasi"], "Ruang Baca"),
     stock: getNumber(row.data, ["stock", "stok"], 1),
     status: bookStatusValue(getText(row.data, ["status"], "tersedia")),
-    coverUrl,
+    coverUrl: resolveCoverUrl(row.coverUrl),
   };
 }
 
-async function buildThesisValues(row: ImportRow, assets: ZipAssetMap): Promise<ThesisFormValues> {
-  const coverUrl = await resolveCoverUrl(row, assets);
-  const pdfMetadata = await resolvePdfMetadata(row, assets);
-
+function buildThesisValues(row: ImportRow): ThesisFormValues {
   return {
-    title: getText(row.data, ["title", "judul"]),
-    studentName: getText(row.data, ["student_name", "nama_mahasiswa", "mahasiswa"]),
+    title: getText(row.data, ["title", "judul", "judul_skripsi", "judul skripsi"]),
+    studentName: getText(row.data, ["student_name", "nama_mahasiswa", "mahasiswa", "nama"]),
     year: getNumber(row.data, ["year", "tahun"], new Date().getFullYear()),
     topic: getText(row.data, ["topic", "topik"], "Skripsi"),
-    abstract: getText(row.data, ["abstract", "abstrak"]),
-    supervisor1: getText(row.data, ["supervisor_1", "pembimbing_1", "dosen_pembimbing_1"]),
-    supervisor2: getText(row.data, ["supervisor_2", "pembimbing_2", "dosen_pembimbing_2"]),
-    coverUrl,
+    abstract: getText(row.data, ["abstract", "abstrak"], defaultThesisAbstract(row.data)),
+    supervisor1: getText(row.data, [
+      "supervisor_1",
+      "pembimbing_1",
+      "pembimbing 1",
+      "dosen_pembimbing_1",
+    ]),
+    supervisor2: getText(row.data, [
+      "supervisor_2",
+      "pembimbing_2",
+      "pembimbing 2",
+      "dosen_pembimbing_2",
+    ]),
+    coverUrl: resolveCoverUrl(row.coverUrl),
     physicalLocation: getText(row.data, ["physical_location", "lokasi_fisik"], "Lemari Skripsi"),
     accessNote: getText(row.data, ["access_note", "catatan_akses"], defaultAccessNote),
     verificationStatus: verificationStatusValue(getText(row.data, ["verification_status", "status_verifikasi"], "approved")),
-    pdfUrl: pdfMetadata.pdfUrl,
-    pdfFilename: pdfMetadata.pdfFilename,
-    pdfSize: pdfMetadata.pdfSize,
+    pdfUrl: resolvePdfUrl(row.pdfUrl),
+    pdfFilename: "",
+    pdfSize: 0,
   };
 }
 
-async function resolveCoverUrl(row: ImportRow, assets: ZipAssetMap) {
-  const coverReference = row.coverUrl || row.coverFilename;
-  if (!coverReference) return "";
-  if (isUrl(coverReference)) return toGoogleDriveCoverUrl(coverReference);
-  return uploadCoverAsset(coverReference, assets);
+function resolveCoverUrl(coverUrl: string) {
+  if (!coverUrl) return "";
+  return toGoogleDriveCoverUrl(coverUrl);
 }
 
-async function resolvePdfMetadata(row: ImportRow, assets: ZipAssetMap) {
-  const pdfReference = row.pdfUrl || row.pdfFilename;
-  if (!pdfReference) return { pdfUrl: "", pdfFilename: "", pdfSize: 0 };
-
-  if (isUrl(pdfReference)) {
-    return {
-      pdfUrl: toGoogleDrivePdfUrl(pdfReference),
-      pdfFilename: pdfFilenameFromReference(row.pdfFilename || pdfReference),
-      pdfSize: 0,
-    };
-  }
-
-  return uploadPdfAsset(pdfReference, assets);
+function resolvePdfUrl(pdfUrl: string) {
+  if (!pdfUrl) return "";
+  return toGoogleDrivePdfUrl(pdfUrl);
 }
 
-async function uploadCoverAsset(filename: string, assets: ZipAssetMap) {
-  const asset = findAsset(assets, filename);
-  if (!asset) throw new Error(`Cover ${filename} tidak ditemukan di ZIP.`);
+function defaultThesisAbstract(record: Record<string, unknown>) {
+  const nim = getText(record, ["nim"]);
+  const prefix = nim ? `NIM: ${nim}. ` : "";
 
-  const file = fileFromAsset(asset, mimeTypeFromFilename(asset.name));
-  const error = validateCoverFile(file);
-  if (error) throw new Error(error);
-
-  const compressedCover = await compressCoverImage(file);
-  const formData = new FormData();
-  formData.append("file", compressedCover);
-
-  const response = await fetch("/api/books/cover", {
-    method: "POST",
-    body: formData,
-  });
-  const payload = (await response.json()) as { coverUrl?: string; error?: string };
-  if (!response.ok || payload.error || !payload.coverUrl) {
-    throw new Error(payload.error ?? `Gagal mengupload cover ${filename}.`);
-  }
-
-  return payload.coverUrl;
-}
-
-async function uploadPdfAsset(filename: string, assets: ZipAssetMap) {
-  const asset = findAsset(assets, filename);
-  if (!asset) throw new Error(`PDF ${filename} tidak ditemukan di ZIP.`);
-
-  const file = fileFromAsset(asset, "application/pdf");
-  if (file.type !== "application/pdf" || !file.name.toLowerCase().endsWith(".pdf")) {
-    throw new Error(`File ${filename} harus PDF.`);
-  }
-  if (file.size > maxPdfSize) {
-    throw new Error(`File ${filename} melebihi batas 5 MB.`);
-  }
-
-  const formData = new FormData();
-  formData.append("file", file);
-
-  const response = await fetch("/api/theses/pdf", {
-    method: "POST",
-    body: formData,
-  });
-  const payload = (await response.json()) as {
-    pdfUrl?: string;
-    pdfFilename?: string;
-    pdfSize?: number;
-    error?: string;
-  };
-  if (!response.ok || payload.error || !payload.pdfUrl) {
-    throw new Error(payload.error ?? `Gagal mengupload PDF ${filename}.`);
-  }
-
-  return {
-    pdfUrl: payload.pdfUrl,
-    pdfFilename: payload.pdfFilename ?? filename,
-    pdfSize: payload.pdfSize ?? file.size,
-  };
-}
-
-function fileFromAsset(asset: { name: string; blob: Blob }, mimeType: string) {
-  return new File([asset.blob], asset.name.split("/").pop() ?? asset.name, { type: mimeType });
-}
-
-function findAsset(assets: ZipAssetMap, filename: string) {
-  return assets.get(normalizeFilename(filename)) ?? assets.get(normalizeFilename(filename.split("/").pop() ?? filename));
-}
-
-function normalizeFilename(filename: string) {
-  return filename.trim().replaceAll("\\", "/").toLowerCase();
+  return `${prefix}Abstrak belum tersedia. File PDF skripsi dapat dibuka melalui tautan Google Drive.`;
 }
 
 function isUrl(value: string) {
@@ -572,16 +460,20 @@ function extractGoogleDriveFileId(value: string) {
   }
 }
 
-function pdfFilenameFromReference(reference: string) {
-  if (!reference || isUrl(reference)) return "google-drive-skripsi.pdf";
-
-  const filename = reference.split("/").pop()?.trim() || "skripsi.pdf";
-  return filename.toLowerCase().endsWith(".pdf") ? filename : `${filename}.pdf`;
-}
-
 function getText(record: Record<string, unknown>, keys: string[], fallback = "") {
   for (const key of keys) {
     const value = record[key] ?? record[key.toUpperCase()] ?? record[key.toLowerCase()];
+    if (value !== null && value !== undefined && String(value).trim()) {
+      return String(value).trim();
+    }
+  }
+
+  const entries = Object.entries(record);
+  for (const key of keys) {
+    const normalizedKey = normalizeImportKey(key);
+    const entry = entries.find(([recordKey]) => normalizeImportKey(recordKey) === normalizedKey);
+    const value = entry?.[1];
+
     if (value !== null && value !== undefined && String(value).trim()) {
       return String(value).trim();
     }
@@ -598,19 +490,23 @@ function getNumber(record: Record<string, unknown>, keys: string[], fallback: nu
 
 function fieldAliases(field: string) {
   const aliases: Record<string, string[]> = {
-    title: ["title", "judul"],
+    title: ["title", "judul", "judul_skripsi", "judul skripsi"],
     author: ["author", "penulis"],
     category: ["category", "kategori"],
     rack_location: ["rack_location", "lokasi_rak", "lokasi"],
-    student_name: ["student_name", "nama_mahasiswa", "mahasiswa"],
+    student_name: ["student_name", "nama_mahasiswa", "mahasiswa", "nama"],
     year: ["year", "tahun"],
     topic: ["topic", "topik"],
     abstract: ["abstract", "abstrak"],
-    supervisor_1: ["supervisor_1", "pembimbing_1", "dosen_pembimbing_1"],
-    supervisor_2: ["supervisor_2", "pembimbing_2", "dosen_pembimbing_2"],
+    supervisor_1: ["supervisor_1", "pembimbing_1", "pembimbing 1", "dosen_pembimbing_1"],
+    supervisor_2: ["supervisor_2", "pembimbing_2", "pembimbing 2", "dosen_pembimbing_2"],
   };
 
   return aliases[field] ?? [field];
+}
+
+function normalizeImportKey(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, "");
 }
 
 function bookStatusValue(value: string): BookFormValues["status"] {
@@ -638,90 +534,4 @@ function statusLabel(status: ImportStatus) {
   if (status === "error") return "Error";
   if (status === "importing") return "Importing";
   return "Siap";
-}
-
-function validateCoverFile(file: File | null) {
-  if (!file) return null;
-  if (!allowedCoverTypes.includes(file.type)) return `Cover ${file.name} harus berupa JPG, PNG, atau WebP.`;
-  if (file.size > maxCoverOriginalSize) return `Cover ${file.name} maksimal 15 MB sebelum kompresi.`;
-  return null;
-}
-
-async function compressCoverImage(file: File) {
-  const image = await loadImage(file);
-  let quality = 0.82;
-  let maxDimension = maxCoverDimension;
-  let compressed = await drawCompressedCover(image, file, maxDimension, quality);
-
-  while (compressed.size > maxCoverUploadSize && (quality > 0.52 || maxDimension > 640)) {
-    quality = Math.max(0.52, quality - 0.08);
-    maxDimension = Math.max(640, Math.round(maxDimension * 0.9));
-    compressed = await drawCompressedCover(image, file, maxDimension, quality);
-  }
-
-  return compressed;
-}
-
-function loadImage(file: File) {
-  return new Promise<HTMLImageElement>((resolve, reject) => {
-    const objectUrl = URL.createObjectURL(file);
-    const image = new Image();
-
-    image.onload = () => {
-      URL.revokeObjectURL(objectUrl);
-      resolve(image);
-    };
-    image.onerror = () => {
-      URL.revokeObjectURL(objectUrl);
-      reject(new Error(`Cover ${file.name} tidak dapat dibaca sebagai gambar.`));
-    };
-    image.src = objectUrl;
-  });
-}
-
-function drawCompressedCover(
-  image: HTMLImageElement,
-  sourceFile: File,
-  maxDimension: number,
-  quality: number,
-) {
-  return new Promise<File>((resolve, reject) => {
-    const scale = Math.min(1, maxDimension / Math.max(image.naturalWidth, image.naturalHeight));
-    const width = Math.max(1, Math.round(image.naturalWidth * scale));
-    const height = Math.max(1, Math.round(image.naturalHeight * scale));
-    const canvas = document.createElement("canvas");
-    const context = canvas.getContext("2d");
-
-    if (!context) {
-      reject(new Error("Browser tidak dapat memproses kompresi cover."));
-      return;
-    }
-
-    canvas.width = width;
-    canvas.height = height;
-    context.fillStyle = "#ffffff";
-    context.fillRect(0, 0, width, height);
-    context.drawImage(image, 0, 0, width, height);
-
-    canvas.toBlob(
-      (blob) => {
-        if (!blob) {
-          reject(new Error("Gagal mengompres cover."));
-          return;
-        }
-
-        const filename = `${sourceFile.name.replace(/\.[^.]+$/, "") || "cover"}.webp`;
-        resolve(new File([blob], filename, { type: "image/webp" }));
-      },
-      "image/webp",
-      quality,
-    );
-  });
-}
-
-function mimeTypeFromFilename(filename: string) {
-  const normalized = filename.toLowerCase();
-  if (normalized.endsWith(".png")) return "image/png";
-  if (normalized.endsWith(".webp")) return "image/webp";
-  return "image/jpeg";
 }
