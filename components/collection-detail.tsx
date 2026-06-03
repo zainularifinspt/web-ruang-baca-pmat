@@ -96,9 +96,25 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
                     <UsersRound className="size-5 text-emerald-700" />
                     <p className="text-lg font-bold">Dosen Pembimbing</p>
                   </div>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <Info icon={<UserRound />} label="Pembimbing 1" value={item.supervisor1} />
-                    <Info icon={<UserRound />} label="Pembimbing 2" value={item.supervisor2} />
+                  <div className="flex flex-col gap-3">
+                    <Info
+                      icon={<UserRound />}
+                      label="Pembimbing 1"
+                      value={
+                        <span className="whitespace-nowrap block truncate" title={item.supervisor1}>
+                          {item.supervisor1}
+                        </span>
+                      }
+                    />
+                    <Info
+                      icon={<UserRound />}
+                      label="Pembimbing 2"
+                      value={
+                        <span className="whitespace-nowrap block truncate" title={item.supervisor2}>
+                          {item.supervisor2}
+                        </span>
+                      }
+                    />
                   </div>
                 </div>
               </GlassPanel>
@@ -109,12 +125,6 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
                   <div className="mb-3.5 flex items-center gap-2 text-slate-900">
                     <FileText className="size-5 text-emerald-700" />
                     <p className="text-lg font-bold">File Skripsi</p>
-                  </div>
-                  <div className="rounded-xl border border-emerald-100/50 bg-emerald-50/30 p-3 mb-4">
-                    <p className="text-xs font-semibold text-emerald-800">Nama File</p>
-                    <p className="text-xs text-slate-600 mt-1 truncate" title={item.pdfFilename || "skripsi.pdf"}>
-                      {item.pdfFilename || `${item.studentName?.replace(/\s+/g, "_") || "skripsi"}.pdf`}
-                    </p>
                   </div>
                 </div>
                 <div className="mt-auto">
