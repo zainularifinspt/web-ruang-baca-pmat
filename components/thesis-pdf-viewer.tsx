@@ -57,13 +57,13 @@ export function ThesisPdfViewer({ pdfUrl, studentName }: ThesisPdfViewerProps) {
               Lihat PDF
             </Button>
           </DialogTrigger>
-          <DialogContent className="h-[94vh] max-h-[94vh] w-[96vw] max-w-none grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden rounded-[2rem] p-0">
+          <DialogContent className="left-0 top-0 h-dvh max-h-dvh w-screen max-w-none translate-x-0 translate-y-0 grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden rounded-none border-0 p-0">
             <DialogHeader className="px-5 py-4 pr-12 sm:px-6">
               <DialogTitle>File Skripsi</DialogTitle>
               <DialogDescription>{studentName || "Nama mahasiswa belum tercatat"}</DialogDescription>
             </DialogHeader>
             <div
-              className="min-h-0 select-none overflow-hidden rounded-b-[2rem] border-t bg-slate-100"
+              className="min-h-0 select-none overflow-hidden border-t bg-slate-100"
               onKeyDown={(event) => {
                 if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "c") {
                   event.preventDefault();
