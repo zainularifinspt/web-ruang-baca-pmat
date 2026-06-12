@@ -439,7 +439,7 @@ function CollectionTypeFilter({
       placeholder="Semua koleksi"
       options={[
         ...(showAll ? [{ label: "Semua koleksi", value: "all" }] : []),
-        { label: "Buku", value: "books" },
+        // { label: "Buku", value: "books" }, // Disabled temporarily since there are no books
         { label: "Skripsi", value: "theses" },
       ]}
     />

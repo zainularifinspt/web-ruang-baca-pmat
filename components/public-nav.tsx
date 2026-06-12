@@ -81,7 +81,7 @@ export function PublicNav() {
         </Link>
         <NavbarSearch items={searchItems} className="order-3 w-full md:order-none md:w-[min(42vw,28rem)]" />
         <nav className="hidden items-center gap-3 md:flex">
-          <NavLink href="/katalog?tab=books" icon={Search} label="Katalog" />
+          <NavLink href="/katalog" icon={Search} label="Katalog" />
           <NavLink href="/presensi" icon={ScanLine} label="Presensi" />
           <div className="mx-1 h-6 w-px bg-slate-200/50" />
           <Button asChild size="sm" className="rounded-full bg-gradient-to-r from-red-600 via-yellow-600 to-orange-600 px-5 text-white shadow-lg shadow-red-950/10 transition-all duration-300 hover:-translate-y-0.5 hover:scale-[1.03] hover:shadow-red-950/20 active:scale-[0.98] border-0">
@@ -92,7 +92,7 @@ export function PublicNav() {
           </Button>
         </nav>
         <div className="flex items-center gap-1.5 md:hidden">
-          <MobileIconLink href="/katalog?tab=books" label="Katalog" icon={Search} />
+          <MobileIconLink href="/katalog" label="Katalog" icon={Search} />
           <MobileIconLink href="/presensi" label="Presensi" icon={ScanLine} />
           <MobileIconLink href="/login?redirectTo=/dashboard" label="Admin" icon={LogIn} />
         </div>

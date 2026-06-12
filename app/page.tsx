@@ -211,7 +211,7 @@ function Footer() {
         <FooterColumn
           title="Navigasi"
           links={[
-            ["Katalog Buku", "/katalog?tab=books"],
+            ["Katalog", "/katalog"],
             ["Cari Skripsi", "/katalog?tab=theses"],
             ["Presensi", "/presensi"],
             ["Login Admin", "/login?redirectTo=/dashboard"],

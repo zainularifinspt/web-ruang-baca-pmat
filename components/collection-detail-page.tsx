@@ -23,7 +23,7 @@ type DetailItem = Book | Thesis;
 
 export function CollectionDetailPage({ item }: { item: DetailItem }) {
   const isBook = item.type === "book";
-  const backHref = isBook ? "/katalog?tab=books" : "/katalog?tab=theses";
+  const backHref = isBook ? "/katalog" : "/katalog?tab=theses";
   const collectionType = isBook ? "Buku" : "Skripsi";
   const supervisorNames = isBook ? "" : [item.supervisor1, item.supervisor2].filter(Boolean).join(", ");
 
