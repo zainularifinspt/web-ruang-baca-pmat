@@ -82,6 +82,9 @@ export default function TentangPage() {
                Website dikembangkan secara khusus untuk mendukung ekosistem digital<br className="hidden sm:block" />
                Jurusan Pendidikan Matematika FKIP ULM.
              </p>
+             <p className="mt-3 text-sm text-slate-500 font-medium">
+               Website ini dibuat oleh Dosen Jurusan Pendidikan Matematika yaitu <strong>M. Zainul Arifin, M.Pd.</strong>
+             </p>
           </div>
         </div>
       </main>
