@@ -293,7 +293,13 @@ async function insertBook(payload: MutationPayload, options?: InsertCatalogOptio
 
 async function updateBookRow(id: string, payload: MutationPayload) {
   const { error } = await createSupabaseAdminClient().from("books").update(payload).eq("id", id);
-  return error ? failure(error.message) : success("ok");
+  if (error) return failure(error.message);
+
+  if (typeof payload.verification_status === "string") {
+    await writeBookVerificationOverride(id, payload.verification_status as VerificationStatus);
+  }
+
+  return success("ok");
 }
 
 async function insertThesis(payload: MutationPayload, options?: InsertCatalogOptions) {
@@ -340,7 +346,12 @@ async function insertThesis(payload: MutationPayload, options?: InsertCatalogOpt
 
 async function updateThesisRow(id: string, payload: MutationPayload) {
   const { error } = await createSupabaseAdminClient().from("theses").update(payload).eq("id", id);
-  if (!error) return success("ok");
+  if (!error) {
+    if (typeof payload.verification_status === "string") {
+      await writeThesisVerificationOverride(id, payload.verification_status as VerificationStatus);
+    }
+    return success("ok");
+  }
 
   if (payloadHasThesisPdf(payload) && isMissingThesisPdfColumn(error.message)) {
     const fallbackPayload = omitPayloadKeys(payload, [
@@ -355,6 +366,9 @@ async function updateThesisRow(id: string, payload: MutationPayload) {
 
     if (fallbackError) return failure(fallbackError.message);
 
+    if (typeof payload.verification_status === "string") {
+      await writeThesisVerificationOverride(id, payload.verification_status as VerificationStatus);
+    }
     await writeThesisPdfOverrideFromId(id, payload);
     return success("ok");
   }

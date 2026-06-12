@@ -7,8 +7,7 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function main() {
-  const { data, error } = await supabase.from('theses').select('id, title, verification_status').order('created_at', { ascending: false }).limit(2);
-  console.log("Error:", error);
-  console.log("Data:", data);
+  const { data: dbData, error } = await supabase.from('theses').select('input_by, input_source, pdf_filename, pdf_size').limit(1);
+  console.log("DB Data:", dbData, error);
 }
 main();
