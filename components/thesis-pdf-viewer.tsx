@@ -126,7 +126,7 @@ function PdfCanvasReader({
   useLayoutEffect(() => {
     if (prevZoom.current !== zoom) {
       prevZoom.current = zoom;
-      const element = document.getElementById(`pdf-page-${currentPage}`);
+      const element = window.document.getElementById(`pdf-page-${currentPage}`);
       if (element) {
         element.scrollIntoView({ block: "center" });
       }
