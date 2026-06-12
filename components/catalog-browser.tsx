@@ -181,26 +181,29 @@ export function CatalogBrowser({
     return sortCollections(result, sort);
   }, [baseItems, bookAvailability, locationAdvisorFilter, normalizedQuery, sort, subjectFilter, yearFilter]);
 
-  const yearOptions = useMemo(() => unique(baseItems.map((item) => String(item.year))), [baseItems]);
+  const yearOptions = useMemo(() => unique(items.map((item) => String(item.year))), [items]);
   const subjectOptions = useMemo(
     () =>
       unique(
-        baseItems.flatMap((item) =>
+        items.flatMap((item) =>
           item.type === "book" ? [item.category, ...item.keywords] : [item.topic, ...item.keywords],
         ),
       ),
-    [baseItems],
+    [items],
   );
   const locationAdvisorOptions = useMemo(
     () =>
       unique(
-        baseItems.flatMap((item) =>
-          item.type === "book"
+        items.flatMap((item) => {
+          if (collectionType === "theses" && item.type === "thesis") {
+            return [item.supervisor1, item.supervisor2];
+          }
+          return item.type === "book"
             ? [item.rackLocation, item.location]
-            : [item.supervisor1, item.supervisor2, item.physicalLocation],
-        ),
+            : [item.supervisor1, item.supervisor2, item.physicalLocation];
+        }),
       ),
-    [baseItems],
+    [items, collectionType],
   );
 
   const activeChips = [
