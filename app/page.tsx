@@ -165,6 +165,9 @@ function StatTile({
 function MathBackdrop() {
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+      {/* Modern dot pattern background */}
+      <div className="absolute inset-0 bg-[radial-gradient(#94a3b8_1px,transparent_1px)] [background-size:24px_24px] [mask-image:radial-gradient(ellipse_100%_100%_at_50%_30%,#000_60%,transparent_100%)] opacity-20" />
+      
       {/* Soft Gemini-inspired gradient orbs */}
       <div className="absolute -left-20 top-[-10%] size-[35rem] rounded-full bg-gradient-to-tr from-yellow-400/10 via-rose-400/8 to-transparent blur-[80px] animate-drift-slow" />
       <div className="absolute -right-20 top-[10%] size-[40rem] rounded-full bg-gradient-to-br from-orange-400/10 via-purple-400/8 to-transparent blur-[100px] animate-drift-reverse" />
