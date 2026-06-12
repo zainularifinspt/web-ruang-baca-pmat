@@ -28,8 +28,11 @@ export const dynamic = "force-dynamic";
 
 
 export default async function HomePage() {
-  const { books, theses } = await fetchCatalogData({ visibility: "public" });
+  const catalogData = await fetchCatalogData({ visibility: "public" });
+  const books = catalogData.books;
+  const theses = catalogData.theses;
   const staffCount = await fetchStaffCount();
+  const todayVisits = await fetchTodayVisits();
 
 
   return (
@@ -119,7 +122,7 @@ export default async function HomePage() {
           <StatTile icon={BookOpen} label="Total Buku" value={books.length} description="Koleksi buku tersedia" />
           <StatTile icon={GraduationCap} label="Total Skripsi" value={theses.length} description="Koleksi skripsi tersedia" tone="sky" />
           <StatTile icon={Users} label="Total Petugas" value={staffCount} description="Pengelola ruang baca" tone="violet" />
-          <StatTile icon={TrendingUp} label="Total Pengunjung" value="Realtime" description="Dihitung dari presensi" tone="amber" />
+          <StatTile icon={TrendingUp} label="Total Pengunjung" value={todayVisits} description="Total pengunjung website hari ini" tone="amber" />
         </section>
       </main>
       <Footer />
@@ -135,6 +138,30 @@ async function fetchStaffCount() {
       .from("profiles")
       .select("id", { count: "exact", head: true })
       .in("role", ["admin", "petugas"]);
+
+    if (error) return 0;
+    return count ?? 0;
+  } catch {
+    return 0;
+  }
+}
+
+async function fetchTodayVisits() {
+  if (!hasValidSupabaseConfig()) return 0;
+
+  const today = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Makassar",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+
+  try {
+    const { count, error } = await createSupabaseAdminClient()
+      .from("attendance")
+      .select("id", { count: "exact", head: true })
+      .gte("visited_at", `${today}T00:00:00+08:00`)
+      .lte("visited_at", `${today}T23:59:59+08:00`);
 
     if (error) return 0;
     return count ?? 0;
