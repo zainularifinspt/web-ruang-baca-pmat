@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { read, utils } from "xlsx";
 import { requireStaffRole } from "@/lib/auth-guards";
 import {
   writeCatalogInputOverride,
@@ -62,6 +63,88 @@ export async function createThesis(values: ThesisFormValues): Promise<CatalogAct
   return result.ok
     ? success("Skripsi berhasil ditambahkan.")
     : failure(result.message);
+}
+
+export async function syncThesisFromGoogleSheets(): Promise<CatalogActionResult & { count?: number }> {
+  const auth = await requireStaffRole(["admin"]);
+  if (!auth.ok) return failure(auth.message);
+
+  try {
+    const url = "https://docs.google.com/spreadsheets/d/1b7B0V2gu1lADwzGHF1F-TIno6vP2mQQFg4IweiOZAaU/export?format=csv&gid=750085679";
+    const response = await fetch(url);
+    if (!response.ok) return failure("Gagal mengunduh data dari Google Sheets.");
+    
+    const buffer = await response.arrayBuffer();
+    const workbook = read(buffer, { type: "array" });
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    const rows = utils.sheet_to_json<Record<string, any>>(sheet, { raw: false });
+
+    const supabase = createSupabaseAdminClient();
+    const { data: existingTheses, error: fetchError } = await supabase
+      .from("theses")
+      .select("title, student_name");
+
+    if (fetchError) return failure(fetchError.message);
+
+    const existingMap = new Set(
+      existingTheses.map((t) => `${t.title.trim().toLowerCase()}|${t.student_name.trim().toLowerCase()}`)
+    );
+
+    let addedCount = 0;
+    const inputBy = await getInputActorName(auth.user.id, auth.user.email);
+
+    for (const row of rows) {
+      const title = row["JUDUL SKRIPSI"]?.toString() || "";
+      const studentName = row["NAMA"]?.toString() || "";
+      
+      if (!title || !studentName) continue;
+
+      const key = `${title.trim().toLowerCase()}|${studentName.trim().toLowerCase()}`;
+      if (existingMap.has(key)) continue;
+
+      const dateStr = row["TANGGAL YUDISIUM (SESUAI SKL)"]?.toString() || "";
+      let year = new Date().getFullYear();
+      if (dateStr) {
+        const parsed = new Date(dateStr);
+        if (!isNaN(parsed.getTime())) year = parsed.getFullYear();
+      }
+
+      const thesisValues: ThesisFormValues = {
+        title: title.trim(),
+        studentName: studentName.trim(),
+        year,
+        topic: "Pendidikan Matematika",
+        abstract: "Abstrak belum tersedia",
+        supervisor1: row["PEMBIMBING 1"]?.toString().trim() || "-",
+        supervisor2: row["PEMBIMBING 2"]?.toString().trim() || "-",
+        physicalLocation: "Ruang Baca PMAT",
+        accessNote: "Dapat dibaca di tempat",
+        coverUrl: "",
+        pdfUrl: row["File Skripsi PDF"]?.toString().trim() || "",
+        pdfFilename: "",
+        pdfSize: 0,
+        verificationStatus: "approved",
+      };
+
+      const result = await insertThesis(thesisPayload(thesisValues, inputBy, auth.user.id), {
+        type: "thesis",
+        inputBy,
+        verificationStatus: "approved",
+      });
+
+      if (result.ok) {
+        addedCount++;
+        existingMap.add(key);
+      }
+    }
+
+    revalidateCatalogPaths();
+    return { ok: true, message: `Berhasil sinkronisasi. ${addedCount} data skripsi baru ditambahkan.`, count: addedCount };
+
+  } catch (error) {
+    return failure(error instanceof Error ? error.message : "Terjadi kesalahan saat memproses data.");
+  }
 }
 
 export async function updateBook(

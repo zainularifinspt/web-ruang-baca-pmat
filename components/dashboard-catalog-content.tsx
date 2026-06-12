@@ -1,5 +1,8 @@
 "use client";
 
+import { useTransition } from "react";
+import { RefreshCw } from "lucide-react";
+import { toast } from "sonner";
 import { CatalogBrowser } from "@/components/catalog-browser";
 import {
   AddBookDialog,
@@ -10,7 +13,10 @@ import {
 import { CatalogImportDialog } from "@/components/catalog-import-dialog";
 import { ExportButton } from "@/components/export-button";
 import { useRole } from "@/components/role-provider";
+import { Button } from "@/components/ui/button";
+import { syncThesisFromGoogleSheets } from "@/app/dashboard/katalog/actions";
 import type { Book, Thesis } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 export function DashboardCatalogContent({
   books,
@@ -75,6 +81,7 @@ export function DashboardCatalogActions() {
             {canExport ? <ExportButton type="thesis" label="Ekspor skripsi" /> : null}
             {canImport ? <CatalogImportDialog importType="thesis" triggerLabel="Import skripsi" /> : null}
             {canAddThesis ? <AddThesisDialog /> : null}
+            {canAddThesis ? <SyncGoogleSheetButton /> : null}
           </div>
         </div>
       </div>
@@ -84,5 +91,38 @@ export function DashboardCatalogActions() {
         </p>
       ) : null}
     </section>
+  );
+}
+
+function SyncGoogleSheetButton() {
+  const [isPending, startTransition] = useTransition();
+
+  const handleSync = () => {
+    startTransition(async () => {
+      const result = await syncThesisFromGoogleSheets();
+      if (result.ok) {
+        toast.success("Sinkronisasi Selesai", {
+          description: result.message,
+        });
+      } else {
+        toast.error("Sinkronisasi Gagal", {
+          description: result.message,
+        });
+      }
+    });
+  };
+
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      className="rounded-xl border-amber-200 bg-amber-50 text-amber-900 hover:bg-amber-100 hover:text-amber-950"
+      onClick={handleSync}
+      disabled={isPending}
+    >
+      <RefreshCw className={cn("mr-2 size-4", isPending && "animate-spin")} />
+      {isPending ? "Menyinkronkan..." : "Ambil Data Skripsi"}
+    </Button>
   );
 }
