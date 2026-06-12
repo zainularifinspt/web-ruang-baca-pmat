@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   BookOpen,
   GraduationCap,
+  Info,
   LogIn,
   Menu,
   ScanLine,
@@ -84,6 +85,7 @@ export function PublicNav() {
         <nav className="hidden items-center gap-3 md:flex">
           <NavLink href="/katalog" icon={Search} label="Katalog" />
           <NavLink href="/presensi" icon={ScanLine} label="Presensi" />
+          <NavLink href="/tentang" icon={Info} label="Tentang" />
           <div className="mx-1 h-6 w-px bg-slate-200/50" />
           <Button asChild size="sm" className="rounded-full bg-gradient-to-r from-red-600 via-yellow-600 to-orange-600 px-5 text-white shadow-lg shadow-red-950/10 transition-all duration-300 hover:-translate-y-0.5 hover:scale-[1.03] hover:shadow-red-950/20 active:scale-[0.98] border-0">
             <Link href="/login?redirectTo=/dashboard">
@@ -279,6 +281,16 @@ function MobileNav() {
                 <ScanLine className="size-4" />
               </div>
               Presensi Pengunjung
+            </Link>
+            <Link
+              href="/tentang"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+            >
+              <div className="flex size-8 items-center justify-center rounded-full bg-slate-100 text-slate-500">
+                <Info className="size-4" />
+              </div>
+              Tentang
             </Link>
             <Link
               href="/login?redirectTo=/dashboard"
