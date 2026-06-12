@@ -116,6 +116,9 @@ function PdfCanvasReader({
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [inputPage, setInputPage] = useState("1");
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const zoomPercent = Math.round(zoom * 100);
 
@@ -181,6 +184,42 @@ function PdfCanvasReader({
     };
   }, [active, pdfUrl]);
 
+  useEffect(() => {
+    if (!document || !containerRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const pageStr = entry.target.getAttribute("data-page-number");
+            if (pageStr) {
+              const page = parseInt(pageStr, 10);
+              setCurrentPage(page);
+              setInputPage(String(page));
+            }
+          }
+        });
+      },
+      {
+        root: containerRef.current,
+        threshold: 0.4,
+      }
+    );
+
+    // Timeout ensures elements are rendered before observing
+    const timeout = setTimeout(() => {
+      if (containerRef.current) {
+        const elements = containerRef.current.querySelectorAll(".pdf-page");
+        elements.forEach((el) => observer.observe(el));
+      }
+    }, 100);
+
+    return () => {
+      clearTimeout(timeout);
+      observer.disconnect();
+    };
+  }, [document, zoom, rotation]);
+
   if (isLoading) {
     return (
       <div className="flex h-full items-center justify-center px-6 text-center text-sm font-medium text-slate-500">
@@ -219,12 +258,48 @@ function PdfCanvasReader({
 
   return (
     <div
+      ref={containerRef}
       aria-label={title}
-      className="h-full overflow-auto bg-slate-200 px-4 py-6 select-none"
+      className="h-full overflow-auto bg-slate-200 px-4 py-6 select-none relative"
       role="document"
       tabIndex={0}
     >
       <div className="sticky top-0 z-10 mx-auto mb-4 flex w-fit items-center gap-2 rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-sm">
+        <div className="flex items-center gap-2 border-r border-slate-200 pr-3 mr-1">
+          <input
+            type="text"
+            className="h-8 w-12 rounded-lg border border-slate-200 text-center text-xs font-semibold text-slate-700 outline-none transition-colors focus:border-red-500 focus:ring-1 focus:ring-red-500"
+            value={inputPage}
+            onChange={(e) => setInputPage(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                const newPage = parseInt(inputPage, 10);
+                if (newPage >= 1 && newPage <= document.numPages) {
+                  const element = window.document.getElementById(`pdf-page-${newPage}`);
+                  if (element) {
+                    element.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }
+                } else {
+                  setInputPage(String(currentPage));
+                }
+              }
+            }}
+            onBlur={() => {
+              const newPage = parseInt(inputPage, 10);
+              if (newPage >= 1 && newPage <= document.numPages) {
+                const element = window.document.getElementById(`pdf-page-${newPage}`);
+                if (element) {
+                  element.scrollIntoView({ behavior: "smooth", block: "start" });
+                }
+              } else {
+                setInputPage(String(currentPage));
+              }
+            }}
+          />
+          <span className="text-xs font-medium text-slate-500">
+            / {document.numPages}
+          </span>
+        </div>
         <Button
           type="button"
           variant="outline"
@@ -389,8 +464,10 @@ function PdfCanvasPage({
 
   return (
     <div
+      id={`pdf-page-${pageNumber}`}
+      data-page-number={pageNumber}
       ref={wrapperRef}
-      className="relative flex justify-center"
+      className="relative flex justify-center pdf-page"
       style={{
         width: pageWidth,
         ...(!isRendered ? { minHeight: placeholderHeight } : {}),
