@@ -10,6 +10,7 @@ import {
   LibraryBig,
   Mail,
   MapPin,
+  ScanLine,
   TrendingUp,
   Users,
 } from "lucide-react";
@@ -58,8 +59,8 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <section className="relative mx-auto max-w-4xl px-4 pb-6 sm:px-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <section className="relative mx-auto max-w-5xl px-4 pb-6 sm:px-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {/* Katalog Buku Button (Disabled) */}
             <div className="glass-panel p-8 flex flex-col items-center justify-center text-center opacity-80 relative overflow-hidden">
               <div className="absolute top-4 right-4">
@@ -83,12 +84,28 @@ export default async function HomePage() {
                   Tersedia
                 </span>
               </div>
-              <div className="size-16 rounded-3xl bg-gradient-to-br from-yellow-50 to-orange-50 flex items-center justify-center text-orange-600 mb-5 shadow-inner ring-1 ring-white group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
+              <div className="size-16 rounded-3xl bg-gradient-to-br from-yellow-50 to-orange-50 flex items-center justify-center text-orange-600 mb-5 shadow-inner ring-1 ring-white group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-500">
                  <GraduationCap className="size-8" />
               </div>
               <h3 className="text-2xl font-bold tracking-tight text-slate-900">Katalog Skripsi</h3>
               <p className="mt-2 text-sm text-slate-500 font-medium px-4">
                 Jelajahi dan temukan koleksi skripsi dan tugas akhir mahasiswa.
+              </p>
+            </Link>
+
+            {/* Presensi Button */}
+            <Link href="/presensi" className="glass-panel glass-panel-hover p-8 flex flex-col items-center justify-center text-center group relative overflow-hidden">
+              <div className="absolute top-4 right-4">
+                <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-[10px] font-bold text-emerald-700 ring-1 ring-emerald-200/50">
+                  Terbuka
+                </span>
+              </div>
+              <div className="size-16 rounded-3xl bg-gradient-to-br from-emerald-50 to-teal-50 flex items-center justify-center text-emerald-600 mb-5 shadow-inner ring-1 ring-white group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
+                 <ScanLine className="size-8" />
+              </div>
+              <h3 className="text-2xl font-bold tracking-tight text-slate-900">Presensi Harian</h3>
+              <p className="mt-2 text-sm text-slate-500 font-medium px-4">
+                Catat kehadiran Anda saat mengunjungi ruang baca.
               </p>
             </Link>
           </div>
