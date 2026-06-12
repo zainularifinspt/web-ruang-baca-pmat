@@ -24,14 +24,12 @@ import type { Book, Thesis } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-type LatestItem = Book | Thesis;
+
 
 export default async function HomePage() {
   const { books, theses } = await fetchCatalogData({ visibility: "public" });
   const staffCount = await fetchStaffCount();
-  const latestCollections = [...books, ...theses]
-    .sort((first, second) => Date.parse(second.createdAt) - Date.parse(first.createdAt))
-    .slice(0, 3);
+
 
   return (
     <div className="min-h-screen bg-[#fafbfe] text-slate-950 antialiased selection:bg-yellow-500/20 selection:text-yellow-900">
@@ -60,26 +58,39 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <section className="relative mx-auto max-w-5xl px-4 pb-6 sm:px-6">
-          <div className="rounded-[2.25rem] border border-white/40 bg-white/45 p-5 shadow-[0_24px_50px_rgba(15,23,42,0.04)] backdrop-blur-3xl sm:p-6">
-            <div className="mb-5 flex items-center justify-between gap-3 border-b border-slate-200/40 pb-4">
-              <div className="text-left">
-                <h2 className="text-base font-bold tracking-tight text-slate-950">Koleksi Terbaru</h2>
-                <p className="mt-1 text-xs text-slate-500 font-medium">Buku dan skripsi publik yang baru saja diverifikasi</p>
+        <section className="relative mx-auto max-w-4xl px-4 pb-6 sm:px-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {/* Katalog Buku Button (Disabled) */}
+            <div className="glass-panel p-8 flex flex-col items-center justify-center text-center opacity-80 relative overflow-hidden">
+              <div className="absolute top-4 right-4">
+                <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold text-slate-500 ring-1 ring-slate-200">
+                  Belum Tersedia
+                </span>
               </div>
-              <p className="rounded-full bg-white/50 px-3.5 py-1 text-xs font-bold text-slate-600 shadow-sm ring-1 ring-slate-200/40">
-                {latestCollections.length} item
+              <div className="size-16 rounded-3xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center text-slate-400 mb-5 shadow-inner ring-1 ring-white">
+                 <BookOpen className="size-8" />
+              </div>
+              <h3 className="text-2xl font-bold tracking-tight text-slate-900">Katalog Buku</h3>
+              <p className="mt-2 text-sm text-slate-500 font-medium px-4">
+                Saat ini tidak tersedia karena datanya belum ada.
               </p>
             </div>
-            <div className="grid gap-3">
-              {latestCollections.length ? (
-                latestCollections.map((item) => <LatestCollectionRow key={`${item.type}-${item.id}`} item={item} />)
-              ) : (
-                <div className="rounded-2xl border border-dashed border-slate-200/60 bg-white/20 p-6 text-center text-sm text-slate-400">
-                  Belum ada koleksi publik yang terverifikasi.
-                </div>
-              )}
-            </div>
+
+            {/* Katalog Skripsi Button */}
+            <Link href="/katalog?tab=theses" className="glass-panel glass-panel-hover p-8 flex flex-col items-center justify-center text-center group relative overflow-hidden">
+              <div className="absolute top-4 right-4">
+                <span className="rounded-full bg-yellow-100 px-2.5 py-1 text-[10px] font-bold text-yellow-700 ring-1 ring-yellow-200/50">
+                  Tersedia
+                </span>
+              </div>
+              <div className="size-16 rounded-3xl bg-gradient-to-br from-yellow-50 to-orange-50 flex items-center justify-center text-orange-600 mb-5 shadow-inner ring-1 ring-white group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
+                 <GraduationCap className="size-8" />
+              </div>
+              <h3 className="text-2xl font-bold tracking-tight text-slate-900">Katalog Skripsi</h3>
+              <p className="mt-2 text-sm text-slate-500 font-medium px-4">
+                Jelajahi dan temukan koleksi skripsi dan tugas akhir mahasiswa.
+              </p>
+            </Link>
           </div>
         </section>
 
@@ -115,45 +126,7 @@ async function fetchStaffCount() {
   }
 }
 
-function LatestCollectionRow({ item }: { item: LatestItem }) {
-  const isBook = item.type === "book";
-  const href = isBook ? `/books/${item.id}` : `/theses/${item.id}`;
-  const Icon = isBook ? BookOpen : GraduationCap;
-  const meta = isBook
-    ? `${item.author || "Penulis"} - ${item.category || "Buku"}`
-    : `${item.studentName || "Mahasiswa"} - ${item.year}`;
 
-  return (
-    <Link
-      href={href}
-      className="group flex items-center gap-4 rounded-2xl border border-white/30 bg-white/30 p-3.5 transition-all duration-300 hover:-translate-y-0.5 hover:border-white/60 hover:bg-white/85 hover:shadow-[0_12px_30px_rgba(15,23,42,0.04)]"
-    >
-      <span
-        className={[
-          "flex size-11 shrink-0 items-center justify-center rounded-xl shadow-sm ring-1 transition duration-300 group-hover:scale-[1.03]",
-          isBook
-            ? "bg-gradient-to-br from-red-50 to-yellow-50 text-red-700 ring-red-100"
-            : "bg-gradient-to-br from-amber-50 to-orange-50 text-orange-700 ring-orange-100",
-        ].join(" ")}
-      >
-        <Icon className="size-5" />
-      </span>
-      <span className="min-w-0 flex-1 text-left">
-        <span className="line-clamp-1 text-sm font-bold tracking-tight text-slate-900 group-hover:text-slate-950 transition-colors">{item.title}</span>
-        <span className="mt-1 block line-clamp-1 text-xs font-semibold text-slate-400">{meta}</span>
-      </span>
-      <span className={[
-        "hidden rounded-full px-3 py-1 text-xs font-bold shadow-sm ring-1 sm:inline-flex",
-        isBook
-          ? "bg-red-50/50 text-red-700 ring-red-100/50"
-          : "bg-orange-50/50 text-orange-700 ring-orange-100/50"
-      ].join(" ")}>
-        {isBook ? "Buku" : "Skripsi"}
-      </span>
-      <ArrowRight className="size-4 shrink-0 text-slate-300 transition-all duration-300 group-hover:translate-x-1.5 group-hover:text-yellow-700" />
-    </Link>
-  );
-}
 
 function StatTile({
   icon: Icon,
