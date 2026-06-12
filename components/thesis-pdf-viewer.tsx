@@ -145,7 +145,9 @@ function PdfCanvasReader({
         loadingTask = pdfjs.getDocument({
           url: pdfUrl,
           withCredentials: false,
-          rangeChunkSize: 262144,
+          rangeChunkSize: 524288,
+          cMapUrl: "https://unpkg.com/pdfjs-dist@4.4.168/cmaps/",
+          cMapPacked: true,
         });
         loadingTask.onProgress = ({ loaded, total }: { loaded: number; total: number }) => {
           if (!total || isCancelled) return;
@@ -400,7 +402,7 @@ function PdfCanvasPage({
         setIsVisible(true);
         observer.disconnect();
       },
-      { rootMargin: "900px 0px" },
+      { rootMargin: "400px 0px" },
     );
 
     visibilityObserver.observe(wrapper);
@@ -425,10 +427,10 @@ function PdfCanvasPage({
         const initialViewport = page.getViewport({ scale: 1, rotation });
         const scale = pageWidth / initialViewport.width;
         const viewport = page.getViewport({ scale, rotation });
-        const context = targetCanvas.getContext("2d");
+        const context = targetCanvas.getContext("2d", { alpha: false, willReadFrequently: true });
         if (!context) return;
 
-        const outputScale = Math.min(window.devicePixelRatio || 1, 1.35);
+        const outputScale = Math.min(window.devicePixelRatio || 1, 1.15);
         targetCanvas.width = Math.floor(viewport.width * outputScale);
         targetCanvas.height = Math.floor(viewport.height * outputScale);
         targetCanvas.style.width = `${Math.floor(viewport.width)}px`;

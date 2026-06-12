@@ -49,7 +49,7 @@ export async function GET(request: Request) {
   }
 
   const responseHeaders: Record<string, string> = {
-    "Cache-Control": "private, max-age=300",
+    "Cache-Control": "public, s-maxage=31536000, stale-while-revalidate=86400",
     "Content-Disposition": "inline",
     "Content-Type": "application/pdf",
     "X-Content-Type-Options": "nosniff",
