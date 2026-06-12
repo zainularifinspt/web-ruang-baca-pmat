@@ -48,13 +48,19 @@ export async function GET(request: Request) {
     );
   }
 
+  const responseHeaders: Record<string, string> = {
+    "Cache-Control": "private, max-age=300",
+    "Content-Disposition": "inline",
+    "Content-Type": "application/pdf",
+    "X-Content-Type-Options": "nosniff",
+  };
+
+  if (contentLength > 0) {
+    responseHeaders["Content-Length"] = String(contentLength);
+  }
+
   return new NextResponse(response.body, {
-    headers: {
-      "Cache-Control": "private, max-age=300",
-      "Content-Disposition": "inline",
-      "Content-Type": "application/pdf",
-      "X-Content-Type-Options": "nosniff",
-    },
+    headers: responseHeaders,
   });
 }
 
