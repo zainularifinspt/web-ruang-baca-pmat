@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Eye, RotateCw, ZoomIn, ZoomOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -119,8 +119,19 @@ function PdfCanvasReader({
   const [currentPage, setCurrentPage] = useState(1);
   const [inputPage, setInputPage] = useState("1");
   const containerRef = useRef<HTMLDivElement>(null);
+  const prevZoom = useRef(zoom);
 
   const zoomPercent = Math.round(zoom * 100);
+
+  useLayoutEffect(() => {
+    if (prevZoom.current !== zoom) {
+      prevZoom.current = zoom;
+      const element = document.getElementById(`pdf-page-${currentPage}`);
+      if (element) {
+        element.scrollIntoView({ block: "center" });
+      }
+    }
+  }, [zoom, currentPage]);
 
   useEffect(() => {
     if (!active) return;
