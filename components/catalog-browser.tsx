@@ -209,9 +209,7 @@ export function CatalogBrowser({
   const activeChips = [
     chip("Jenis", collectionTypeLabel(collectionType), () => setCollectionType("all"), collectionType),
     chip("Tahun", yearFilter, () => setYearFilter("all")),
-    ...(collectionType !== "theses" ? [chip("Kategori/topik", subjectFilter, () => setSubjectFilter("all"))] : []),
-    chip(collectionType === "theses" ? "Pembimbing" : "Lokasi/pembimbing", locationAdvisorFilter, () => setLocationAdvisorFilter("all")),
-    ...(collectionType !== "theses" ? [chip("Ketersediaan", availabilityLabel(bookAvailability), () => setBookAvailability("all"), bookAvailability)] : []),
+    chip("Pembimbing", locationAdvisorFilter, () => setLocationAdvisorFilter("all")),
   ];
 
   const resetCurrentFilters = () => {
@@ -282,7 +280,7 @@ export function CatalogBrowser({
           <SlidersHorizontal className="size-4 text-primary" />
           Filter koleksi
         </div>
-        <div className={cn("grid gap-3", collectionType === "theses" ? "lg:grid-cols-3" : "lg:grid-cols-5")}>
+        <div className="grid gap-3 lg:grid-cols-3">
           <CollectionTypeFilter
             value={collectionType}
             showAll={showAllTab || initialTab === "all"}
@@ -308,21 +306,8 @@ export function CatalogBrowser({
             options={yearOptions.map(toOption)}
             placeholder="Semua tahun"
           />
-          {collectionType !== "theses" && (
-            <FilterSelect
-              label="Kategori / topik"
-              value={subjectFilter}
-              onValueChange={(value) => {
-                setSubjectFilter(value);
-                setPage(1);
-                triggerLoading();
-              }}
-              options={subjectOptions.map(toOption)}
-              placeholder="Semua kategori/topik"
-            />
-          )}
           <FilterSelect
-            label={collectionType === "theses" ? "Pembimbing" : "Lokasi / pembimbing"}
+            label="Pembimbing"
             value={locationAdvisorFilter}
             onValueChange={(value) => {
               setLocationAdvisorFilter(value);
@@ -330,25 +315,8 @@ export function CatalogBrowser({
               triggerLoading();
             }}
             options={locationAdvisorOptions.map(toOption)}
-            placeholder={collectionType === "theses" ? "Semua pembimbing" : "Semua lokasi/pembimbing"}
+            placeholder="Semua pembimbing"
           />
-          {collectionType !== "theses" && (
-            <FilterSelect
-              label="Ketersediaan"
-              value={bookAvailability}
-              onValueChange={(value) => {
-                setBookAvailability(value);
-                setPage(1);
-                triggerLoading();
-              }}
-              placeholder="Semua ketersediaan"
-              options={[
-                { label: "Tersedia", value: "available" },
-                { label: "Terbatas", value: "limited" },
-                { label: "Tidak tersedia", value: "empty" },
-              ]}
-            />
-          )}
         </div>
         <FilterChips chips={activeChips} onReset={resetCurrentFilters} />
       </div>
