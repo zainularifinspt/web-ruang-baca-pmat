@@ -344,7 +344,6 @@ export function CatalogBrowser({
                 { label: "Terbatas", value: "limited" },
                 { label: "Tidak tersedia", value: "empty" },
               ]}
-              disabled={collectionType === "theses"}
             />
           )}
         </div>
