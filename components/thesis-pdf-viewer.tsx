@@ -438,10 +438,10 @@ function PdfCanvasPage({
         const initialViewport = page.getViewport({ scale: 1, rotation });
         const scale = pageWidth / initialViewport.width;
         const viewport = page.getViewport({ scale, rotation });
-        const context = targetCanvas.getContext("2d", { alpha: false, willReadFrequently: true });
+        const context = targetCanvas.getContext("2d", { alpha: false });
         if (!context) return;
 
-        const outputScale = Math.min(window.devicePixelRatio || 1, 1.15);
+        const outputScale = Math.min(window.devicePixelRatio || 1, 2);
         targetCanvas.width = Math.floor(viewport.width * outputScale);
         targetCanvas.height = Math.floor(viewport.height * outputScale);
         targetCanvas.style.width = `${Math.floor(viewport.width)}px`;
