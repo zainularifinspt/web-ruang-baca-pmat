@@ -33,8 +33,8 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
   const isBook = item.type === "book";
 
   return (
-    <DialogContent className="grid max-h-[88vh] max-w-4xl grid-rows-[auto_minmax(0,1fr)] overflow-hidden rounded-[2rem] border border-red-100 bg-red-50/60 p-0 shadow-[0_24px_50px_rgba(4,120,87,0.15)] backdrop-blur-2xl sm:w-[calc(100%-3rem)] [&>button]:right-5 [&>button]:top-5 [&>button]:rounded-full [&>button]:bg-white/90 [&>button]:p-2 [&>button]:shadow-md [&>button]:shadow-red-950/5 [&>button]:backdrop-blur-xl [&>button]:transition-all [&>button]:hover:scale-105">
-      <div className="relative overflow-hidden border-b border-red-100/50 bg-[linear-gradient(135deg,rgba(240,253,250,0.96),rgba(209,250,229,0.6),rgba(255,255,255,0.95))] px-5 pb-6 pt-5 pr-14 sm:px-8 sm:pb-8 sm:pt-6 sm:pr-16">
+    <DialogContent className="flex max-h-[88vh] max-w-4xl flex-col overflow-y-auto overflow-x-hidden rounded-[2rem] border border-red-100 bg-red-50/60 p-0 shadow-[0_24px_50px_rgba(4,120,87,0.15)] backdrop-blur-2xl sm:w-[calc(100%-3rem)] md:grid md:grid-rows-[auto_minmax(0,1fr)] md:overflow-hidden [&>button]:right-5 [&>button]:top-5 [&>button]:rounded-full [&>button]:bg-white/90 [&>button]:p-2 [&>button]:shadow-md [&>button]:shadow-red-950/5 [&>button]:backdrop-blur-xl [&>button]:transition-all [&>button]:hover:scale-105">
+      <div className="relative shrink-0 overflow-hidden border-b border-red-100/50 bg-[linear-gradient(135deg,rgba(240,253,250,0.96),rgba(209,250,229,0.6),rgba(255,255,255,0.95))] px-5 pb-6 pt-5 pr-14 sm:px-8 sm:pb-8 sm:pt-6 sm:pr-16">
         <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-red-200 to-transparent" />
         <DialogHeader className="relative space-y-3">
           <div className="flex flex-wrap items-center gap-2">
@@ -50,13 +50,13 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
               </span>
             ) : null}
           </div>
-          <DialogTitle className="max-w-4xl text-balance text-2xl font-extrabold leading-tight tracking-tight text-slate-900 sm:text-3xl">
+          <DialogTitle className="max-w-4xl text-balance text-xl font-extrabold leading-tight tracking-tight text-slate-900 sm:text-2xl md:text-3xl">
             {item.title}
           </DialogTitle>
           {isBook ? <BookCoverPreview coverUrl={item.coverUrl} title={item.title} /> : null}
         </DialogHeader>
       </div>
-      <div className="relative min-h-0 space-y-5 overflow-y-auto bg-[linear-gradient(180deg,rgba(255,255,255,0.5),rgba(209,250,229,0.25))] p-5 sm:p-7">
+      <div className="relative min-h-0 space-y-5 bg-[linear-gradient(180deg,rgba(255,255,255,0.5),rgba(209,250,229,0.25))] p-5 sm:p-7 md:overflow-y-auto">
         <div className="grid gap-4 md:grid-cols-4">
           <div className="md:col-span-3">
             <Info
