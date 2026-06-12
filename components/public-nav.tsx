@@ -79,7 +79,7 @@ export function PublicNav() {
             <p className="mt-1 truncate text-xs text-slate-500">Jurusan Pendidikan Matematika ULM</p>
           </div>
         </Link>
-        <NavbarSearch items={searchItems} className="order-3 w-full md:order-none md:w-[min(42vw,28rem)]" />
+        <NavbarSearch items={searchItems} className="hidden md:block order-3 w-full md:order-none md:w-[min(42vw,28rem)]" />
         <nav className="hidden items-center gap-3 md:flex">
           <NavLink href="/katalog" icon={Search} label="Katalog" />
           <NavLink href="/presensi" icon={ScanLine} label="Presensi" />
