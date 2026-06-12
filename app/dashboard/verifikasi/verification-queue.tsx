@@ -158,6 +158,7 @@ export function VerificationQueue({ items }: { items: VerificationQueueItem[] })
                     {item.kind === "catalog" ? (
                       <VerifyCatalogDialog
                         item={item}
+                        onVerify={(status) => setStatusOverrides((current) => ({ ...current, [item.id]: status }))}
                         trigger={
                           <Button variant="outline" size="sm" className="rounded-xl">
                             Detail
@@ -171,6 +172,7 @@ export function VerificationQueue({ items }: { items: VerificationQueueItem[] })
                       <VerifyCatalogDialog
                         item={item}
                         disabled={isPending || currentStatus === "approved"}
+                        onVerify={(status) => setStatusOverrides((current) => ({ ...current, [item.id]: status }))}
                         trigger={
                           <Button
                             variant="outline"
@@ -235,10 +237,12 @@ function VerifyCatalogDialog({
   item,
   trigger,
   disabled,
+  onVerify,
 }: {
   item: CatalogVerificationItem;
   trigger: React.ReactNode;
   disabled?: boolean;
+  onVerify?: (status: VerificationStatus) => void;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -309,7 +313,7 @@ function VerifyCatalogDialog({
           ? await updateBook(item.item.id, bookValues)
           : await updateThesis(item.item.id, {
               ...thesisValues,
-              verificationStatus: item.item.verificationStatus,
+              verificationStatus: "approved",
             });
 
       if (!updateResult.ok) {
@@ -317,18 +321,8 @@ function VerifyCatalogDialog({
         return;
       }
 
-      const verifyResult = await updateCollectionVerificationStatus(
-        item.item.type,
-        item.item.id,
-        "approved",
-      );
-
-      if (!verifyResult.ok) {
-        toast.error("Gagal verifikasi", { description: verifyResult.message });
-        return;
-      }
-
-      toast.success("Koleksi diverifikasi", { description: verifyResult.message });
+      toast.success("Koleksi diverifikasi", { description: "Koleksi berhasil diverifikasi dan masuk ke katalog." });
+      if (onVerify) onVerify("approved");
       setOpen(false);
       router.refresh();
     });
