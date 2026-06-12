@@ -181,20 +181,20 @@ export function CatalogBrowser({
     return sortCollections(result, sort);
   }, [baseItems, bookAvailability, locationAdvisorFilter, normalizedQuery, sort, subjectFilter, yearFilter]);
 
-  const yearOptions = useMemo(() => unique(items.map((item) => String(item.year))), [items]);
+  const yearOptions = useMemo(() => unique(baseItems.map((item) => String(item.year))), [baseItems]);
   const subjectOptions = useMemo(
     () =>
       unique(
-        items.flatMap((item) =>
+        baseItems.flatMap((item) =>
           item.type === "book" ? [item.category, ...item.keywords] : [item.topic, ...item.keywords],
         ),
       ),
-    [items],
+    [baseItems],
   );
   const locationAdvisorOptions = useMemo(
     () =>
       unique(
-        items.flatMap((item) => {
+        baseItems.flatMap((item) => {
           if (collectionType === "theses" && item.type === "thesis") {
             return [item.supervisor1, item.supervisor2];
           }
@@ -203,7 +203,7 @@ export function CatalogBrowser({
             : [item.supervisor1, item.supervisor2, item.physicalLocation];
         }),
       ),
-    [items, collectionType],
+    [baseItems, collectionType],
   );
 
   const activeChips = [
