@@ -73,7 +73,7 @@ const emptyThesisValues: ThesisFormValues = {
   coverUrl: "",
   physicalLocation: "",
   accessNote: defaultAccessNote,
-  verificationStatus: "pending",
+  verificationStatus: "approved",
   pdfUrl: "",
   pdfFilename: "",
   pdfSize: 0,

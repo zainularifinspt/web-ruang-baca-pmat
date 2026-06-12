@@ -370,6 +370,7 @@ function bookPayload(values: BookFormValues, inputBy?: string, actorId?: string)
     rack_location: values.rackLocation,
     stock: values.stock,
     status: values.status,
+    verification_status: "approved",
     cover_url: optionalPayloadValue(values.coverUrl),
   }, inputBy, actorId);
 }
