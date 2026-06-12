@@ -8,7 +8,7 @@ export function RoleSwitcher() {
 
   return (
     <div className="flex min-w-0 items-center gap-1.5 rounded-full border border-white/80 bg-white/90 px-2 py-1 shadow-sm backdrop-blur sm:gap-2">
-      <span className="hidden size-8 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100 sm:flex">
+      <span className="hidden size-8 shrink-0 items-center justify-center rounded-full bg-red-50 text-red-700 ring-1 ring-red-100 sm:flex">
         <ShieldCheck className="size-4" />
       </span>
       <span className="flex min-h-9 min-w-[132px] flex-col justify-center px-1 sm:min-w-[190px]">

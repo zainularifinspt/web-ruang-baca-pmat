@@ -523,7 +523,7 @@ function verificationStatusValue(value: string): VerificationStatus {
 
 function statusClassName(status: ImportStatus) {
   const baseClassName = "inline-flex rounded-full px-2.5 py-1 text-xs font-semibold";
-  if (status === "success") return `${baseClassName} bg-emerald-50 text-emerald-700`;
+  if (status === "success") return `${baseClassName} bg-red-50 text-red-700`;
   if (status === "error") return `${baseClassName} bg-rose-50 text-rose-700`;
   if (status === "importing") return `${baseClassName} bg-amber-50 text-amber-700`;
   return `${baseClassName} bg-slate-100 text-slate-700`;

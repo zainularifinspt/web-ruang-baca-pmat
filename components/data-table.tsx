@@ -35,7 +35,7 @@ export function InitialAvatar({
   return (
     <span
       className={cn(
-        "inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-100 to-sky-100 text-sm font-bold text-emerald-800",
+        "inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-red-100 to-amber-100 text-sm font-bold text-red-800",
         className,
       )}
     >

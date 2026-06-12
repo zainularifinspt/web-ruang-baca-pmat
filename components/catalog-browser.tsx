@@ -490,7 +490,7 @@ function FilterChips({
           key={`${item.label}-${item.value}`}
           type="button"
           onClick={item.clear}
-          className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-800 ring-1 ring-emerald-100"
+          className="inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1.5 text-xs font-medium text-red-800 ring-1 ring-red-100"
         >
           {item.label}: {item.value}
           <X className="size-3" />
@@ -551,7 +551,7 @@ function CollectionRow({
     <Dialog>
       <div
         className={cn(
-          "grid gap-4 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200/75 transition hover:shadow-md hover:ring-emerald-200 lg:items-center",
+          "grid gap-4 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200/75 transition hover:shadow-md hover:ring-red-200 lg:items-center",
           isBook
             ? "lg:grid-cols-[minmax(0,1.6fr)_minmax(10rem,0.8fr)_7rem_minmax(10rem,0.8fr)_auto]"
             : "lg:grid-cols-[minmax(0,1.8fr)_7rem_minmax(14rem,1fr)_auto]",
@@ -562,8 +562,8 @@ function CollectionRow({
             className={cn(
               "flex size-11 shrink-0 items-center justify-center rounded-2xl ring-1",
               isBook
-                ? "bg-emerald-700 text-white ring-emerald-700"
-                : "bg-slate-900 text-emerald-200 ring-slate-900",
+                ? "bg-red-700 text-white ring-red-700"
+                : "bg-slate-900 text-red-200 ring-slate-900",
             )}
           >
             <Icon className="size-5" />

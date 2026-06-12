@@ -23,7 +23,7 @@ export function CollectionCard({ item }: { item: CollectionItem }) {
       <DialogTrigger asChild>
         <button
           type="button"
-          className="group flex h-full min-h-[218px] flex-col overflow-hidden rounded-2xl bg-white text-left shadow-sm ring-1 ring-slate-200/75 transition duration-200 hover:-translate-y-0.5 hover:shadow-md hover:ring-emerald-200"
+          className="group flex h-full min-h-[218px] flex-col overflow-hidden rounded-2xl bg-white text-left shadow-sm ring-1 ring-slate-200/75 transition duration-200 hover:-translate-y-0.5 hover:shadow-md hover:ring-red-200"
         >
           <CompactHeader item={item} />
           <div className="flex flex-1 flex-col p-4">
@@ -65,8 +65,8 @@ function CompactHeader({ item }: { item: CollectionItem }) {
       className={cn(
         "relative border-b px-4 py-3",
         isBook
-          ? "border-emerald-100 bg-emerald-50/80"
-          : "border-sky-100 bg-sky-50/80",
+          ? "border-red-100 bg-red-50/80"
+          : "border-amber-100 bg-amber-50/80",
       )}
     >
       <div className="flex items-start justify-between gap-3">
@@ -75,8 +75,8 @@ function CompactHeader({ item }: { item: CollectionItem }) {
             className={cn(
               "flex size-10 shrink-0 items-center justify-center rounded-xl ring-1",
               isBook
-                ? "bg-emerald-700 text-white ring-emerald-700"
-                : "bg-slate-900 text-emerald-200 ring-slate-900",
+                ? "bg-red-700 text-white ring-red-700"
+                : "bg-slate-900 text-red-200 ring-slate-900",
             )}
           >
             <Icon className="size-5" />

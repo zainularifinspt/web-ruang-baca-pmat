@@ -348,7 +348,7 @@ function ImportUsersDialog() {
                     <TableCell>{row.fullName || "-"}</TableCell>
                     <TableCell>{row.nimNip || "-"}</TableCell>
                     <TableCell>
-                      <span className={row.status === "error" ? "text-rose-700" : row.status === "success" ? "text-emerald-700" : "text-slate-600"}>
+                      <span className={row.status === "error" ? "text-rose-700" : row.status === "success" ? "text-red-700" : "text-slate-600"}>
                         {row.status === "ready" ? "Siap" : row.status === "success" ? "Berhasil" : "Error"}
                       </span>
                       {row.message ? <p className="mt-1 text-xs text-slate-500">{row.message}</p> : null}

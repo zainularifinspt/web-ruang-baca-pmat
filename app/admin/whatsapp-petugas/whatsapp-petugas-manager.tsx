@@ -94,7 +94,7 @@ export function WhatsappPetugasManager({
 
       <form className="h-fit rounded-2xl border border-slate-200 bg-white p-5 shadow-sm" onSubmit={handleSubmit}>
         <div className="mb-5">
-          <p className="text-sm font-semibold text-emerald-700">
+          <p className="text-sm font-semibold text-red-700">
             {isEditing ? "Edit nomor" : "Tambah nomor"}
           </p>
           <h2 className="mt-1 text-xl font-semibold text-slate-950">

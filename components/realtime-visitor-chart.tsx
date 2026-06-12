@@ -105,7 +105,7 @@ export function RealtimeVisitorChart() {
                 {totalVisitors.toLocaleString("id-ID")}
               </p>
               {growth !== null ? (
-                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-1 text-xs font-bold text-emerald-700 ring-1 ring-emerald-100">
+                <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-1 text-xs font-bold text-red-700 ring-1 ring-red-100">
                   <TrendingUp className="size-3" />
                   {growth}%
                 </span>
@@ -171,7 +171,7 @@ function VisitorLine({ points }: { points: ChartPoint[] }) {
       </div>
       {!points.some((point) => point.value > 0) ? (
         <div className="mt-3 flex items-center gap-2 rounded-2xl border border-slate-200/40 bg-white/20 p-3 text-xs text-slate-400">
-          <Activity className="size-4 text-emerald-600" />
+          <Activity className="size-4 text-red-600" />
           Belum ada presensi pada 7 hari terakhir.
         </div>
       ) : null}

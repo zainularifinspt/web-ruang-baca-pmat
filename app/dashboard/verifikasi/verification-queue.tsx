@@ -175,7 +175,7 @@ export function VerificationQueue({ items }: { items: VerificationQueueItem[] })
                           <Button
                             variant="outline"
                             size="icon"
-                            className="rounded-xl text-emerald-700 hover:text-emerald-800"
+                            className="rounded-xl text-red-700 hover:text-red-800"
                           >
                             <Check />
                             <span className="sr-only">Buka verifikasi koleksi</span>
@@ -467,7 +467,7 @@ function VerifyWhatsappDraftDialog({
         <Button
           variant="outline"
           size="icon"
-          className="rounded-xl text-emerald-700 hover:text-emerald-800"
+          className="rounded-xl text-red-700 hover:text-red-800"
           disabled={disabled || isPending}
         >
           <Check />

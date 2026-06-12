@@ -44,7 +44,7 @@ export function CollectionDetailPage({ item }: { item: DetailItem }) {
               <LargeCover item={item} />
               <div className="space-y-4 p-5">
                 <div className="flex flex-wrap gap-2">
-                  <Badge className="rounded-full bg-emerald-50 text-emerald-800 ring-1 ring-emerald-100 hover:bg-emerald-50">
+                  <Badge className="rounded-full bg-red-50 text-red-800 ring-1 ring-red-100 hover:bg-red-50">
                     {collectionType}
                   </Badge>
                   {isBook ? <AvailabilityBadge available={item.available} stock={item.stock} /> : null}
@@ -64,7 +64,7 @@ export function CollectionDetailPage({ item }: { item: DetailItem }) {
 
           <div className="space-y-6">
             <div className="rounded-[2rem] bg-white p-6 shadow-sm ring-1 ring-slate-200 sm:p-8">
-              <p className="text-sm font-semibold text-emerald-700">Detail {collectionType}</p>
+              <p className="text-sm font-semibold text-red-700">Detail {collectionType}</p>
               <h1 className="mt-3 text-3xl font-semibold leading-tight tracking-normal text-slate-950 sm:text-4xl">
                 {item.title}
               </h1>
@@ -97,7 +97,7 @@ export function CollectionDetailPage({ item }: { item: DetailItem }) {
             </Card>
 
             {item.notes ? (
-              <div className="rounded-[1.5rem] border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-900">
+              <div className="rounded-[1.5rem] border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
                 <span className="font-semibold">Catatan:</span> {item.notes}
               </div>
             ) : null}
@@ -175,7 +175,7 @@ export function CollectionDetailLoading() {
 
 function LargeCover({ item }: { item: DetailItem }) {
   return (
-    <div className="relative aspect-[4/5] min-h-[28rem] overflow-hidden bg-emerald-950 text-white">
+    <div className="relative aspect-[4/5] min-h-[28rem] overflow-hidden bg-red-950 text-white">
       {item.coverUrl ? (
         <div
           className="absolute inset-0 bg-cover bg-center"
@@ -190,7 +190,7 @@ function LargeCover({ item }: { item: DetailItem }) {
           {item.type === "book" ? <BookOpen className="size-7" /> : <GraduationCap className="size-7" />}
         </div>
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-emerald-100">
+          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-red-100">
             {item.type === "book" ? "Digital Book" : "Thesis Archive"}
           </p>
           <p className="mt-3 line-clamp-4 text-2xl font-semibold leading-tight">{item.title}</p>
@@ -258,7 +258,7 @@ function InfoCard({
 }) {
   return (
     <div className="flex min-w-0 gap-3 rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
-      <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
+      <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-red-700">
         <Icon className="size-5" />
       </div>
       <div className="min-w-0">
@@ -294,7 +294,7 @@ function SideMeta({
 }) {
   return (
     <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
-      <Icon className="size-4 text-emerald-700" />
+      <Icon className="size-4 text-red-700" />
       <div className="min-w-0">
         <p className="text-xs text-slate-500">{label}</p>
         <p className="truncate text-sm font-semibold text-slate-950">{value || "-"}</p>

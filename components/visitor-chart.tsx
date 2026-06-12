@@ -15,7 +15,7 @@ export function VisitorBarChart({ metrics }: VisitorChartProps) {
             <div className="text-center text-xs font-semibold text-slate-700">{item.visits}</div>
             <div className="flex flex-1 items-end rounded-t-2xl bg-white/90 px-1 pt-3 shadow-inner ring-1 ring-slate-100">
               <div
-                className="min-h-3 w-full rounded-t-xl bg-gradient-to-t from-emerald-700 via-teal-500 to-cyan-300 shadow-sm shadow-emerald-900/10 transition hover:from-emerald-800"
+                className="min-h-3 w-full rounded-t-xl bg-gradient-to-t from-red-700 via-rose-500 to-yellow-300 shadow-sm shadow-red-900/10 transition hover:from-red-800"
                 style={{ height: `${Math.max(4, (item.visits / max) * 86)}%` }}
                 aria-label={`${item.label}: ${item.visits} kunjungan`}
               />
@@ -107,7 +107,7 @@ export function VisitorLineChart({ metrics }: VisitorChartProps) {
                 cx={x}
                 cy={y}
                 r="4"
-                className={key === "books" ? "fill-cyan-600" : "fill-amber-600"}
+                className={key === "books" ? "fill-yellow-600" : "fill-amber-600"}
                 stroke="white"
                 strokeWidth="2"
               />
@@ -133,7 +133,7 @@ export function VisitorLineChart({ metrics }: VisitorChartProps) {
       </svg>
       <div className="mt-2 flex gap-4 text-xs text-muted-foreground">
         <span className="inline-flex items-center gap-2">
-          <span className="size-2 rounded-full bg-cyan-600" />
+          <span className="size-2 rounded-full bg-yellow-600" />
           Cari buku
         </span>
         <span className="inline-flex items-center gap-2">

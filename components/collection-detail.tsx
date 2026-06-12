@@ -33,18 +33,18 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
   const isBook = item.type === "book";
 
   return (
-    <DialogContent className="grid max-h-[88vh] max-w-4xl grid-rows-[auto_minmax(0,1fr)] overflow-hidden rounded-[2rem] border border-emerald-100 bg-emerald-50/60 p-0 shadow-[0_24px_50px_rgba(4,120,87,0.15)] backdrop-blur-2xl sm:w-[calc(100%-3rem)] [&>button]:right-5 [&>button]:top-5 [&>button]:rounded-full [&>button]:bg-white/90 [&>button]:p-2 [&>button]:shadow-md [&>button]:shadow-emerald-950/5 [&>button]:backdrop-blur-xl [&>button]:transition-all [&>button]:hover:scale-105">
-      <div className="relative overflow-hidden border-b border-emerald-100/50 bg-[linear-gradient(135deg,rgba(240,253,250,0.96),rgba(209,250,229,0.6),rgba(255,255,255,0.95))] px-5 pb-6 pt-5 pr-14 sm:px-8 sm:pb-8 sm:pt-6 sm:pr-16">
-        <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-emerald-200 to-transparent" />
+    <DialogContent className="grid max-h-[88vh] max-w-4xl grid-rows-[auto_minmax(0,1fr)] overflow-hidden rounded-[2rem] border border-red-100 bg-red-50/60 p-0 shadow-[0_24px_50px_rgba(4,120,87,0.15)] backdrop-blur-2xl sm:w-[calc(100%-3rem)] [&>button]:right-5 [&>button]:top-5 [&>button]:rounded-full [&>button]:bg-white/90 [&>button]:p-2 [&>button]:shadow-md [&>button]:shadow-red-950/5 [&>button]:backdrop-blur-xl [&>button]:transition-all [&>button]:hover:scale-105">
+      <div className="relative overflow-hidden border-b border-red-100/50 bg-[linear-gradient(135deg,rgba(240,253,250,0.96),rgba(209,250,229,0.6),rgba(255,255,255,0.95))] px-5 pb-6 pt-5 pr-14 sm:px-8 sm:pb-8 sm:pt-6 sm:pr-16">
+        <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-red-200 to-transparent" />
         <DialogHeader className="relative space-y-3">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge className="rounded-full border border-emerald-200 bg-white/85 px-3.5 py-1.5 text-sm font-semibold text-emerald-900 shadow-sm shadow-emerald-900/5 backdrop-blur-md">
+            <Badge className="rounded-full border border-red-200 bg-white/85 px-3.5 py-1.5 text-sm font-semibold text-red-900 shadow-sm shadow-red-900/5 backdrop-blur-md">
               <GraduationCap className="mr-1.5 size-4" />
               {isBook ? "Buku" : "Skripsi"}
             </Badge>
             {isBook ? <AvailabilityBadge available={item.available} stock={item.stock} /> : null}
             {!isBook ? (
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-teal-200 bg-teal-50/80 px-3 py-1 text-xs font-semibold text-teal-800 shadow-sm backdrop-blur-md">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50/80 px-3 py-1 text-xs font-semibold text-rose-800 shadow-sm backdrop-blur-md">
                 <Sparkles className="size-3.5" />
                 Repositori Digital
               </span>
@@ -91,9 +91,9 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
           <GlassPanel className="p-5 sm:p-6">
             <div className="grid gap-6 md:grid-cols-12">
               {/* Left side: Dosen Pembimbing */}
-              <div className="md:col-span-7 md:border-r md:border-emerald-100/60 md:pr-6">
+              <div className="md:col-span-7 md:border-r md:border-red-100/60 md:pr-6">
                 <div className="mb-3.5 flex items-center gap-2 text-slate-900">
-                  <UsersRound className="size-5 text-emerald-700" />
+                  <UsersRound className="size-5 text-red-700" />
                   <p className="text-lg font-bold">Dosen Pembimbing</p>
                 </div>
                 <div className="flex flex-col gap-3">
@@ -122,7 +122,7 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
               <div className="md:col-span-5 flex flex-col justify-between md:pl-2">
                 <div>
                   <div className="mb-3.5 flex items-center gap-2 text-slate-900">
-                    <FileText className="size-5 text-emerald-700" />
+                    <FileText className="size-5 text-red-700" />
                     <p className="text-lg font-bold">File Skripsi</p>
                   </div>
                   <p className="text-sm text-slate-500 leading-relaxed">
@@ -141,7 +141,7 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
           </GlassPanel>
         ) : null}
         {item.notes ? (
-          <div className="rounded-2xl border border-emerald-200 bg-white/70 p-3.5 text-sm text-emerald-900 shadow-sm backdrop-blur-md">
+          <div className="rounded-2xl border border-red-200 bg-white/70 p-3.5 text-sm text-red-900 shadow-sm backdrop-blur-md">
             <span className="font-semibold">Catatan:</span> {item.notes}
           </div>
         ) : null}
@@ -160,7 +160,7 @@ function GlassPanel({
   return (
     <div
       className={cn(
-        "rounded-[1.75rem] border border-emerald-100/40 bg-white/60 shadow-[0_10px_28px_rgba(4,120,87,0.04),inset_0_1px_0_rgba(255,255,255,0.95)] backdrop-blur-xl ring-1 ring-emerald-50/50",
+        "rounded-[1.75rem] border border-red-100/40 bg-white/60 shadow-[0_10px_28px_rgba(4,120,87,0.04),inset_0_1px_0_rgba(255,255,255,0.95)] backdrop-blur-xl ring-1 ring-red-50/50",
         className,
       )}
     >
@@ -172,7 +172,7 @@ function GlassPanel({
 function BookCoverPreview({ coverUrl, title }: { coverUrl?: string; title: string }) {
   return (
     <div className="mt-4 flex justify-center">
-      <div className="w-fit rounded-[1.75rem] border border-emerald-100 bg-white p-4 shadow-lg shadow-slate-200/70">
+      <div className="w-fit rounded-[1.75rem] border border-red-100 bg-white p-4 shadow-lg shadow-slate-200/70">
       {coverUrl ? (
         <div
           aria-label={`Cover ${title}`}
@@ -200,8 +200,8 @@ function Info({
   value: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-[4.5rem] gap-3 rounded-[1.25rem] border border-emerald-100/40 bg-white/80 p-4 shadow-[0_4px_16px_rgba(15,23,42,0.04),inset_0_1px_0_rgba(255,255,255,0.9)] backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 hover:border-emerald-200 hover:bg-white hover:shadow-[0_12px_24px_rgba(16,185,129,0.12)]">
-      <div className="flex size-9 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700 shadow-inner shadow-white/70 [&_svg]:size-5">{icon}</div>
+    <div className="flex min-h-[4.5rem] gap-3 rounded-[1.25rem] border border-red-100/40 bg-white/80 p-4 shadow-[0_4px_16px_rgba(15,23,42,0.04),inset_0_1px_0_rgba(255,255,255,0.9)] backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 hover:border-red-200 hover:bg-white hover:shadow-[0_12px_24px_rgba(16,185,129,0.12)]">
+      <div className="flex size-9 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-red-700 shadow-inner shadow-white/70 [&_svg]:size-5">{icon}</div>
       <div className="min-w-0 flex-1">
         <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">{label}</p>
         <div className="mt-1 break-words text-sm font-bold leading-snug text-slate-900 sm:text-base">{value || "-"}</div>

@@ -68,8 +68,8 @@ export function HomeGlobalSearch({ books, theses }: { books: Book[]; theses: The
 
   return (
     <div className="mx-auto w-full max-w-3xl">
-      <div className="relative rounded-[1.75rem] bg-white p-2 shadow-2xl shadow-emerald-950/20 ring-1 ring-white/70 transition focus-within:shadow-emerald-950/25">
-        <Search className="absolute left-6 top-1/2 size-5 -translate-y-1/2 text-emerald-700" />
+      <div className="relative rounded-[1.75rem] bg-white p-2 shadow-2xl shadow-red-950/20 ring-1 ring-white/70 transition focus-within:shadow-red-950/25">
+        <Search className="absolute left-6 top-1/2 size-5 -translate-y-1/2 text-red-700" />
         <Input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
@@ -104,14 +104,14 @@ export function HomeGlobalSearch({ books, theses }: { books: Book[]; theses: The
                 <Link
                   key={`${result.type}-${result.item.id}`}
                   href={result.href}
-                  className="group flex items-center gap-3 rounded-2xl p-3 transition hover:bg-emerald-50"
+                  className="group flex items-center gap-3 rounded-2xl p-3 transition hover:bg-red-50"
                 >
                   <span
                     className={cn(
                       "flex size-11 shrink-0 items-center justify-center rounded-2xl ring-1",
                       result.type === "book"
-                        ? "bg-emerald-50 text-emerald-700 ring-emerald-100"
-                        : "bg-sky-50 text-sky-700 ring-sky-100",
+                        ? "bg-red-50 text-red-700 ring-red-100"
+                        : "bg-amber-50 text-amber-700 ring-amber-100",
                     )}
                   >
                     <Icon className="size-5" />
@@ -127,7 +127,7 @@ export function HomeGlobalSearch({ books, theses }: { books: Book[]; theses: The
                   <Badge variant="secondary" className="hidden rounded-full sm:inline-flex">
                     {result.type === "book" ? "Buku" : "Skripsi"}
                   </Badge>
-                  <ArrowRight className="size-4 shrink-0 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-emerald-700" />
+                  <ArrowRight className="size-4 shrink-0 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-red-700" />
                 </Link>
               );
             })

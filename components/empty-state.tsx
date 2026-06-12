@@ -19,7 +19,7 @@ export function EmptyState({
         className,
       )}
     >
-      <div className="mb-4 rounded-2xl bg-gradient-to-br from-emerald-50 to-cyan-50 p-3 text-emerald-700 shadow-sm ring-1 ring-emerald-100">
+      <div className="mb-4 rounded-2xl bg-gradient-to-br from-red-50 to-yellow-50 p-3 text-red-700 shadow-sm ring-1 ring-red-100">
         <SearchX className="size-6" />
       </div>
       <h3 className="text-lg font-bold tracking-tight text-slate-950">{title}</h3>

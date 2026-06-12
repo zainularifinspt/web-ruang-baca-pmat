@@ -113,7 +113,7 @@ export function LoginForm() {
           Alamat Email
         </label>
         <div className="relative group">
-          <Mail className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-cyan-600/70 transition-colors group-focus-within:text-cyan-600" />
+          <Mail className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-yellow-600/70 transition-colors group-focus-within:text-yellow-600" />
           <Input
             id="email"
             name="email"
@@ -122,7 +122,7 @@ export function LoginForm() {
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             placeholder="admin@kampus.ac.id"
-            className="h-12 rounded-2xl border-slate-200/80 bg-white/50 pl-11 pr-4 text-slate-900 shadow-xs transition-all duration-300 placeholder:text-slate-400 focus-visible:border-cyan-400 focus-visible:ring-4 focus-visible:ring-cyan-500/10 focus-visible:bg-white backdrop-blur-xs"
+            className="h-12 rounded-2xl border-slate-200/80 bg-white/50 pl-11 pr-4 text-slate-900 shadow-xs transition-all duration-300 placeholder:text-slate-400 focus-visible:border-yellow-400 focus-visible:ring-4 focus-visible:ring-yellow-500/10 focus-visible:bg-white backdrop-blur-xs"
             required
           />
         </div>
@@ -133,7 +133,7 @@ export function LoginForm() {
           Kata Sandi
         </label>
         <div className="relative group">
-          <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-cyan-600/70 transition-colors group-focus-within:text-cyan-600" />
+          <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-yellow-600/70 transition-colors group-focus-within:text-yellow-600" />
           <Input
             id="password"
             name="password"
@@ -142,7 +142,7 @@ export function LoginForm() {
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             placeholder="Masukkan kata sandi Anda"
-            className="h-12 rounded-2xl border-slate-200/80 bg-white/50 pl-11 pr-4 text-slate-900 shadow-xs transition-all duration-300 placeholder:text-slate-400 focus-visible:border-cyan-400 focus-visible:ring-4 focus-visible:ring-cyan-500/10 focus-visible:bg-white backdrop-blur-xs"
+            className="h-12 rounded-2xl border-slate-200/80 bg-white/50 pl-11 pr-4 text-slate-900 shadow-xs transition-all duration-300 placeholder:text-slate-400 focus-visible:border-yellow-400 focus-visible:ring-4 focus-visible:ring-yellow-500/10 focus-visible:bg-white backdrop-blur-xs"
             required
           />
         </div>
@@ -150,7 +150,7 @@ export function LoginForm() {
 
       <Button
         type="submit"
-        className="h-12 w-full rounded-full bg-gradient-to-r from-emerald-600 via-cyan-600 to-indigo-600 font-bold text-white shadow-lg shadow-cyan-950/15 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-cyan-500/20 active:scale-[0.98] group"
+        className="h-12 w-full rounded-full bg-gradient-to-r from-red-600 via-yellow-600 to-orange-600 font-bold text-white shadow-lg shadow-yellow-950/15 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-yellow-500/20 active:scale-[0.98] group"
         disabled={isSubmitting}
       >
         {isSubmitting ? (

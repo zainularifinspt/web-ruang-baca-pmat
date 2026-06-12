@@ -27,7 +27,7 @@ export function ExportButton({
       variant="outline"
       size="sm"
       className={cn(
-        "rounded-full border-slate-200 bg-white px-4 font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700",
+        "rounded-full border-slate-200 bg-white px-4 font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-red-200 hover:bg-red-50 hover:text-red-700",
         className,
       )}
       onClick={() => exportCatalogData(type)}

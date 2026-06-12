@@ -430,7 +430,7 @@ function LoanActionButton({
       size="icon"
       className={cn(
         "rounded-xl",
-        tone === "emerald" ? "text-emerald-700 hover:text-emerald-800" : "text-rose-700 hover:text-rose-800",
+        tone === "emerald" ? "text-red-700 hover:text-red-800" : "text-rose-700 hover:text-rose-800",
       )}
       disabled={isPending}
       onClick={() => {
@@ -453,7 +453,7 @@ function LoanActionButton({
 
 function LoanStatusBadge({ status }: { status: LoanStatus }) {
   const tone: Record<LoanStatus, string> = {
-    active: "border-emerald-200 bg-emerald-50 text-emerald-700",
+    active: "border-red-200 bg-red-50 text-red-700",
     returned: "border-slate-200 bg-slate-50 text-slate-700",
     overdue: "border-rose-200 bg-rose-50 text-rose-700",
     cancelled: "border-amber-200 bg-amber-50 text-amber-700",

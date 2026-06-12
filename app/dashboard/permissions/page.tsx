@@ -35,7 +35,7 @@ export default function PermissionMatrixPage() {
                   return (
                     <TableCell key={role}>
                       {allowed ? (
-                        <span className="inline-flex size-7 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+                        <span className="inline-flex size-7 items-center justify-center rounded-full bg-red-100 text-red-700">
                           <Check className="size-4" />
                         </span>
                       ) : (

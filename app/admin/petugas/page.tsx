@@ -38,7 +38,7 @@ export default async function AdminPetugasPage() {
                 Kembali ke dashboard
               </Link>
             </Button>
-            <p className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-sm font-medium text-emerald-700 ring-1 ring-emerald-100">
+            <p className="inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 text-sm font-medium text-red-700 ring-1 ring-red-100">
               <ShieldCheck className="size-4" />
               Admin only
             </p>
@@ -67,7 +67,7 @@ export default async function AdminPetugasPage() {
           <Card className="rounded-2xl border-slate-200 bg-white shadow-sm">
             <CardContent className="p-5">
               <div className="flex items-center gap-3">
-                <span className="flex size-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
+                <span className="flex size-11 items-center justify-center rounded-xl bg-red-50 text-red-700">
                   <Users className="size-5" />
                 </span>
                 <div>

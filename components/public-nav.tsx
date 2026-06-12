@@ -67,7 +67,7 @@ export function PublicNav() {
       <div className="mx-auto flex min-h-18 max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
         <Link href="/" className="group flex min-w-0 items-center gap-3">
           <div className="flex shrink-0 items-center -space-x-2">
-            <div className="flex size-10 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#047857,#0891b2_55%,#7c3aed)] text-primary-foreground shadow-lg shadow-emerald-950/15 transition-all duration-300 group-hover:scale-105 sm:size-11">
+            <div className="flex size-10 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#047857,#0891b2_55%,#7c3aed)] text-primary-foreground shadow-lg shadow-red-950/15 transition-all duration-300 group-hover:scale-105 sm:size-11">
               <BookOpen className="size-5" />
             </div>
             <span className="flex size-9 items-center justify-center rounded-full border border-white bg-white shadow-sm ring-1 ring-slate-100 sm:size-10">
@@ -84,7 +84,7 @@ export function PublicNav() {
           <NavLink href="/katalog?tab=books" icon={Search} label="Katalog" />
           <NavLink href="/presensi" icon={ScanLine} label="Presensi" />
           <div className="mx-1 h-6 w-px bg-slate-200/50" />
-          <Button asChild size="sm" className="rounded-full bg-gradient-to-r from-emerald-600 via-cyan-600 to-indigo-600 px-5 text-white shadow-lg shadow-emerald-950/10 transition-all duration-300 hover:-translate-y-0.5 hover:scale-[1.03] hover:shadow-emerald-950/20 active:scale-[0.98] border-0">
+          <Button asChild size="sm" className="rounded-full bg-gradient-to-r from-red-600 via-yellow-600 to-orange-600 px-5 text-white shadow-lg shadow-red-950/10 transition-all duration-300 hover:-translate-y-0.5 hover:scale-[1.03] hover:shadow-red-950/20 active:scale-[0.98] border-0">
             <Link href="/login?redirectTo=/dashboard">
               <LogIn className="size-4" />
               Admin
@@ -136,14 +136,14 @@ function NavbarSearch({
   return (
     <div className={cn("relative", className)}>
       <div className="relative">
-        <Search className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-cyan-600/70" />
+        <Search className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-yellow-600/70" />
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           onFocus={() => setFocused(true)}
           onBlur={() => window.setTimeout(() => setFocused(false), 140)}
           placeholder="Cari buku atau skripsi..."
-          className="h-11 w-full rounded-full border border-white/40 bg-white/45 pl-10 pr-10 text-sm font-semibold text-slate-800 shadow-sm shadow-slate-950/[0.02] outline-none backdrop-blur-xl transition-all duration-300 placeholder:font-medium placeholder:text-slate-400 focus:border-cyan-300/80 focus:bg-white/85 focus:shadow-md focus:ring-4 focus:ring-cyan-500/5"
+          className="h-11 w-full rounded-full border border-white/40 bg-white/45 pl-10 pr-10 text-sm font-semibold text-slate-800 shadow-sm shadow-slate-950/[0.02] outline-none backdrop-blur-xl transition-all duration-300 placeholder:font-medium placeholder:text-slate-400 focus:border-yellow-300/80 focus:bg-white/85 focus:shadow-md focus:ring-4 focus:ring-yellow-500/5"
         />
         {query ? (
           <button
@@ -176,11 +176,11 @@ function NavbarSearch({
                     setQuery("");
                     setDebouncedQuery("");
                   }}
-                  className="group flex items-center gap-3 rounded-2xl p-2.5 transition-all duration-300 hover:bg-gradient-to-r hover:from-cyan-500/5 hover:to-indigo-500/5"
+                  className="group flex items-center gap-3 rounded-2xl p-2.5 transition-all duration-300 hover:bg-gradient-to-r hover:from-yellow-500/5 hover:to-orange-500/5"
                 >
                   <SearchCover item={item} />
                   <span className="min-w-0 flex-1">
-                    <span className="line-clamp-1 text-sm font-bold text-slate-900 group-hover:text-cyan-800 transition-colors duration-300">
+                    <span className="line-clamp-1 text-sm font-bold text-slate-900 group-hover:text-yellow-800 transition-colors duration-300">
                       {item.title}
                     </span>
                     <span className="mt-1 flex items-center gap-2 text-xs text-slate-500">
@@ -207,7 +207,7 @@ function SearchCover({ item }: { item: NavSearchItem }) {
   const Icon = item.type === "book" ? BookOpen : GraduationCap;
 
   return (
-    <span className="relative flex size-12 shrink-0 overflow-hidden rounded-2xl bg-emerald-900 text-white shadow-sm ring-1 ring-white/60">
+    <span className="relative flex size-12 shrink-0 overflow-hidden rounded-2xl bg-red-900 text-white shadow-sm ring-1 ring-white/60">
       {item.coverUrl ? (
         <span
           className="absolute inset-0 bg-cover bg-center"
@@ -257,7 +257,7 @@ function NavLink({
       href={href}
       className="group relative inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition-all duration-300 hover:bg-white/40 hover:text-slate-955"
     >
-      <Icon className="size-4 text-emerald-600 transition duration-300 group-hover:-translate-y-0.5" />
+      <Icon className="size-4 text-red-600 transition duration-300 group-hover:-translate-y-0.5" />
       {label}
       <span className="absolute inset-x-4 -bottom-px h-0.5 scale-x-0 rounded-full bg-[linear-gradient(90deg,#047857,#0891b2,#7c3aed)] transition-transform duration-300 group-hover:scale-x-100" />
     </Link>

@@ -3,7 +3,7 @@ import { cn, valueToUIStatus } from "@/lib/utils";
 
 const verificationTone: Record<VerificationStatus, string> = {
   pending: "bg-amber-50 text-amber-700 border-amber-200",
-  approved: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  approved: "bg-red-50 text-red-700 border-red-200",
   rejected: "bg-rose-50 text-rose-700 border-rose-200",
 };
 
@@ -34,7 +34,7 @@ export function AvailabilityBadge({
       ? "border-rose-200 bg-rose-50 text-rose-700 shadow-sm"
       : label === "Terbatas"
         ? "border-amber-200 bg-amber-50 text-amber-700 shadow-sm"
-        : "border-emerald-200 bg-emerald-50 text-emerald-700 shadow-sm";
+        : "border-red-200 bg-red-50 text-red-700 shadow-sm";
 
   return (
     <span className={cn("inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold", tone)}>

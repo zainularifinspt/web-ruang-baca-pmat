@@ -38,7 +38,7 @@ import type { Attendance, VisitPurpose, VisitorStatus } from "@/lib/types";
 import { cn, formatDate } from "@/lib/utils";
 
 const statusTone: Record<VisitorStatus, string> = {
-  Mahasiswa: "bg-emerald-50 text-emerald-700 border-emerald-100",
+  Mahasiswa: "bg-red-50 text-red-700 border-red-100",
   Dosen: "bg-slate-100 text-slate-700 border-slate-200",
   Umum: "bg-amber-50 text-amber-700 border-amber-100",
 };
@@ -73,20 +73,20 @@ export default function AttendanceReportPage() {
 
   return (
     <div className="space-y-7">
-      <section className="relative overflow-hidden rounded-3xl border border-white/70 bg-gradient-to-br from-emerald-800 via-teal-700 to-cyan-800 p-5 text-white shadow-xl shadow-emerald-950/20 sm:p-6">
-        <div className="pointer-events-none absolute -right-16 -top-20 size-72 rounded-full bg-cyan-300 opacity-25 blur-3xl" />
+      <section className="relative overflow-hidden rounded-3xl border border-white/70 bg-gradient-to-br from-red-800 via-rose-700 to-yellow-800 p-5 text-white shadow-xl shadow-red-950/20 sm:p-6">
+        <div className="pointer-events-none absolute -right-16 -top-20 size-72 rounded-full bg-yellow-300 opacity-25 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-24 left-1/3 size-72 rounded-full bg-violet-300 opacity-20 blur-3xl" />
         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:40px_40px] opacity-30" />
         <div className="relative">
           <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 text-sm font-semibold text-emerald-50 shadow-sm ring-1 ring-white/25 backdrop-blur">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 text-sm font-semibold text-red-50 shadow-sm ring-1 ring-white/25 backdrop-blur">
               <Sparkles className="size-3.5" />
               Internal / Presensi
             </div>
             <h2 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">
               Data Kunjungan
             </h2>
-            <p className="mt-3 max-w-2xl leading-7 text-emerald-50">
+            <p className="mt-3 max-w-2xl leading-7 text-red-50">
               Pantau aktivitas pengunjung, saring data operasional, dan siapkan laporan presensi ruang baca.
             </p>
           </div>
@@ -94,7 +94,7 @@ export default function AttendanceReportPage() {
       </section>
 
       <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-        <Button asChild size="sm" className="h-10 rounded-xl bg-emerald-700 px-4 text-sm font-semibold shadow-sm hover:bg-emerald-800">
+        <Button asChild size="sm" className="h-10 rounded-xl bg-red-700 px-4 text-sm font-semibold shadow-sm hover:bg-red-800">
           <Link href="/presensi">
             <CalendarCheck className="size-4" />
             Buka Mode Presensi QR
@@ -160,7 +160,7 @@ export default function AttendanceReportPage() {
                 <Input
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
-                  className="h-9 rounded-lg border-slate-200/80 bg-white pl-8 text-sm shadow-none focus-visible:ring-1 focus-visible:ring-emerald-200"
+                  className="h-9 rounded-lg border-slate-200/80 bg-white pl-8 text-sm shadow-none focus-visible:ring-1 focus-visible:ring-red-200"
                   placeholder="Cari nama atau NIM/NIP"
                 />
               </div>
@@ -229,13 +229,13 @@ export default function AttendanceReportPage() {
                         <TableRow
                           key={item.id}
                           className={cn(
-                            "border-slate-100 hover:bg-emerald-50/35",
+                            "border-slate-100 hover:bg-red-50/35",
                             index % 2 === 1 && "bg-slate-50/35",
                           )}
                         >
                           <TableCell className="px-3 py-2.5">
                             <div className="flex items-center gap-3">
-                              <InitialAvatar name={item.guestName} className="size-8 bg-emerald-100 text-[11px] text-emerald-800" />
+                              <InitialAvatar name={item.guestName} className="size-8 bg-red-100 text-[11px] text-red-800" />
                               <div>
                                 <p className="text-sm font-semibold leading-5 text-slate-950">
                                   {item.guestName}
@@ -261,7 +261,7 @@ export default function AttendanceReportPage() {
                             {formatDate(item.visitedAt)}
                           </TableCell>
                           <TableCell className="px-3 py-2.5">
-                            <Badge className="rounded-md bg-emerald-100 px-2 py-0.5 text-[11px] font-medium text-emerald-700 shadow-none">
+                            <Badge className="rounded-md bg-red-100 px-2 py-0.5 text-[11px] font-medium text-red-700 shadow-none">
                               {item.status}
                             </Badge>
                           </TableCell>
@@ -303,8 +303,8 @@ function AttendanceStatCard({
   tone?: "emerald" | "blue" | "amber" | "slate";
 }) {
   const tones = {
-    emerald: "bg-emerald-50 text-emerald-700 ring-emerald-100",
-    blue: "bg-sky-50 text-sky-700 ring-sky-100",
+    emerald: "bg-red-50 text-red-700 ring-red-100",
+    blue: "bg-amber-50 text-amber-700 ring-amber-100",
     amber: "bg-amber-50 text-amber-700 ring-amber-100",
     slate: "bg-slate-100 text-slate-700 ring-slate-200",
   };
@@ -316,7 +316,7 @@ function AttendanceStatCard({
         <p className="mt-1.5 truncate text-3xl font-semibold tracking-tight text-slate-950">
           {value}
         </p>
-        <p className="mt-2 inline-flex max-w-full items-center gap-1 text-xs font-medium text-emerald-700">
+        <p className="mt-2 inline-flex max-w-full items-center gap-1 text-xs font-medium text-red-700">
           <TrendingUp className="size-3" />
           <span className="truncate">{trend}</span>
         </p>
@@ -332,7 +332,7 @@ function MobileAttendanceCard({ item }: { item: Attendance }) {
   return (
     <div className="rounded-xl border border-slate-200/70 bg-white p-3 shadow-[0_1px_2px_rgba(15,23,42,0.03)]">
       <div className="flex items-start gap-3">
-        <InitialAvatar name={item.guestName} className="size-9 bg-emerald-100 text-xs text-emerald-800" />
+        <InitialAvatar name={item.guestName} className="size-9 bg-red-100 text-xs text-red-800" />
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">

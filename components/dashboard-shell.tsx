@@ -99,7 +99,7 @@ function DashboardShell({ children }: { children: ReactNode }) {
   const currentPage = pageTitles[pathname] ?? pageTitles["/dashboard"];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-cyan-50 to-emerald-50 lg:grid lg:grid-cols-[19rem_minmax(0,1fr)]">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-yellow-50 to-red-50 lg:grid lg:grid-cols-[19rem_minmax(0,1fr)]">
       <aside className="hidden h-screen border-r border-white/80 bg-white/80 p-4 shadow-sm backdrop-blur-xl lg:sticky lg:top-0 lg:block">
         <SidebarContent />
       </aside>
@@ -119,7 +119,7 @@ function DashboardShell({ children }: { children: ReactNode }) {
                 </DialogContent>
               </Dialog>
               <div className="min-w-0">
-                <p className="truncate text-xs font-semibold text-emerald-700">{currentPage.breadcrumb}</p>
+                <p className="truncate text-xs font-semibold text-red-700">{currentPage.breadcrumb}</p>
                 <h1 className="truncate text-xl font-bold tracking-tight text-slate-950 sm:text-2xl">{currentPage.title}</h1>
               </div>
             </div>
@@ -145,7 +145,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
     <div className="flex h-full flex-col gap-6 rounded-3xl bg-white/75 p-4 backdrop-blur-xl lg:bg-transparent lg:p-0">
       <Link href="/" className="group flex items-center gap-3 rounded-2xl p-2 transition hover:bg-white/80 hover:shadow-sm" onClick={onNavigate}>
         <div className="flex shrink-0 items-center -space-x-2">
-          <div className="flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-600 via-cyan-600 to-violet-600 text-primary-foreground shadow-lg shadow-emerald-950/20 transition group-hover:scale-105">
+          <div className="flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-red-600 via-yellow-600 to-violet-600 text-primary-foreground shadow-lg shadow-red-950/20 transition group-hover:scale-105">
             <Home className="size-5" />
           </div>
           <span className="flex size-10 items-center justify-center rounded-full border border-white bg-white shadow-sm ring-1 ring-slate-200">
@@ -166,12 +166,12 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
           <p className="text-xs font-medium text-slate-400">Masuk sebagai</p>
           <p className="mt-1 truncate font-semibold text-slate-950">{userDisplayName}</p>
         </div>
-        <div className="rounded-3xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-cyan-50 p-4 text-sm text-emerald-950 shadow-sm">
+        <div className="rounded-3xl border border-red-100 bg-gradient-to-br from-red-50 to-yellow-50 p-4 text-sm text-red-950 shadow-sm">
           <p className="inline-flex items-center gap-2 font-semibold">
-            <Sparkles className="size-4 text-emerald-600" />
+            <Sparkles className="size-4 text-red-600" />
             Dashboard internal
           </p>
-          <p className="mt-1 leading-6 text-emerald-900/80">
+          <p className="mt-1 leading-6 text-red-900/80">
             Akses mengikuti akun login dan tidak dapat diganti manual.
           </p>
         </div>
@@ -216,7 +216,7 @@ function NavGroup({
               onClick={onNavigate}
               className={cn(
                 "flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-semibold text-slate-600 transition hover:-translate-y-0.5 hover:bg-white/80 hover:text-slate-950 hover:shadow-sm",
-                active && "bg-gradient-to-r from-emerald-600 to-cyan-600 text-white shadow-lg shadow-emerald-950/20 ring-1 ring-white/70",
+                active && "bg-gradient-to-r from-red-600 to-yellow-600 text-white shadow-lg shadow-red-950/20 ring-1 ring-white/70",
               )}
             >
               <span
@@ -236,7 +236,7 @@ function NavGroup({
                       ? "bg-rose-100 text-rose-700"
                       : active
                         ? "bg-white/20 text-white"
-                        : "bg-emerald-100 text-emerald-700",
+                        : "bg-red-100 text-red-700",
                   )}
                 >
                   {loanSummary.overdue > 0 ? loanSummary.overdue : loanSummary.active}

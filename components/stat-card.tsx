@@ -15,14 +15,14 @@ export function StatCard({
   tone?: "emerald" | "blue" | "amber" | "slate";
 }) {
   const tones = {
-    emerald: "bg-gradient-to-br from-emerald-50 to-cyan-50 text-emerald-700 ring-emerald-100",
-    blue: "bg-gradient-to-br from-sky-50 to-cyan-50 text-sky-700 ring-sky-100",
-    amber: "bg-gradient-to-br from-amber-50 to-emerald-50 text-amber-700 ring-amber-100",
-    slate: "bg-gradient-to-br from-slate-100 to-sky-50 text-slate-700 ring-slate-200",
+    emerald: "bg-gradient-to-br from-red-50 to-yellow-50 text-red-700 ring-red-100",
+    blue: "bg-gradient-to-br from-amber-50 to-yellow-50 text-amber-700 ring-amber-100",
+    amber: "bg-gradient-to-br from-amber-50 to-red-50 text-amber-700 ring-amber-100",
+    slate: "bg-gradient-to-br from-slate-100 to-amber-50 text-slate-700 ring-slate-200",
   };
 
   return (
-    <div className="group rounded-3xl border border-white/80 bg-white/80 p-5 shadow-sm shadow-slate-900/5 backdrop-blur transition duration-300 hover:-translate-y-1 hover:border-emerald-100 hover:bg-white hover:shadow-xl hover:shadow-slate-950/10">
+    <div className="group rounded-3xl border border-white/80 bg-white/80 p-5 shadow-sm shadow-slate-900/5 backdrop-blur transition duration-300 hover:-translate-y-1 hover:border-red-100 hover:bg-white hover:shadow-xl hover:shadow-slate-950/10">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <p className="text-sm font-semibold text-slate-500">{label}</p>
@@ -35,7 +35,7 @@ export function StatCard({
         </div>
       </div>
       {trend ? (
-        <p className="mt-4 inline-flex max-w-full items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-100">
+        <p className="mt-4 inline-flex max-w-full items-center gap-1 rounded-full bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700 ring-1 ring-red-100">
           <TrendingUp className="size-3" />
           <span className="truncate">{trend}</span>
         </p>

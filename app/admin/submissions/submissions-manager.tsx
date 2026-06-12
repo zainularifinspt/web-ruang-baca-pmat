@@ -268,7 +268,7 @@ function EditSubmissionDialog({ submission }: { submission: SubmissionRow }) {
 function StatusBadge({ status }: { status: DraftSubmissionStatus }) {
   const tone = {
     pending: "border-amber-200 bg-amber-50 text-amber-700",
-    approved: "border-emerald-200 bg-emerald-50 text-emerald-700",
+    approved: "border-red-200 bg-red-50 text-red-700",
     rejected: "border-rose-200 bg-rose-50 text-rose-700",
   }[status];
 

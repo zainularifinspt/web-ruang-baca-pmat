@@ -34,19 +34,19 @@ export default async function HomePage() {
     .slice(0, 3);
 
   return (
-    <div className="min-h-screen bg-[#fafbfe] text-slate-950 antialiased selection:bg-cyan-500/20 selection:text-cyan-900">
+    <div className="min-h-screen bg-[#fafbfe] text-slate-950 antialiased selection:bg-yellow-500/20 selection:text-yellow-900">
       <PublicNav />
       <main className="relative overflow-hidden bg-[linear-gradient(180deg,#fafbfe_0%,#f5f8ff_50%,#fafbfe_100%)]">
         <MathBackdrop />
 
         <section className="relative mx-auto max-w-6xl px-4 pb-12 pt-14 text-center sm:px-6 sm:pb-16 sm:pt-20 lg:pb-20 lg:pt-28">
-          <Badge className="rounded-full border-white/60 bg-white/45 px-4.5 py-1.5 text-emerald-800 shadow-sm shadow-slate-950/2 backdrop-blur-xl hover:bg-white/60 transition-all duration-300 font-semibold border text-xs">
+          <Badge className="rounded-full border-white/60 bg-white/45 px-4.5 py-1.5 text-red-800 shadow-sm shadow-slate-950/2 backdrop-blur-xl hover:bg-white/60 transition-all duration-300 font-semibold border text-xs">
             <Image src="/ulm-logo.png" alt="Logo Universitas Lambung Mangkurat" width={22} height={22} className="mr-2 size-4.5 object-contain animate-pulse" priority />
             Jurusan Pendidikan Matematika ULM
           </Badge>
           <h1 className="mx-auto mt-8 max-w-4xl text-4xl font-extrabold leading-[1.05] tracking-tight text-slate-950 sm:text-6xl lg:text-7xl">
             Ruang Baca{" "}
-            <span className="bg-gradient-to-r from-emerald-600 via-cyan-600 to-indigo-600 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-red-600 via-yellow-600 to-orange-600 bg-clip-text text-transparent">
               Pendidikan Matematika
             </span>
           </h1>
@@ -132,8 +132,8 @@ function LatestCollectionRow({ item }: { item: LatestItem }) {
         className={[
           "flex size-11 shrink-0 items-center justify-center rounded-xl shadow-sm ring-1 transition duration-300 group-hover:scale-[1.03]",
           isBook
-            ? "bg-gradient-to-br from-emerald-50 to-cyan-50 text-emerald-700 ring-emerald-100"
-            : "bg-gradient-to-br from-sky-50 to-indigo-50 text-indigo-700 ring-indigo-100",
+            ? "bg-gradient-to-br from-red-50 to-yellow-50 text-red-700 ring-red-100"
+            : "bg-gradient-to-br from-amber-50 to-orange-50 text-orange-700 ring-orange-100",
         ].join(" ")}
       >
         <Icon className="size-5" />
@@ -145,12 +145,12 @@ function LatestCollectionRow({ item }: { item: LatestItem }) {
       <span className={[
         "hidden rounded-full px-3 py-1 text-xs font-bold shadow-sm ring-1 sm:inline-flex",
         isBook
-          ? "bg-emerald-50/50 text-emerald-700 ring-emerald-100/50"
-          : "bg-indigo-50/50 text-indigo-700 ring-indigo-100/50"
+          ? "bg-red-50/50 text-red-700 ring-red-100/50"
+          : "bg-orange-50/50 text-orange-700 ring-orange-100/50"
       ].join(" ")}>
         {isBook ? "Buku" : "Skripsi"}
       </span>
-      <ArrowRight className="size-4 shrink-0 text-slate-300 transition-all duration-300 group-hover:translate-x-1.5 group-hover:text-cyan-700" />
+      <ArrowRight className="size-4 shrink-0 text-slate-300 transition-all duration-300 group-hover:translate-x-1.5 group-hover:text-yellow-700" />
     </Link>
   );
 }
@@ -169,9 +169,9 @@ function StatTile({
   tone?: "emerald" | "sky" | "violet" | "amber";
 }) {
   const tones = {
-    emerald: "bg-gradient-to-br from-emerald-500/10 via-cyan-500/5 to-transparent text-emerald-700 ring-emerald-100/50",
-    sky: "bg-gradient-to-br from-cyan-500/10 via-indigo-500/5 to-transparent text-cyan-700 ring-cyan-100/50",
-    violet: "bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-transparent text-indigo-700 ring-indigo-100/50",
+    emerald: "bg-gradient-to-br from-red-500/10 via-yellow-500/5 to-transparent text-red-700 ring-red-100/50",
+    sky: "bg-gradient-to-br from-yellow-500/10 via-orange-500/5 to-transparent text-yellow-700 ring-yellow-100/50",
+    violet: "bg-gradient-to-br from-orange-500/10 via-purple-500/5 to-transparent text-orange-700 ring-orange-100/50",
     amber: "bg-gradient-to-br from-amber-500/10 via-yellow-500/5 to-transparent text-amber-700 ring-amber-100/50",
   };
 
@@ -193,25 +193,25 @@ function MathBackdrop() {
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
       {/* Soft Gemini-inspired gradient orbs */}
-      <div className="absolute -left-20 top-[-10%] size-[35rem] rounded-full bg-gradient-to-tr from-cyan-400/10 via-teal-400/8 to-transparent blur-[80px] animate-drift-slow" />
-      <div className="absolute -right-20 top-[10%] size-[40rem] rounded-full bg-gradient-to-br from-indigo-400/10 via-purple-400/8 to-transparent blur-[100px] animate-drift-reverse" />
-      <div className="absolute left-[20%] top-[40%] size-[30rem] rounded-full bg-gradient-to-tr from-emerald-400/5 via-cyan-400/5 to-transparent blur-[90px] animate-drift-slow" />
+      <div className="absolute -left-20 top-[-10%] size-[35rem] rounded-full bg-gradient-to-tr from-yellow-400/10 via-rose-400/8 to-transparent blur-[80px] animate-drift-slow" />
+      <div className="absolute -right-20 top-[10%] size-[40rem] rounded-full bg-gradient-to-br from-orange-400/10 via-purple-400/8 to-transparent blur-[100px] animate-drift-reverse" />
+      <div className="absolute left-[20%] top-[40%] size-[30rem] rounded-full bg-gradient-to-tr from-red-400/5 via-yellow-400/5 to-transparent blur-[90px] animate-drift-slow" />
       
       {/* Mathematical glyphs and outlines */}
-      <div className="absolute left-[-2rem] top-28 hidden text-[11rem] font-light leading-none text-emerald-600/[0.04] sm:block">
+      <div className="absolute left-[-2rem] top-28 hidden text-[11rem] font-light leading-none text-red-600/[0.04] sm:block">
         ∫
       </div>
-      <div className="absolute right-[9%] top-24 hidden text-7xl font-semibold text-sky-600/[0.05] lg:block">
+      <div className="absolute right-[9%] top-24 hidden text-7xl font-semibold text-amber-600/[0.05] lg:block">
         Σ
       </div>
-      <div className="absolute left-[18%] top-20 hidden text-3xl italic text-emerald-600/[0.06] sm:block">
+      <div className="absolute left-[18%] top-20 hidden text-3xl italic text-red-600/[0.06] sm:block">
         A = πr²
       </div>
-      <div className="absolute right-[18%] top-20 hidden text-3xl italic text-indigo-600/[0.06] lg:block">
+      <div className="absolute right-[18%] top-20 hidden text-3xl italic text-orange-600/[0.06] lg:block">
         f(x) = x² - 4x + 3
       </div>
-      <div className="absolute left-[5%] top-48 hidden h-36 w-56 -rotate-12 rounded-[50%] border border-emerald-500/[0.05] sm:block" />
-      <div className="absolute bottom-28 right-[7%] hidden size-32 rotate-45 border border-sky-500/[0.05] lg:block" />
+      <div className="absolute left-[5%] top-48 hidden h-36 w-56 -rotate-12 rounded-[50%] border border-red-500/[0.05] sm:block" />
+      <div className="absolute bottom-28 right-[7%] hidden size-32 rotate-45 border border-amber-500/[0.05] lg:block" />
     </div>
   );
 }
@@ -222,7 +222,7 @@ function Footer() {
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:px-6 sm:py-16 sm:grid-cols-2 lg:grid-cols-4">
         <div className="space-y-4">
           <div className="flex items-center gap-3">
-            <span className="flex size-11 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 via-cyan-600 to-indigo-600 text-white shadow-md">
+            <span className="flex size-11 items-center justify-center rounded-2xl bg-gradient-to-br from-red-500 via-yellow-600 to-orange-600 text-white shadow-md">
               <LibraryBig className="size-5" />
             </span>
             <div>
@@ -247,12 +247,12 @@ function Footer() {
         <div className="space-y-4">
           <h3 className="font-bold text-white tracking-tight">Informasi</h3>
           <div className="grid gap-3 text-sm">
-            <p className="flex gap-2 items-center"><Clock3 className="size-4 text-cyan-400" /> <span>Senin - Jumat, 08.00 - 16.00</span></p>
+            <p className="flex gap-2 items-center"><Clock3 className="size-4 text-yellow-400" /> <span>Senin - Jumat, 08.00 - 16.00</span></p>
             <p className="flex gap-2">
-              <MapPin className="mt-0.5 size-4 shrink-0 text-cyan-400" />
+              <MapPin className="mt-0.5 size-4 shrink-0 text-yellow-400" />
               <span className="leading-6">Jl. Brigjen H. Hasan Basry Kayu Tangi, Banjarmasin, Kalimantan Selatan 70123</span>
             </p>
-            <p className="flex gap-2 items-center"><Mail className="size-4 text-cyan-400" /> <span>edu.mat@ulm.ac.id</span></p>
+            <p className="flex gap-2 items-center"><Mail className="size-4 text-yellow-400" /> <span>edu.mat@ulm.ac.id</span></p>
           </div>
         </div>
         <div className="space-y-4">
@@ -262,7 +262,7 @@ function Footer() {
               <span className="flex size-10 items-center justify-center rounded-xl bg-white/90 p-1 shadow-sm">
                 <Image src="/ulm-logo.png" alt="Logo Universitas Lambung Mangkurat" width={28} height={28} className="size-7 object-contain" />
               </span>
-              <Building2 className="size-5 text-cyan-400" />
+              <Building2 className="size-5 text-yellow-400" />
             </div>
             <p className="text-xs text-slate-400 leading-5">
               Jurusan Pendidikan Matematika Universitas Lambung Mangkurat, Fakultas Keguruan dan Ilmu Pendidikan.

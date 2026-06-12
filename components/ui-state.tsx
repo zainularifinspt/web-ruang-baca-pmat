@@ -18,7 +18,7 @@ export function LoadingScreen({
       {withNav ? <PublicNav /> : null}
       <main className="mx-auto flex min-h-[calc(100vh-5rem)] max-w-6xl items-center justify-center px-4 py-10">
         <div className="text-center">
-          <div className="mx-auto flex size-16 items-center justify-center rounded-[1.35rem] bg-emerald-50 text-emerald-700 shadow-sm ring-1 ring-emerald-100">
+          <div className="mx-auto flex size-16 items-center justify-center rounded-[1.35rem] bg-red-50 text-red-700 shadow-sm ring-1 ring-red-100">
             <Loader2 className="size-7 animate-spin" />
           </div>
           <p className="mt-5 text-sm font-semibold text-slate-950">{label}</p>

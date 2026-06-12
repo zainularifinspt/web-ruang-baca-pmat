@@ -584,7 +584,7 @@ function ThesisDialog({
               <div className="mt-2 flex flex-col gap-1 text-xs text-slate-500">
                 <span>Maksimal 5 MB dan hanya menerima file .pdf.</span>
                 {pdfFile ? (
-                  <span className="inline-flex items-center gap-1 font-medium text-emerald-700">
+                  <span className="inline-flex items-center gap-1 font-medium text-red-700">
                     <FileText className="size-3.5" />
                     {pdfFile.name}
                   </span>

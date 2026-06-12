@@ -161,15 +161,15 @@ export default function AttendancePage() {
   }
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-cyan-50 to-emerald-50 text-slate-950">
-      <div className="pointer-events-none absolute -left-28 top-20 size-80 rounded-full bg-cyan-200 opacity-40 blur-3xl" />
-      <div className="pointer-events-none absolute right-0 top-40 size-96 rounded-full bg-emerald-200 opacity-35 blur-3xl" />
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-yellow-50 to-red-50 text-slate-950">
+      <div className="pointer-events-none absolute -left-28 top-20 size-80 rounded-full bg-yellow-200 opacity-40 blur-3xl" />
+      <div className="pointer-events-none absolute right-0 top-40 size-96 rounded-full bg-red-200 opacity-35 blur-3xl" />
       <div className="pointer-events-none absolute bottom-0 left-1/3 size-80 rounded-full bg-violet-200 opacity-25 blur-3xl" />
       <PublicNav />
       <main className="relative mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
         <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
           <div className="max-w-2xl space-y-3">
-            <Badge className="rounded-full border-emerald-100 bg-white/85 px-3 py-1 text-emerald-700 shadow-sm backdrop-blur">
+            <Badge className="rounded-full border-red-100 bg-white/85 px-3 py-1 text-red-700 shadow-sm backdrop-blur">
               <CalendarCheck className="mr-1.5 size-3.5" />
               Presensi Ruang Baca
             </Badge>
@@ -182,7 +182,7 @@ export default function AttendancePage() {
               </p>
             </div>
           </div>
-          <Button asChild variant="outline" className="rounded-full border-slate-200 bg-white/90 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700">
+          <Button asChild variant="outline" className="rounded-full border-slate-200 bg-white/90 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:border-red-200 hover:bg-red-50 hover:text-red-700">
             <Link href="/">
               <ArrowLeft className="size-4" />
               Beranda
@@ -196,20 +196,20 @@ export default function AttendancePage() {
           <div className="mx-auto w-full max-w-5xl">
             <Card className="overflow-hidden rounded-3xl border-white/80 bg-white/85 shadow-xl shadow-slate-950/10 backdrop-blur">
               <CardContent className="p-0">
-                <div className="border-b border-emerald-100 bg-gradient-to-br from-emerald-700 via-teal-700 to-cyan-700 px-5 py-6 text-white sm:px-8">
+                <div className="border-b border-red-100 bg-gradient-to-br from-red-700 via-rose-700 to-yellow-700 px-5 py-6 text-white sm:px-8">
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-center gap-4">
                       <div className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-white/20 text-white shadow-sm ring-1 ring-white/25 backdrop-blur">
                         <QrCode className="size-7" />
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-emerald-50">
+                        <p className="text-sm font-semibold text-red-50">
                           Form presensi cepat
                         </p>
                         <h2 className="text-xl font-bold tracking-tight text-white sm:text-2xl">
                           Catat kunjungan dalam satu menit
                         </h2>
-                        <p className="mt-1 text-sm leading-6 text-emerald-50">
+                        <p className="mt-1 text-sm leading-6 text-red-50">
                           Cukup ketik NIM/NIP, lalu nama dan status pengunjung akan muncul otomatis jika data sudah diimport admin.
                         </p>
                       </div>
@@ -226,22 +226,22 @@ export default function AttendancePage() {
                       Pengunjung hanya perlu mengetik NIM/NIP. Nama, status, dan program studi akan terisi otomatis dari data presensi.
                     </p>
                     <div className="relative">
-                      <Search className="absolute left-4 top-1/2 size-4 -translate-y-1/2 text-emerald-600/70" />
+                      <Search className="absolute left-4 top-1/2 size-4 -translate-y-1/2 text-red-600/70" />
                       <Input
                         id="identifier"
                         value={identifier}
                         onChange={(event) => handleIdentifierChange(event.target.value)}
                         placeholder="Contoh: 2311040007"
-                        className="h-12 rounded-2xl border-slate-200 bg-white/90 pl-11 text-base shadow-sm placeholder:text-slate-400 focus-visible:border-cyan-300 focus-visible:ring-cyan-500/20"
+                        className="h-12 rounded-2xl border-slate-200 bg-white/90 pl-11 text-base shadow-sm placeholder:text-slate-400 focus-visible:border-yellow-300 focus-visible:ring-yellow-500/20"
                       />
                     </div>
                     {matchedUser ? (
-                      <div className="flex w-fit items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 shadow-sm ring-1 ring-emerald-100">
+                      <div className="flex w-fit items-center gap-2 rounded-full bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 shadow-sm ring-1 ring-red-100">
                         <CheckCircle2 className="size-3.5" />
                         Data ditemukan
                       </div>
                     ) : isLookupLoading ? (
-                      <p className="rounded-2xl bg-cyan-50 px-3 py-2 text-sm text-cyan-800 ring-1 ring-cyan-100">
+                      <p className="rounded-2xl bg-yellow-50 px-3 py-2 text-sm text-yellow-800 ring-1 ring-yellow-100">
                         Mencari data NIM/NIP...
                       </p>
                     ) : isUnknownIdentifier ? (
@@ -257,7 +257,7 @@ export default function AttendancePage() {
                         value={name}
                         onChange={(event) => setName(event.target.value)}
                         placeholder="Nama pengunjung"
-                        className="h-12 rounded-2xl border-slate-200 bg-white/90 shadow-sm placeholder:text-slate-400 focus-visible:border-cyan-300 focus-visible:ring-cyan-500/20"
+                        className="h-12 rounded-2xl border-slate-200 bg-white/90 shadow-sm placeholder:text-slate-400 focus-visible:border-yellow-300 focus-visible:ring-yellow-500/20"
                       />
                     </Field>
 
@@ -266,7 +266,7 @@ export default function AttendancePage() {
                         value={visitorStatus}
                         onValueChange={(value) => setVisitorStatus(value as VisitorStatus)}
                       >
-                        <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-white/90 shadow-sm focus:ring-cyan-500/20">
+                        <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-white/90 shadow-sm focus:ring-yellow-500/20">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -285,13 +285,13 @@ export default function AttendancePage() {
                       value={studyProgram}
                       onChange={(event) => setStudyProgram(event.target.value)}
                       placeholder="Contoh: Pendidikan Matematika"
-                      className="h-12 rounded-2xl border-slate-200 bg-white/90 shadow-sm placeholder:text-slate-400 focus-visible:border-cyan-300 focus-visible:ring-cyan-500/20"
+                      className="h-12 rounded-2xl border-slate-200 bg-white/90 shadow-sm placeholder:text-slate-400 focus-visible:border-yellow-300 focus-visible:ring-yellow-500/20"
                     />
                   </Field>
 
                   <Field label="Keperluan kunjungan" icon={LibraryBig}>
                     <Select value={purpose} onValueChange={(value) => setPurpose(value as VisitPurpose)}>
-                      <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-white/90 shadow-sm focus:ring-cyan-500/20">
+                      <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-white/90 shadow-sm focus:ring-yellow-500/20">
                         <SelectValue placeholder="Pilih keperluan kunjungan" />
                       </SelectTrigger>
                       <SelectContent>
@@ -305,7 +305,7 @@ export default function AttendancePage() {
                   </Field>
 
                   <Button
-                    className="h-12 w-full rounded-full bg-gradient-to-r from-emerald-700 via-teal-700 to-cyan-700 text-base font-bold text-white shadow-lg shadow-emerald-950/15 transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-emerald-950/20 disabled:translate-y-0 disabled:shadow-sm"
+                    className="h-12 w-full rounded-full bg-gradient-to-r from-red-700 via-rose-700 to-yellow-700 text-base font-bold text-white shadow-lg shadow-red-950/15 transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-red-950/20 disabled:translate-y-0 disabled:shadow-sm"
                     disabled={!canSubmit || isSubmitting}
                     type="submit"
                   >
@@ -334,7 +334,7 @@ function Field({
   return (
     <div className="space-y-2">
       <label className="flex items-center gap-2 text-sm font-semibold text-slate-800">
-        <Icon className="size-4 text-emerald-600" />
+        <Icon className="size-4 text-red-600" />
         {label}
       </label>
       {children}
@@ -353,7 +353,7 @@ function SuccessState({
     <div className="mx-auto max-w-2xl">
       <Card className="overflow-hidden rounded-3xl border-white/80 bg-white/85 shadow-xl shadow-slate-950/10 backdrop-blur">
         <CardContent className="space-y-6 p-6 text-center sm:p-8">
-          <div className="mx-auto flex size-20 items-center justify-center rounded-full bg-gradient-to-br from-emerald-100 to-cyan-100 text-emerald-700 shadow-sm ring-1 ring-emerald-100">
+          <div className="mx-auto flex size-20 items-center justify-center rounded-full bg-gradient-to-br from-red-100 to-yellow-100 text-red-700 shadow-sm ring-1 ring-red-100">
             <CheckCircle2 className="size-10" />
           </div>
 
@@ -373,10 +373,10 @@ function SuccessState({
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
-            <Button className="h-11 rounded-full bg-gradient-to-r from-emerald-700 via-teal-700 to-cyan-700 font-bold text-white shadow-lg shadow-emerald-950/15 transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-emerald-950/20" onClick={onReset}>
+            <Button className="h-11 rounded-full bg-gradient-to-r from-red-700 via-rose-700 to-yellow-700 font-bold text-white shadow-lg shadow-red-950/15 transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-red-950/20" onClick={onReset}>
               Isi Presensi Lagi
             </Button>
-            <Button asChild variant="outline" className="h-11 rounded-full border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700">
+            <Button asChild variant="outline" className="h-11 rounded-full border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-red-200 hover:bg-red-50 hover:text-red-700">
               <Link href="/">Kembali ke Beranda</Link>
             </Button>
           </div>

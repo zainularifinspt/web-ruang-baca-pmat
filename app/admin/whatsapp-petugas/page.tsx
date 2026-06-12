@@ -43,7 +43,7 @@ export default async function WhatsappPetugasPage() {
 
         <Card className="rounded-2xl border-slate-200 bg-white shadow-sm">
           <CardContent className="flex items-center gap-4 p-5">
-            <span className="flex size-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
+            <span className="flex size-12 items-center justify-center rounded-2xl bg-red-50 text-red-700">
               <MessageCircle className="size-5" />
             </span>
             <div>
