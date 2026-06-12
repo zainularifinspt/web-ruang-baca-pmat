@@ -2,7 +2,6 @@ import Link from "next/link";
 import Image from "next/image";
 import type { ComponentType } from "react";
 import {
-  ArrowRight,
   BookOpen,
   Building2,
   Clock3,
@@ -11,29 +10,25 @@ import {
   Mail,
   MapPin,
   ScanLine,
-  TrendingUp,
   Users,
 } from "lucide-react";
 import { LandingSearchForm } from "@/components/landing-search-form";
 import { PublicNav } from "@/components/public-nav";
 import { RealtimeVisitorChart } from "@/components/realtime-visitor-chart";
+import { WebsiteVisitorStat } from "@/components/website-visitor-stat";
 import { Badge } from "@/components/ui/badge";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
 import { hasValidSupabaseConfig } from "@/lib/supabase-config";
 import { fetchCatalogData } from "@/lib/supabase";
-import type { Book, Thesis } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
-
-
 
 export default async function HomePage() {
   const catalogData = await fetchCatalogData({ visibility: "public" });
   const books = catalogData.books;
   const theses = catalogData.theses;
   const staffCount = await fetchStaffCount();
-  const todayVisits = await fetchTodayVisits();
-
+  const todayWebsiteVisits = await fetchTodayWebsiteVisits();
 
   return (
     <div className="min-h-screen bg-[#fafbfe] text-slate-950 antialiased selection:bg-yellow-500/20 selection:text-yellow-900">
@@ -122,7 +117,7 @@ export default async function HomePage() {
           <StatTile icon={BookOpen} label="Total Buku" value={books.length} description="Koleksi buku tersedia" />
           <StatTile icon={GraduationCap} label="Total Skripsi" value={theses.length} description="Koleksi skripsi tersedia" tone="sky" />
           <StatTile icon={Users} label="Total Petugas" value={staffCount} description="Pengelola ruang baca" tone="violet" />
-          <StatTile icon={TrendingUp} label="Total Pengunjung" value={todayVisits} description="Total pengunjung website hari ini" tone="amber" />
+          <WebsiteVisitorStat initialCount={todayWebsiteVisits} />
         </section>
       </main>
       <Footer />
@@ -146,7 +141,7 @@ async function fetchStaffCount() {
   }
 }
 
-async function fetchTodayVisits() {
+async function fetchTodayWebsiteVisits() {
   if (!hasValidSupabaseConfig()) return 0;
 
   const today = new Intl.DateTimeFormat("en-CA", {
@@ -158,10 +153,9 @@ async function fetchTodayVisits() {
 
   try {
     const { count, error } = await createSupabaseAdminClient()
-      .from("attendance")
+      .from("website_visits")
       .select("id", { count: "exact", head: true })
-      .gte("visited_at", `${today}T00:00:00+08:00`)
-      .lte("visited_at", `${today}T23:59:59+08:00`);
+      .eq("visit_date", today);
 
     if (error) return 0;
     return count ?? 0;

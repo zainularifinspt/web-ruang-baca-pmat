@@ -78,7 +78,7 @@ export async function syncThesisFromGoogleSheets(): Promise<CatalogActionResult 
     const workbook = read(buffer, { type: "array" });
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
-    const rows = utils.sheet_to_json<Record<string, any>>(sheet, { raw: false });
+    const rows = utils.sheet_to_json<Record<string, string>>(sheet, { raw: false });
 
     const supabase = createSupabaseAdminClient();
     const { data: existingTheses, error: fetchError } = await supabase
