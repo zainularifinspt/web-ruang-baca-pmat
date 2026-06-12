@@ -7,6 +7,7 @@ import {
   BookOpen,
   GraduationCap,
   LogIn,
+  Menu,
   ScanLine,
   Search,
   X,
@@ -60,12 +61,12 @@ export function PublicNav() {
       className={cn(
         "sticky top-0 z-40 border-b transition-all duration-500",
         scrolled
-          ? "border-white/30 bg-white/55 shadow-[0_8px_30px_rgba(15,23,42,0.03)] backdrop-blur-3xl"
-          : "border-transparent bg-white/30 backdrop-blur-3xl",
+          ? "border-white/30 bg-white/65 shadow-[0_8px_30px_rgba(15,23,42,0.03)] backdrop-blur-3xl"
+          : "border-transparent bg-white/40 backdrop-blur-3xl",
       )}
     >
-      <div className="mx-auto flex min-h-18 max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
-        <Link href="/" className="group flex min-w-0 items-center gap-3">
+      <div className="mx-auto flex min-h-18 max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
+        <Link href="/" className="group flex min-w-0 max-w-[calc(100%-60px)] items-center gap-3">
           <div className="flex shrink-0 items-center -space-x-2">
             <div className="flex size-10 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#047857,#0891b2_55%,#7c3aed)] text-primary-foreground shadow-lg shadow-red-950/15 transition-all duration-300 group-hover:scale-105 sm:size-11">
               <BookOpen className="size-5" />
@@ -74,8 +75,8 @@ export function PublicNav() {
               <Image src="/ulm-logo.png" alt="Logo Universitas Lambung Mangkurat" width={30} height={30} className="size-7 object-contain sm:size-8" priority />
             </span>
           </div>
-          <div className="min-w-0">
-            <p className="font-bold leading-none tracking-tight text-slate-950">Ruang Baca PMat</p>
+          <div className="min-w-0 flex-1">
+            <p className="truncate font-bold leading-none tracking-tight text-slate-950">Ruang Baca PMat</p>
             <p className="mt-1 truncate text-xs text-slate-500">Jurusan Pendidikan Matematika ULM</p>
           </div>
         </Link>
@@ -91,11 +92,7 @@ export function PublicNav() {
             </Link>
           </Button>
         </nav>
-        <div className="flex items-center gap-1.5 md:hidden">
-          <MobileIconLink href="/katalog" label="Katalog" icon={Search} />
-          <MobileIconLink href="/presensi" label="Presensi" icon={ScanLine} />
-          <MobileIconLink href="/login?redirectTo=/dashboard" label="Admin" icon={LogIn} />
-        </div>
+        <MobileNav />
       </div>
     </header>
   );
@@ -224,24 +221,6 @@ function SearchCover({ item }: { item: NavSearchItem }) {
   );
 }
 
-function MobileIconLink({
-  href,
-  icon: Icon,
-  label,
-}: {
-  href: string;
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-}) {
-  return (
-    <Button asChild variant="outline" size="icon" className="size-10 rounded-full border-white/80 bg-white/78 shadow-sm backdrop-blur-xl transition hover:-translate-y-0.5">
-      <Link href={href}>
-        <Icon />
-        <span className="sr-only">{label}</span>
-      </Link>
-    </Button>
-  );
-}
 
 function NavLink({
   href,
@@ -255,11 +234,65 @@ function NavLink({
   return (
     <Link
       href={href}
-      className="group relative inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition-all duration-300 hover:bg-white/40 hover:text-slate-955"
+      className="group relative inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition-all duration-300 hover:bg-white/40 hover:text-slate-950"
     >
       <Icon className="size-4 text-red-600 transition duration-300 group-hover:-translate-y-0.5" />
       {label}
       <span className="absolute inset-x-4 -bottom-px h-0.5 scale-x-0 rounded-full bg-[linear-gradient(90deg,#047857,#0891b2,#7c3aed)] transition-transform duration-300 group-hover:scale-x-100" />
     </Link>
+  );
+}
+
+function MobileNav() {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="md:hidden">
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={() => setIsOpen(!isOpen)}
+        className="size-10 rounded-full border-white/80 bg-white/75 shadow-sm backdrop-blur-xl transition hover:bg-slate-100"
+        aria-label="Toggle menu"
+      >
+        {isOpen ? <X className="size-5 text-slate-700" /> : <Menu className="size-5 text-slate-700" />}
+      </Button>
+      {isOpen && (
+        <div className="absolute left-0 right-0 top-full border-b border-slate-200/60 bg-white/95 p-4 shadow-xl backdrop-blur-2xl animate-in slide-in-from-top-2">
+          <div className="flex flex-col gap-1.5">
+            <Link
+              href="/katalog"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+            >
+              <div className="flex size-8 items-center justify-center rounded-full bg-slate-100 text-slate-500">
+                <Search className="size-4" />
+              </div>
+              Katalog & Pencarian
+            </Link>
+            <Link
+              href="/presensi"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+            >
+              <div className="flex size-8 items-center justify-center rounded-full bg-slate-100 text-slate-500">
+                <ScanLine className="size-4" />
+              </div>
+              Presensi Pengunjung
+            </Link>
+            <Link
+              href="/login?redirectTo=/dashboard"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+            >
+              <div className="flex size-8 items-center justify-center rounded-full bg-slate-100 text-slate-500">
+                <LogIn className="size-4" />
+              </div>
+              Login Admin
+            </Link>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
