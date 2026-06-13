@@ -69,6 +69,36 @@ a {
   text-decoration: none;
 }
 
+.pdf-reader-scroll {
+  scrollbar-color: #b91c1c #e2e8f0;
+  scrollbar-width: auto;
+}
+
+.pdf-reader-scroll::-webkit-scrollbar {
+  height: 24px;
+  width: 24px;
+}
+
+.pdf-reader-scroll::-webkit-scrollbar-track {
+  background: #e2e8f0;
+}
+
+.pdf-reader-scroll::-webkit-scrollbar-thumb {
+  min-height: 80px;
+  min-width: 80px;
+  border: 5px solid #e2e8f0;
+  border-radius: 999px;
+  background: #b91c1c;
+}
+
+.pdf-reader-scroll::-webkit-scrollbar-thumb:hover {
+  background: #991b1b;
+}
+
+.pdf-reader-scroll::-webkit-scrollbar-corner {
+  background: #e2e8f0;
+}
+
 .gradient-text {
   background: linear-gradient(90deg, #dc2626, #facc15);
   -webkit-background-clip: text;
