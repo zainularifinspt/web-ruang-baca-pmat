@@ -142,7 +142,7 @@ export function formatLoanDatabaseError(message: string) {
     message.includes("public.borrowers") ||
     message.includes("schema cache")
   ) {
-    return "Tabel peminjaman belum dibuat di Supabase. Jalankan migration supabase/migrations/20260521_loans.sql terlebih dahulu.";
+    return "Tabel peminjaman belum dibuat. Jalankan migration peminjaman terlebih dahulu.";
   }
 
   return message;

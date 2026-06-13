@@ -11,7 +11,7 @@ import { createSupabaseBrowserClient } from "@/lib/supabase-auth-client";
 const authErrorMessages: Record<string, string> = {
   admin_required: "Akun ini belum memiliki akses admin.",
   staff_required: "Akun ini belum memiliki akses dashboard.",
-  configuration: "Konfigurasi Supabase belum lengkap.",
+  configuration: "Konfigurasi sistem belum lengkap.",
 };
 
 export function LoginForm() {

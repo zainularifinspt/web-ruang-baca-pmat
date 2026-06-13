@@ -99,7 +99,7 @@ export function getSupabaseClient() {
 
   if (!supabaseUrl || !supabaseAnonKey) {
     throw new Error(
-      "Supabase environment variables NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are required.",
+      "Konfigurasi database aplikasi belum lengkap.",
     );
   }
 
@@ -247,7 +247,7 @@ async function fetchTableRows(table: "books" | "theses") {
   } catch (error) {
     return {
       rows: [] as UnknownRow[],
-      error: error instanceof Error ? error.message : "Supabase data could not be loaded.",
+      error: error instanceof Error ? error.message : "Data belum dapat dimuat.",
     };
   }
 }
@@ -268,7 +268,7 @@ async function fetchTableRowById(table: "books" | "theses", id: string) {
   } catch (error) {
     return {
       row: null as UnknownRow | null,
-      error: error instanceof Error ? error.message : "Supabase data could not be loaded.",
+      error: error instanceof Error ? error.message : "Data belum dapat dimuat.",
     };
   }
 }

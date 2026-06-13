@@ -12,7 +12,7 @@ type RoleCheckResult =
 
 export async function requireStaffRole(allowedRoles: StaffRole[]): Promise<RoleCheckResult> {
   if (!hasValidSupabaseConfig()) {
-    return { ok: false, message: "Konfigurasi Supabase belum lengkap." };
+    return { ok: false, message: "Konfigurasi sistem belum lengkap." };
   }
 
   const supabase = await createSupabaseServerClient();

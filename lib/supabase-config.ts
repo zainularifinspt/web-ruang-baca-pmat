@@ -4,7 +4,7 @@ export function getSupabaseConfig() {
 
   if (!supabaseUrl || !supabaseAnonKey || !isHttpUrl(supabaseUrl)) {
     throw new Error(
-      "Supabase environment variables NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are required.",
+      "Konfigurasi database aplikasi belum lengkap.",
     );
   }
 
@@ -23,7 +23,7 @@ export function getSupabaseServiceRoleConfig() {
   const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!supabaseServiceRoleKey) {
-    throw new Error("SUPABASE_SERVICE_ROLE_KEY is required for admin account management.");
+    throw new Error("Konfigurasi admin database aplikasi belum lengkap.");
   }
 
   return { supabaseUrl, supabaseServiceRoleKey };

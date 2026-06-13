@@ -48,7 +48,7 @@ export default async function VerificationPage() {
 
       {error ? (
         <Alert className="border-amber-200 bg-amber-50 text-amber-950">
-          <AlertTitle>Data Supabase belum dapat dimuat</AlertTitle>
+          <AlertTitle>Data belum dapat dimuat</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       ) : null}

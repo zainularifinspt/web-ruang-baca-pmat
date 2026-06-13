@@ -124,7 +124,7 @@ export function UsersManagement({ users }: { users: ManagedUser[] }) {
             <TableCell colSpan={6} className="py-8">
               <EmptyState
                 title="Belum ada pengguna"
-                description="Pengguna dari Supabase Auth dan tabel profiles akan tampil di sini setelah ditambahkan."
+                description="Pengguna akan tampil di sini setelah ditambahkan."
                 className="border-slate-200 bg-slate-50/70"
               />
             </TableCell>
@@ -420,7 +420,7 @@ function UserDialog({ user }: { user?: ManagedUser }) {
         <DialogHeader>
           <DialogTitle>{isEditing ? "Ubah pengguna" : "Tambah pengguna"}</DialogTitle>
           <DialogDescription>
-            Simpan akun ke Supabase Auth dan tetapkan role aplikasi pengguna.
+            Simpan akun dan tetapkan role aplikasi pengguna.
           </DialogDescription>
         </DialogHeader>
 
@@ -624,7 +624,7 @@ function DeleteUserButton({ user }: { user: ManagedUser }) {
         <DialogHeader>
           <DialogTitle>Hapus pengguna?</DialogTitle>
           <DialogDescription>
-            Akun {user.fullName || user.email} akan dihapus dari Supabase Auth.
+            Akun {user.fullName || user.email} akan dihapus dari sistem.
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">

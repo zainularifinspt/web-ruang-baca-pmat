@@ -85,7 +85,7 @@ export function RealtimeVisitorChart() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-base font-bold tracking-tight text-slate-950">Grafik Pengunjung</p>
-          <p className="mt-1 text-xs text-slate-500 font-medium">Realtime dari tabel presensi Supabase.</p>
+          <p className="mt-1 text-xs text-slate-500 font-medium">Realtime dari data presensi.</p>
         </div>
         <div className="w-fit rounded-full bg-white/60 px-3.5 py-1 text-xs font-bold text-slate-650 shadow-sm ring-1 ring-slate-200/30">
           7 hari terakhir

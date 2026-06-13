@@ -42,7 +42,7 @@ export async function POST(request: Request) {
         return NextResponse.json(
           {
             error:
-              "Tabel data presensi belum dibuat. Jalankan migration supabase/migrations/20260524_attendance_visitors.sql di Supabase SQL Editor, lalu ulangi import.",
+              "Tabel data presensi belum dibuat. Jalankan migration data presensi, lalu ulangi import.",
           },
           { status: 500 },
         );

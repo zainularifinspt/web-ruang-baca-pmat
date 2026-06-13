@@ -429,7 +429,7 @@ function AttendancePanel({
       ) : (
         <EmptyState
           title="Belum ada presensi"
-          description="Data presensi dari Supabase akan muncul otomatis setelah pengunjung mengisi presensi."
+          description="Data presensi akan muncul otomatis setelah pengunjung mengisi presensi."
           className="bg-slate-50/70"
         />
       )}
@@ -602,7 +602,7 @@ function TopicInterest({ theses }: { theses: Thesis[] }) {
       )) : (
         <EmptyState
           title="Belum ada topik"
-          description="Topik skripsi akan muncul setelah data katalog Supabase tersedia."
+          description="Topik skripsi akan muncul setelah data katalog tersedia."
           className="bg-slate-50/70"
         />
       )}
@@ -641,7 +641,7 @@ function LatestThesesPanel({ theses }: { theses: Thesis[] }) {
       ) : (
         <EmptyState
           title="Belum ada skripsi"
-          description="Data skripsi terbaru akan tampil setelah katalog Supabase dimuat."
+          description="Data skripsi terbaru akan tampil setelah katalog dimuat."
           className="bg-slate-50/70"
         />
       )}

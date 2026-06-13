@@ -20,7 +20,7 @@ export function formatShortDate(value: string) {
   }).format(new Date(value));
 }
 
-// Mapping antara nilai UI (Bahasa Indonesia) dan nilai Supabase (English)
+// Mapping antara label UI dan nilai status yang disimpan.
 const verificationStatusUIMap: Record<VerificationStatus, string> = {
   pending: "Menunggu Verifikasi",
   approved: "Disetujui",
@@ -33,12 +33,12 @@ const verificationStatusValueMap: Record<string, VerificationStatus> = {
   Ditolak: "rejected",
 };
 
-// Konversi dari label UI ke nilai Supabase
+// Konversi dari label UI ke nilai status.
 export function uiStatusToValue(uiLabel: string): VerificationStatus {
   return verificationStatusValueMap[uiLabel] || "pending";
 }
 
-// Konversi dari nilai Supabase ke label UI
+// Konversi dari nilai status ke label UI.
 export function valueToUIStatus(value: VerificationStatus): string {
   return verificationStatusUIMap[value] || "Menunggu Verifikasi";
 }

@@ -136,7 +136,7 @@ export function CollectionDetailError({
             </h1>
             <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-slate-600">
               Tidak ada data {label} dengan id <span className="font-semibold text-slate-900">{id}</span>
-              {message ? `, atau Supabase mengembalikan error: ${message}` : "."}
+              {message ? `, atau sistem mengembalikan error: ${message}` : "."}
             </p>
             <Button asChild className="mt-7 rounded-2xl">
               <Link href="/katalog">

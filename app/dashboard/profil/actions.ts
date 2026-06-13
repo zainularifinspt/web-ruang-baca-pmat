@@ -13,7 +13,7 @@ export type UpdateProfileResult = {
 
 export async function updateOwnProfileName(fullNameInput: string): Promise<UpdateProfileResult> {
   if (!hasValidSupabaseConfig()) {
-    return failure("Konfigurasi Supabase belum lengkap.");
+    return failure("Konfigurasi sistem belum lengkap.");
   }
 
   const fullName = fullNameInput.trim().replace(/\s+/g, " ");
@@ -84,7 +84,7 @@ export async function updateOwnPassword(
   confirmationInput: string,
 ): Promise<UpdateProfileResult> {
   if (!hasValidSupabaseConfig()) {
-    return failure("Konfigurasi Supabase belum lengkap.");
+    return failure("Konfigurasi sistem belum lengkap.");
   }
 
   const password = passwordInput.trim();

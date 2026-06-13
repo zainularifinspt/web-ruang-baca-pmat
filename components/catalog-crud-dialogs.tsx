@@ -86,7 +86,7 @@ export function AddBookDialog() {
   return (
     <BookDialog
       title="Tambah Buku"
-      description="Simpan data buku langsung ke tabel books Supabase."
+      description="Simpan data buku langsung ke database aplikasi."
       submitLabel="Simpan buku"
       values={values}
       onValuesChange={setValues}
@@ -114,7 +114,7 @@ export function AddThesisDialog() {
   return (
     <ThesisDialog
       title="Tambah Skripsi"
-      description="Simpan data skripsi langsung ke tabel theses Supabase."
+      description="Simpan data skripsi langsung ke database aplikasi."
       submitLabel="Simpan skripsi"
       values={values}
       onValuesChange={setValues}
@@ -173,7 +173,7 @@ export function DeleteCollectionDialog({ item }: { item: Book | Thesis }) {
         <DialogHeader>
           <DialogTitle>Hapus {item.type === "book" ? "buku" : "skripsi"}?</DialogTitle>
           <DialogDescription>
-            Data &quot;{item.title}&quot; akan dihapus dari Supabase. Tindakan ini tidak dapat
+            Data &quot;{item.title}&quot; akan dihapus dari database aplikasi. Tindakan ini tidak dapat
             dibatalkan dari aplikasi.
           </DialogDescription>
         </DialogHeader>
@@ -213,7 +213,7 @@ function EditBookDialog({ item }: { item: Book }) {
   return (
     <BookDialog
       title="Edit Buku"
-      description="Perbarui data buku di Supabase."
+      description="Perbarui data buku di database aplikasi."
       submitLabel="Simpan perubahan"
       values={values}
       onValuesChange={setValues}
