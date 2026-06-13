@@ -65,6 +65,7 @@ const allowedCoverTypes = ["image/jpeg", "image/png", "image/webp"];
 const emptyThesisValues: ThesisFormValues = {
   title: "",
   studentName: "",
+  studentNim: "",
   year: new Date().getFullYear(),
   topic: "",
   abstract: "",
@@ -235,6 +236,7 @@ function EditThesisDialog({ item }: { item: Thesis }) {
   const [values, setValues] = useState<ThesisFormValues>({
     title: item.title,
     studentName: item.studentName,
+    studentNim: item.studentNim ?? "",
     year: item.year,
     topic: item.topic,
     abstract: item.abstract,
@@ -479,6 +481,16 @@ function ThesisDialog({
                 placeholder="Nama mahasiswa"
                 disabled={form.isPending}
                 required
+              />
+            </Field>
+            <Field label="NIM">
+              <Input
+                value={values.studentNim}
+                onChange={(event) =>
+                  onValuesChange({ ...values, studentNim: event.target.value })
+                }
+                placeholder="NIM mahasiswa"
+                disabled={form.isPending}
               />
             </Field>
             <Field label="Tahun">

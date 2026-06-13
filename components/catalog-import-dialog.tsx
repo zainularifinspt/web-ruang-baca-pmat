@@ -390,6 +390,7 @@ function buildThesisValues(row: ImportRow): ThesisFormValues {
   return {
     title: getText(row.data, ["title", "judul", "judul_skripsi", "judul skripsi"]),
     studentName: getText(row.data, ["student_name", "nama_mahasiswa", "mahasiswa", "nama"]),
+    studentNim: getText(row.data, ["student_nim", "nim", "nim_nip", "nim/nip"]),
     year: getNumber(row.data, ["year", "tahun"], new Date().getFullYear()),
     topic: getText(row.data, ["topic", "topik"], "Skripsi"),
     abstract: getText(row.data, ["abstract", "abstrak"], defaultThesisAbstract(row.data)),

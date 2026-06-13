@@ -66,6 +66,7 @@ export type Book = CollectionBase & {
 export type Thesis = CollectionBase & {
   type: "thesis";
   studentName: string;
+  studentNim?: string;
   topic: string;
   supervisor1: string;
   supervisor2: string;

@@ -20,6 +20,7 @@ export type BookFormValues = {
 export type ThesisFormValues = {
   title: string;
   studentName: string;
+  studentNim: string;
   year: number;
   topic: string;
   abstract: string;

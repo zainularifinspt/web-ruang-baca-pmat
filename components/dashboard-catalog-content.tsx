@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { CatalogBrowser } from "@/components/catalog-browser";
@@ -14,7 +14,19 @@ import { CatalogImportDialog } from "@/components/catalog-import-dialog";
 import { ExportButton } from "@/components/export-button";
 import { useRole } from "@/components/role-provider";
 import { Button } from "@/components/ui/button";
-import { syncThesisFromGoogleSheets } from "@/app/dashboard/katalog/actions";
+import {
+  previewThesisSyncFromGoogleSheets,
+  syncThesisFromGoogleSheets,
+  type GoogleSheetThesisCandidate,
+} from "@/app/dashboard/katalog/actions";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import type { Book, Thesis } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -55,6 +67,7 @@ export function DashboardCatalogActions() {
   const canAddBook = role === "admin" || role === "petugas";
   const canAddThesis = role === "admin" || role === "petugas" || role === "dosen";
   const canImport = role === "admin" || role === "petugas";
+  const canSyncThesis = role === "admin";
 
   return (
     <section className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/70 sm:p-5">
@@ -81,7 +94,7 @@ export function DashboardCatalogActions() {
             {canExport ? <ExportButton type="thesis" label="Ekspor skripsi" /> : null}
             {canImport ? <CatalogImportDialog importType="thesis" triggerLabel="Import skripsi" /> : null}
             {canAddThesis ? <AddThesisDialog /> : null}
-            {canAddThesis ? <SyncGoogleSheetButton /> : null}
+            {canSyncThesis ? <SyncGoogleSheetButton /> : null}
           </div>
         </div>
       </div>
@@ -96,33 +109,103 @@ export function DashboardCatalogActions() {
 
 function SyncGoogleSheetButton() {
   const [isPending, startTransition] = useTransition();
+  const [open, setOpen] = useState(false);
+  const [candidates, setCandidates] = useState<GoogleSheetThesisCandidate[]>([]);
 
-  const handleSync = () => {
+  const handlePreview = () => {
     startTransition(async () => {
-      const result = await syncThesisFromGoogleSheets();
-      if (result.ok) {
-        toast.success("Sinkronisasi Selesai", {
-          description: result.message,
-        });
-      } else {
+      const result = await previewThesisSyncFromGoogleSheets();
+      if (!result.ok) {
         toast.error("Sinkronisasi Gagal", {
           description: result.message,
         });
+        return;
       }
+
+      if (!result.candidates?.length) {
+        setCandidates([]);
+        setOpen(false);
+        toast.info("Tidak ada data baru", {
+          description: result.message,
+        });
+        return;
+      }
+
+      setCandidates(result.candidates);
+      setOpen(true);
+    });
+  };
+
+  const handleConfirm = () => {
+    startTransition(async () => {
+      const result = await syncThesisFromGoogleSheets(candidates.map((candidate) => candidate.key));
+      if (!result.ok) {
+        toast.error("Sinkronisasi Gagal", {
+          description: result.message,
+        });
+        return;
+      }
+
+      toast.success("Sinkronisasi Selesai", {
+        description: result.message,
+      });
+      setOpen(false);
+      setCandidates([]);
     });
   };
 
   return (
-    <Button
-      type="button"
-      variant="outline"
-      size="sm"
-      className="rounded-xl border-amber-200 bg-amber-50 text-amber-900 hover:bg-amber-100 hover:text-amber-950"
-      onClick={handleSync}
-      disabled={isPending}
-    >
-      <RefreshCw className={cn("mr-2 size-4", isPending && "animate-spin")} />
-      {isPending ? "Menyinkronkan..." : "Ambil Data Skripsi"}
-    </Button>
+    <>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="rounded-xl border-amber-200 bg-amber-50 text-amber-900 hover:bg-amber-100 hover:text-amber-950"
+        onClick={handlePreview}
+        disabled={isPending}
+      >
+        <RefreshCw className={cn("mr-2 size-4", isPending && "animate-spin")} />
+        {isPending ? "Mengecek data..." : "Ambil Data Skripsi"}
+      </Button>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-2xl rounded-2xl">
+          <DialogHeader>
+            <DialogTitle>Konfirmasi data skripsi baru</DialogTitle>
+            <DialogDescription>
+              {candidates.length} data baru terdeteksi dari Google Sheet berdasarkan nama dan NIM.
+              Konfirmasi untuk memasukkannya ke katalog.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="max-h-80 space-y-2 overflow-auto rounded-2xl border border-amber-100 bg-amber-50/40 p-2">
+            {candidates.map((candidate) => (
+              <div key={candidate.key} className="rounded-xl bg-white p-3 shadow-sm ring-1 ring-slate-200/70">
+                <p className="line-clamp-2 text-sm font-semibold text-slate-950">
+                  {candidate.title}
+                </p>
+                <p className="mt-1 text-xs text-slate-600">
+                  {candidate.studentName} · NIM {candidate.studentNim} · {candidate.year}
+                </p>
+                <p className="mt-1 line-clamp-1 text-xs text-slate-500">
+                  Pembimbing: {candidate.supervisor1}; {candidate.supervisor2}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <DialogClose asChild>
+              <Button type="button" variant="outline" className="rounded-xl" disabled={isPending}>
+                Batal
+              </Button>
+            </DialogClose>
+            <Button type="button" className="rounded-xl" disabled={isPending} onClick={handleConfirm}>
+              {isPending ? "Memasukkan..." : `Masukkan ${candidates.length} data`}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

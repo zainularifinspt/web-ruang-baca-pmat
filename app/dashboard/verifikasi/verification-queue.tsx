@@ -273,6 +273,7 @@ function VerifyCatalogDialog({
       ? {
           title: item.item.title,
           studentName: item.item.studentName,
+          studentNim: item.item.studentNim ?? "",
           year: item.item.year,
           topic: item.item.topic,
           abstract: item.item.abstract,
@@ -289,6 +290,7 @@ function VerifyCatalogDialog({
       : {
           title: "",
           studentName: "",
+          studentNim: "",
           year: new Date().getFullYear(),
           topic: "",
           abstract: "",
@@ -637,6 +639,12 @@ function ThesisVerificationFields({
           value={values.studentName}
           onChange={(event) => onValuesChange({ ...values, studentName: event.target.value })}
           required
+        />
+      </Field>
+      <Field label="NIM">
+        <Input
+          value={values.studentNim}
+          onChange={(event) => onValuesChange({ ...values, studentNim: event.target.value })}
         />
       </Field>
       <Field label="Tahun">

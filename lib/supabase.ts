@@ -321,6 +321,7 @@ function mapThesisRow(
     ...mapBaseRow(row, verificationOverride, inputOverride, createdByName),
     type: "thesis",
     studentName: textValue(row, ["student_name"]),
+    studentNim: optionalTextValue(row, ["student_nim", "studentNim", "nim"]),
     topic,
     supervisor1: textValue(row, ["supervisor_1"]),
     supervisor2: textValue(row, ["supervisor_2"]),

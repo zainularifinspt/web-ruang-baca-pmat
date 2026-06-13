@@ -23,7 +23,21 @@ type InsertCatalogOptions = {
   inputBy?: string;
   verificationStatus?: VerificationStatus;
 };
+
+export type GoogleSheetThesisCandidate = {
+  key: string;
+  title: string;
+  studentName: string;
+  studentNim: string;
+  year: number;
+  supervisor1: string;
+  supervisor2: string;
+  pdfUrl: string;
+};
+
 const maxThesisPdfSize = 5 * 1024 * 1024;
+const thesisSheetUrl =
+  "https://docs.google.com/spreadsheets/d/1b7B0V2gu1lADwzGHF1F-TIno6vP2mQQFg4IweiOZAaU/export?format=csv&gid=750085679";
 
 export async function createBook(values: BookFormValues): Promise<CatalogActionResult> {
   const auth = await requireStaffRole(["admin", "petugas"]);
@@ -65,63 +79,72 @@ export async function createThesis(values: ThesisFormValues): Promise<CatalogAct
     : failure(result.message);
 }
 
-export async function syncThesisFromGoogleSheets(): Promise<CatalogActionResult & { count?: number }> {
+export async function previewThesisSyncFromGoogleSheets(): Promise<
+  CatalogActionResult & { candidates?: GoogleSheetThesisCandidate[]; count?: number }
+> {
   const auth = await requireStaffRole(["admin"]);
   if (!auth.ok) return failure(auth.message);
 
   try {
-    const url = "https://docs.google.com/spreadsheets/d/1b7B0V2gu1lADwzGHF1F-TIno6vP2mQQFg4IweiOZAaU/export?format=csv&gid=750085679";
-    const response = await fetch(url);
-    if (!response.ok) return failure("Gagal mengunduh data dari Google Sheets.");
-    
-    const buffer = await response.arrayBuffer();
-    const workbook = read(buffer, { type: "array" });
-    const sheetName = workbook.SheetNames[0];
-    const sheet = workbook.Sheets[sheetName];
-    const rows = utils.sheet_to_json<Record<string, string>>(sheet, { raw: false });
+    const candidates = await getNewGoogleSheetThesisCandidates();
 
-    const supabase = createSupabaseAdminClient();
-    const { data: existingTheses, error: fetchError } = await supabase
-      .from("theses")
-      .select("title, student_name");
+    if (!candidates.length) {
+      return {
+        ok: true,
+        message: "Tidak ada data baru yang ditambahkan.",
+        candidates: [],
+        count: 0,
+      };
+    }
 
-    if (fetchError) return failure(fetchError.message);
+    return {
+      ok: true,
+      message: `${candidates.length} data skripsi baru terdeteksi. Konfirmasi untuk memasukkan ke katalog.`,
+      candidates,
+      count: candidates.length,
+    };
+  } catch (error) {
+    return failure(error instanceof Error ? error.message : "Terjadi kesalahan saat memproses data.");
+  }
+}
 
-    const existingMap = new Set(
-      existingTheses.map((t) => `${t.title.trim().toLowerCase()}|${t.student_name.trim().toLowerCase()}`)
+export async function syncThesisFromGoogleSheets(
+  candidateKeys: string[],
+): Promise<CatalogActionResult & { count?: number }> {
+  const auth = await requireStaffRole(["admin"]);
+  if (!auth.ok) return failure(auth.message);
+
+  if (!candidateKeys.length) {
+    return { ok: true, message: "Tidak ada data baru yang ditambahkan.", count: 0 };
+  }
+
+  try {
+    const selectedKeys = new Set(candidateKeys);
+    const candidates = (await getNewGoogleSheetThesisCandidates()).filter((candidate) =>
+      selectedKeys.has(candidate.key),
     );
+
+    if (!candidates.length) {
+      return { ok: true, message: "Tidak ada data baru yang ditambahkan.", count: 0 };
+    }
 
     let addedCount = 0;
     const inputBy = await getInputActorName(auth.user.id, auth.user.email);
 
-    for (const row of rows) {
-      const title = row["JUDUL SKRIPSI"]?.toString() || "";
-      const studentName = row["NAMA"]?.toString() || "";
-      
-      if (!title || !studentName) continue;
-
-      const key = `${title.trim().toLowerCase()}|${studentName.trim().toLowerCase()}`;
-      if (existingMap.has(key)) continue;
-
-      const dateStr = row["TANGGAL YUDISIUM (SESUAI SKL)"]?.toString() || "";
-      let year = new Date().getFullYear();
-      if (dateStr) {
-        const parsed = new Date(dateStr);
-        if (!isNaN(parsed.getTime())) year = parsed.getFullYear();
-      }
-
+    for (const candidate of candidates) {
       const thesisValues: ThesisFormValues = {
-        title: title.trim(),
-        studentName: studentName.trim(),
-        year,
+        title: candidate.title,
+        studentName: candidate.studentName,
+        studentNim: candidate.studentNim,
+        year: candidate.year,
         topic: "Pendidikan Matematika",
         abstract: "Abstrak belum tersedia",
-        supervisor1: row["PEMBIMBING 1"]?.toString().trim() || "-",
-        supervisor2: row["PEMBIMBING 2"]?.toString().trim() || "-",
+        supervisor1: candidate.supervisor1,
+        supervisor2: candidate.supervisor2,
         physicalLocation: "Ruang Baca PMAT",
         accessNote: "Dapat dibaca di tempat",
         coverUrl: "",
-        pdfUrl: row["File Skripsi PDF"]?.toString().trim() || "",
+        pdfUrl: candidate.pdfUrl,
         pdfFilename: "",
         pdfSize: 0,
         verificationStatus: "approved",
@@ -133,18 +156,124 @@ export async function syncThesisFromGoogleSheets(): Promise<CatalogActionResult 
         verificationStatus: "approved",
       });
 
-      if (result.ok) {
-        addedCount++;
-        existingMap.add(key);
-      }
+      if (result.ok) addedCount++;
     }
 
     revalidateCatalogPaths();
-    return { ok: true, message: `Berhasil sinkronisasi. ${addedCount} data skripsi baru ditambahkan.`, count: addedCount };
-
+    return { ok: true, message: `${addedCount} data skripsi baru ditambahkan ke katalog.`, count: addedCount };
   } catch (error) {
     return failure(error instanceof Error ? error.message : "Terjadi kesalahan saat memproses data.");
   }
+}
+
+async function getNewGoogleSheetThesisCandidates() {
+  const [sheetRows, existingTheses] = await Promise.all([
+    getGoogleSheetThesisRows(),
+    getExistingThesisIdentityRows(),
+  ]);
+
+  const existingIdentityKeys = new Set<string>();
+  const existingLegacyNames = new Set<string>();
+
+  existingTheses.forEach((thesis) => {
+    const name = normalizeIdentity(thesis.student_name);
+    const nim = normalizeNim(thesis.student_nim);
+    if (!name) return;
+    if (nim) existingIdentityKeys.add(thesisIdentityKey(name, nim));
+    else existingLegacyNames.add(name);
+  });
+
+  const seenSheetKeys = new Set<string>();
+  const candidates: GoogleSheetThesisCandidate[] = [];
+
+  for (const row of sheetRows) {
+    const title = sheetText(row, ["JUDUL SKRIPSI", "judul skripsi", "judul"]);
+    const studentName = sheetText(row, ["NAMA", "nama"]);
+    const studentNim = sheetText(row, ["NIM", "nim", "NIM/NIP", "nim_nip"]);
+    const normalizedName = normalizeIdentity(studentName);
+    const normalizedNim = normalizeNim(studentNim);
+
+    if (!title || !normalizedName || !normalizedNim) continue;
+
+    const key = thesisIdentityKey(normalizedName, normalizedNim);
+    if (existingIdentityKeys.has(key) || existingLegacyNames.has(normalizedName) || seenSheetKeys.has(key)) {
+      continue;
+    }
+
+    seenSheetKeys.add(key);
+    candidates.push({
+      key,
+      title: title.trim(),
+      studentName: studentName.trim(),
+      studentNim: studentNim.trim(),
+      year: graduationYear(sheetText(row, ["TANGGAL YUDISIUM (SESUAI SKL)", "tanggal yudisium"])),
+      supervisor1: sheetText(row, ["PEMBIMBING 1", "pembimbing 1"]) || "-",
+      supervisor2: sheetText(row, ["PEMBIMBING 2", "pembimbing 2"]) || "-",
+      pdfUrl: sheetText(row, ["File Skripsi PDF", "file skripsi pdf"]),
+    });
+  }
+
+  return candidates;
+}
+
+async function getGoogleSheetThesisRows() {
+  const response = await fetch(thesisSheetUrl, { cache: "no-store" });
+  if (!response.ok) throw new Error("Gagal mengunduh data dari Google Sheets.");
+
+  const buffer = await response.arrayBuffer();
+  const workbook = read(buffer, { type: "array" });
+  const sheetName = workbook.SheetNames[0];
+  const sheet = workbook.Sheets[sheetName];
+
+  if (!sheet) throw new Error("Sheet pertama tidak ditemukan.");
+
+  return utils.sheet_to_json<Record<string, string>>(sheet, { raw: false });
+}
+
+async function getExistingThesisIdentityRows(): Promise<Array<{ student_name?: string | null; student_nim?: string | null }>> {
+  const supabase = createSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("theses")
+    .select("student_name, student_nim");
+
+  if (!error) return data ?? [];
+
+  if (!isMissingStudentNimColumn(error.message)) {
+    throw new Error(error.message);
+  }
+
+  const fallback = await supabase.from("theses").select("student_name");
+  if (fallback.error) throw new Error(fallback.error.message);
+
+  return fallback.data ?? [];
+}
+
+function sheetText(row: Record<string, string>, keys: string[]) {
+  for (const key of keys) {
+    const value = row[key];
+    if (value !== undefined && value !== null) return value.toString().trim();
+  }
+
+  return "";
+}
+
+function graduationYear(dateStr: string) {
+  if (!dateStr) return new Date().getFullYear();
+
+  const parsed = new Date(dateStr);
+  return Number.isNaN(parsed.getTime()) ? new Date().getFullYear() : parsed.getFullYear();
+}
+
+function normalizeIdentity(value?: string | null) {
+  return (value ?? "").trim().replace(/\s+/g, " ").toLowerCase();
+}
+
+function normalizeNim(value?: string | null) {
+  return (value ?? "").trim().replace(/\D/g, "");
+}
+
+function thesisIdentityKey(normalizedName: string, normalizedNim: string) {
+  return `${normalizedName}|${normalizedNim}`;
 }
 
 export async function updateBook(
@@ -317,7 +446,8 @@ async function insertThesis(payload: MutationPayload, options?: InsertCatalogOpt
   if (
     !isMissingInputAuditColumn(error.message) &&
     !isMissingVerificationColumn(error.message) &&
-    !isMissingThesisPdfColumn(error.message)
+    !isMissingThesisPdfColumn(error.message) &&
+    !isMissingStudentNimColumn(error.message)
   ) {
     return failure(error.message);
   }
@@ -327,6 +457,7 @@ async function insertThesis(payload: MutationPayload, options?: InsertCatalogOpt
     "input_by",
     "input_source",
     "verification_status",
+    "student_nim",
     "pdf_url",
     "pdf_filename",
     "pdf_size",
@@ -353,8 +484,12 @@ async function updateThesisRow(id: string, payload: MutationPayload) {
     return success("ok");
   }
 
-  if (payloadHasThesisPdf(payload) && isMissingThesisPdfColumn(error.message)) {
+  if (
+    (payloadHasThesisPdf(payload) && isMissingThesisPdfColumn(error.message)) ||
+    isMissingStudentNimColumn(error.message)
+  ) {
     const fallbackPayload = omitPayloadKeys(payload, [
+      "student_nim",
       "pdf_url",
       "pdf_filename",
       "pdf_size",
@@ -393,6 +528,7 @@ function thesisPayload(values: ThesisFormValues, inputBy?: string, actorId?: str
   const payload: MutationPayload = {
     title: values.title,
     student_name: values.studentName,
+    student_nim: optionalPayloadValue(values.studentNim),
     year: values.year,
     topic: values.topic,
     abstract: values.abstract,
@@ -490,6 +626,10 @@ function isMissingThesisPdfColumn(message: string) {
     message.includes("pdf_filename") ||
     message.includes("pdf_size")
   );
+}
+
+function isMissingStudentNimColumn(message: string) {
+  return message.includes("student_nim") || message.includes("schema cache");
 }
 
 function payloadHasThesisPdf(payload: MutationPayload) {
