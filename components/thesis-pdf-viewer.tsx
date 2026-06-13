@@ -12,12 +12,26 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { resolveThesisPdfUrl } from "@/lib/thesis-pdf";
-import type { PDFDocumentLoadingTask, PDFDocumentProxy, RenderTask } from "pdfjs-dist";
+import type { PDFDocumentLoadingTask, PDFDocumentProxy, PDFPageProxy, RenderTask } from "pdfjs-dist";
 
 const MIN_PDF_ZOOM = 0.75;
 const MAX_PDF_ZOOM = 2.5;
 const PDF_ZOOM_STEP = 0.15;
 const CUSTOM_SCROLLBAR_PADDING = 12;
+const PDF_RANGE_CHUNK_SIZE = 128 * 1024;
+const MAX_PAGE_BASE_WIDTH = 900;
+const MAX_RENDERED_PAGE_WIDTH = 1800;
+const MAX_CANVAS_PIXELS = 4_000_000;
+const MAX_CANVAS_PIXEL_RATIO = 1.5;
+const MAX_CONCURRENT_PAGE_RENDERS = 2;
+
+type QueuedPageRender = {
+  cancelled: boolean;
+  run: () => Promise<void>;
+};
+
+let activePageRenders = 0;
+const pageRenderQueue: QueuedPageRender[] = [];
 
 type ThesisPdfViewerProps = {
   pdfUrl?: string;
@@ -123,6 +137,7 @@ function PdfCanvasReader({
   const [rotation, setRotation] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [inputPage, setInputPage] = useState("1");
+  const [pageBaseWidth, setPageBaseWidth] = useState(820);
   const [scrollState, setScrollState] = useState({
     canScroll: false,
     thumbHeight: 96,
@@ -275,9 +290,11 @@ function PdfCanvasReader({
         loadingTask = pdfjs.getDocument({
           url: pdfUrl,
           withCredentials: false,
-          rangeChunkSize: 524288,
-          cMapUrl: "https://unpkg.com/pdfjs-dist@4.4.168/cmaps/",
+          rangeChunkSize: PDF_RANGE_CHUNK_SIZE,
+          disableStream: true,
+          disableAutoFetch: true,
           cMapPacked: true,
+          useSystemFonts: true,
         });
         loadingTask.onProgress = ({ loaded, total }: { loaded: number; total: number }) => {
           if (!total || isCancelled) return;
@@ -358,8 +375,18 @@ function PdfCanvasReader({
     const container = containerRef.current;
     if (!container) return;
 
-    updateCustomScrollbar();
-    const resizeObserver = new ResizeObserver(updateCustomScrollbar);
+    const updateReaderMeasurements = () => {
+      const nextBaseWidth = Math.max(
+        320,
+        Math.min(MAX_PAGE_BASE_WIDTH, container.clientWidth - 96),
+      );
+
+      setPageBaseWidth(Math.round(nextBaseWidth));
+      updateCustomScrollbar();
+    };
+
+    updateReaderMeasurements();
+    const resizeObserver = new ResizeObserver(updateReaderMeasurements);
     resizeObserver.observe(container);
 
     container.addEventListener("scroll", updateCustomScrollbar, { passive: true });
@@ -575,6 +602,7 @@ function PdfCanvasReader({
               key={`${pdfUrl}-${index + 1}`}
               document={document}
               pageNumber={index + 1}
+              pageBaseWidth={pageBaseWidth}
               rotation={rotation}
               zoom={zoom}
             />
@@ -594,37 +622,63 @@ function getScrollRatio(value: number, maxValue: number) {
   return Math.max(0, Math.min(1, value / maxValue));
 }
 
+function queuePdfPageRender(run: () => Promise<void>) {
+  const queuedRender: QueuedPageRender = {
+    cancelled: false,
+    run,
+  };
+
+  pageRenderQueue.push(queuedRender);
+  flushPdfPageRenderQueue();
+
+  return () => {
+    queuedRender.cancelled = true;
+    const queuedIndex = pageRenderQueue.indexOf(queuedRender);
+    if (queuedIndex >= 0) {
+      pageRenderQueue.splice(queuedIndex, 1);
+    }
+  };
+}
+
+function flushPdfPageRenderQueue() {
+  while (activePageRenders < MAX_CONCURRENT_PAGE_RENDERS && pageRenderQueue.length > 0) {
+    const nextRender = pageRenderQueue.shift();
+    if (!nextRender || nextRender.cancelled) continue;
+
+    activePageRenders += 1;
+    void nextRender.run().finally(() => {
+      activePageRenders = Math.max(0, activePageRenders - 1);
+      flushPdfPageRenderQueue();
+    });
+  }
+}
+
+function getCanvasOutputScale(viewportWidth: number, viewportHeight: number) {
+  const devicePixelRatio = window.devicePixelRatio || 1;
+  const maxAreaScale = Math.sqrt(MAX_CANVAS_PIXELS / Math.max(1, viewportWidth * viewportHeight));
+
+  return Math.max(0.75, Math.min(devicePixelRatio, MAX_CANVAS_PIXEL_RATIO, maxAreaScale));
+}
+
 function PdfCanvasPage({
   document,
   pageNumber,
+  pageBaseWidth,
   rotation,
   zoom,
 }: {
   document: PDFDocumentProxy;
   pageNumber: number;
+  pageBaseWidth: number;
   rotation: number;
   zoom: number;
 }) {
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [availableWidth, setAvailableWidth] = useState(820);
   const [isVisible, setIsVisible] = useState(pageNumber === 1);
   const [isRendered, setIsRendered] = useState(false);
-  const pageWidth = Math.round(Math.max(320, Math.min(2250, availableWidth * zoom)));
+  const pageWidth = Math.round(Math.max(320, Math.min(MAX_RENDERED_PAGE_WIDTH, pageBaseWidth * zoom)));
   const placeholderHeight = Math.round(pageWidth * 1.414);
-
-  useEffect(() => {
-    const wrapper = wrapperRef.current;
-    if (!wrapper) return;
-
-    const resizeObserver = new ResizeObserver(([entry]) => {
-      if (!entry) return;
-      setAvailableWidth(Math.max(320, Math.min(900, entry.contentRect.width)));
-    });
-
-    resizeObserver.observe(wrapper);
-    return () => resizeObserver.disconnect();
-  }, []);
 
   useEffect(() => {
     if (isVisible) return;
@@ -656,9 +710,11 @@ function PdfCanvasPage({
     const targetCanvas = canvas;
 
     async function renderPage() {
+      let page: PDFPageProxy | null = null;
+
       try {
         setIsRendered(false);
-        const page = await document.getPage(pageNumber);
+        page = await document.getPage(pageNumber);
         if (isCancelled) return;
 
         const initialViewport = page.getViewport({ scale: 1, rotation });
@@ -667,7 +723,7 @@ function PdfCanvasPage({
         const context = targetCanvas.getContext("2d", { alpha: false });
         if (!context) return;
 
-        const outputScale = Math.min(window.devicePixelRatio || 1, 2);
+        const outputScale = getCanvasOutputScale(viewport.width, viewport.height);
         targetCanvas.width = Math.floor(viewport.width * outputScale);
         targetCanvas.height = Math.floor(viewport.height * outputScale);
         targetCanvas.style.width = `${Math.floor(viewport.width)}px`;
@@ -690,13 +746,16 @@ function PdfCanvasPage({
         if (!isCancelled && !(caughtError instanceof Error && caughtError.name === "RenderingCancelledException")) {
           console.error("[thesis-pdf-viewer] Failed to render PDF page", caughtError);
         }
+      } finally {
+        page?.cleanup();
       }
     }
 
-    void renderPage();
+    const cancelQueuedRender = queuePdfPageRender(renderPage);
 
     return () => {
       isCancelled = true;
+      cancelQueuedRender();
       renderTask?.cancel();
     };
   }, [document, isVisible, pageNumber, pageWidth, rotation]);
