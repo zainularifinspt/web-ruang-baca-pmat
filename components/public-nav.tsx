@@ -87,7 +87,7 @@ export function PublicNav() {
           <NavLink href="/presensi" icon={ScanLine} label="Presensi" />
           <NavLink href="/tentang" icon={Info} label="Tentang" />
           <div className="mx-1 h-6 w-px bg-slate-200/50" />
-          <Button asChild size="sm" className="rounded-full bg-gradient-to-r from-red-600 via-yellow-600 to-orange-600 px-5 text-white shadow-lg shadow-red-950/10 transition-all duration-300 hover:-translate-y-0.5 hover:scale-[1.03] hover:shadow-red-950/20 active:scale-[0.98] border-0">
+          <Button asChild size="sm" className="rounded-[1.25rem] bg-[#ff5e3a] px-6 font-semibold text-white shadow-[6px_6px_12px_rgba(255,94,58,0.35),-6px_-6px_12px_rgba(255,255,255,0.9),inset_3px_3px_6px_rgba(255,255,255,0.5),inset_-3px_-3px_6px_rgba(200,40,15,0.5)] transition-all duration-300 hover:-translate-y-0.5 hover:scale-[1.02] hover:shadow-[8px_8px_16px_rgba(255,94,58,0.4),-8px_-8px_16px_rgba(255,255,255,1),inset_3px_3px_6px_rgba(255,255,255,0.6),inset_-3px_-3px_6px_rgba(200,40,15,0.5)] active:scale-[0.98] active:shadow-[2px_2px_8px_rgba(255,94,58,0.3),-2px_-2px_8px_rgba(255,255,255,0.8),inset_4px_4px_10px_rgba(200,40,15,0.6),inset_-4px_-4px_10px_rgba(255,255,255,0.4)] border-0">
             <Link href="/login?redirectTo=/dashboard">
               <LogIn className="size-4" />
               Admin
