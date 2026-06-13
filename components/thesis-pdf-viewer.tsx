@@ -14,6 +14,10 @@ import {
 import { resolveThesisPdfUrl } from "@/lib/thesis-pdf";
 import type { PDFDocumentLoadingTask, PDFDocumentProxy, RenderTask } from "pdfjs-dist";
 
+const MIN_PDF_ZOOM = 0.75;
+const MAX_PDF_ZOOM = 2.5;
+const PDF_ZOOM_STEP = 0.15;
+
 type ThesisPdfViewerProps = {
   pdfUrl?: string;
   pdfFilename?: string;
@@ -120,8 +124,28 @@ function PdfCanvasReader({
   const [inputPage, setInputPage] = useState("1");
   const containerRef = useRef<HTMLDivElement>(null);
   const prevZoom = useRef(zoom);
+  const gestureScaleRef = useRef(1);
 
   const zoomPercent = Math.round(zoom * 100);
+
+  function updateZoom(nextZoom: number | ((currentZoom: number) => number)) {
+    setZoom((currentZoom) => {
+      const resolvedZoom = typeof nextZoom === "function" ? nextZoom(currentZoom) : nextZoom;
+      return clampZoom(resolvedZoom);
+    });
+  }
+
+  function zoomIn() {
+    updateZoom((currentZoom) => currentZoom + PDF_ZOOM_STEP);
+  }
+
+  function zoomOut() {
+    updateZoom((currentZoom) => currentZoom - PDF_ZOOM_STEP);
+  }
+
+  function resetZoom() {
+    updateZoom(1);
+  }
 
   useLayoutEffect(() => {
     if (prevZoom.current !== zoom) {
@@ -233,6 +257,50 @@ function PdfCanvasReader({
     };
   }, [document, zoom, rotation]);
 
+  useEffect(() => {
+    if (!document) return;
+
+    const container = containerRef.current;
+    if (!container) return;
+
+    function handleWheel(event: WheelEvent) {
+      if (!event.ctrlKey && !event.metaKey) return;
+
+      event.preventDefault();
+      const direction = event.deltaY < 0 ? 1 : -1;
+      const sensitivity = event.deltaMode === WheelEvent.DOM_DELTA_PIXEL ? 0.004 : 0.08;
+      const delta = Math.max(0.04, Math.min(0.22, Math.abs(event.deltaY) * sensitivity));
+      updateZoom((currentZoom) => currentZoom + direction * delta);
+    }
+
+    function handleGestureStart(event: Event) {
+      event.preventDefault();
+      gestureScaleRef.current = 1;
+    }
+
+    function handleGestureChange(event: Event) {
+      event.preventDefault();
+      const gestureEvent = event as Event & { scale?: number };
+      const nextScale = gestureEvent.scale ?? 1;
+      const scaleDelta = nextScale - gestureScaleRef.current;
+
+      if (Math.abs(scaleDelta) >= 0.01) {
+        updateZoom((currentZoom) => currentZoom + scaleDelta * 0.35);
+        gestureScaleRef.current = nextScale;
+      }
+    }
+
+    container.addEventListener("wheel", handleWheel, { passive: false });
+    container.addEventListener("gesturestart", handleGestureStart, { passive: false });
+    container.addEventListener("gesturechange", handleGestureChange, { passive: false });
+
+    return () => {
+      container.removeEventListener("wheel", handleWheel);
+      container.removeEventListener("gesturestart", handleGestureStart);
+      container.removeEventListener("gesturechange", handleGestureChange);
+    };
+  }, [document]);
+
   if (isLoading) {
     return (
       <div className="flex h-full items-center justify-center px-6 text-center text-sm font-medium text-slate-500">
@@ -276,6 +344,21 @@ function PdfCanvasReader({
       className="h-full overflow-auto bg-slate-200 px-4 py-6 select-none relative"
       role="document"
       tabIndex={0}
+      onKeyDown={(event) => {
+        if (!event.ctrlKey && !event.metaKey) return;
+
+        const key = event.key.toLowerCase();
+        if (key === "+" || key === "=") {
+          event.preventDefault();
+          zoomIn();
+        } else if (key === "-" || key === "_") {
+          event.preventDefault();
+          zoomOut();
+        } else if (key === "0") {
+          event.preventDefault();
+          resetZoom();
+        }
+      }}
     >
       <div className="sticky top-0 z-10 mx-auto mb-4 flex w-fit items-center gap-2 rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-sm">
         <div className="flex items-center gap-2 border-r border-slate-200 pr-3 mr-1">
@@ -318,10 +401,10 @@ function PdfCanvasReader({
           variant="outline"
           size="sm"
           className="size-9 rounded-xl p-0"
-          onClick={() => setZoom((currentZoom) => Math.max(0.75, currentZoom - 0.15))}
-          disabled={zoom <= 0.75}
+          onClick={zoomOut}
+          disabled={zoom <= MIN_PDF_ZOOM}
           aria-label="Zoom out"
-          title="Zoom out"
+          title="Zoom out (Ctrl/Cmd + -)"
         >
           <ZoomOut className="size-4" />
         </Button>
@@ -333,10 +416,10 @@ function PdfCanvasReader({
           variant="outline"
           size="sm"
           className="size-9 rounded-xl p-0"
-          onClick={() => setZoom((currentZoom) => Math.min(2.5, currentZoom + 0.15))}
-          disabled={zoom >= 2.5}
+          onClick={zoomIn}
+          disabled={zoom >= MAX_PDF_ZOOM}
           aria-label="Zoom in"
-          title="Zoom in"
+          title="Zoom in (Ctrl/Cmd + + atau Ctrl/Cmd + scroll)"
         >
           <ZoomIn className="size-4" />
         </Button>
@@ -366,6 +449,10 @@ function PdfCanvasReader({
       </div>
     </div>
   );
+}
+
+function clampZoom(value: number) {
+  return Math.max(MIN_PDF_ZOOM, Math.min(MAX_PDF_ZOOM, Number(value.toFixed(2))));
 }
 
 function PdfCanvasPage({
