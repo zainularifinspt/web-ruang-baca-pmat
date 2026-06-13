@@ -1,20 +1,25 @@
 import { NextResponse } from "next/server";
 
 const DRIVE_HOST = "drive.google.com";
+const PDF_BUCKET = "skripsi-pdf";
 const MAX_PROXY_BYTES = 35 * 1024 * 1024;
+const VIEWER_HEADER = "x-pdf-canvas-reader";
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const rawPdfUrl = requestUrl.searchParams.get("url");
-  const fileId = rawPdfUrl ? extractGoogleDriveFileId(rawPdfUrl) : "";
+  const sourceUrl = rawPdfUrl ? resolvePdfSourceUrl(rawPdfUrl) : "";
   const rangeHeader = getSafeRangeHeader(request.headers.get("range"));
 
-  if (!fileId) {
-    return NextResponse.json({ error: "Link Google Drive PDF tidak valid." }, { status: 400 });
+  if (request.headers.get(VIEWER_HEADER) !== "1") {
+    return NextResponse.json({ error: "Akses file PDF hanya tersedia melalui viewer." }, { status: 403 });
   }
 
-  const downloadUrl = `https://${DRIVE_HOST}/uc?export=download&id=${encodeURIComponent(fileId)}`;
-  const response = await fetch(downloadUrl, {
+  if (!sourceUrl) {
+    return NextResponse.json({ error: "Link PDF tidak valid." }, { status: 400 });
+  }
+
+  const response = await fetch(sourceUrl, {
     headers: {
       ...(rangeHeader ? { Range: rangeHeader } : {}),
       "User-Agent": "Mozilla/5.0",
@@ -54,10 +59,10 @@ export async function GET(request: Request) {
 
   const responseHeaders: Record<string, string> = {
     "Accept-Ranges": "bytes",
-    "Cache-Control": "public, s-maxage=31536000, stale-while-revalidate=86400",
+    "Cache-Control": "private, no-store",
     "Content-Disposition": "inline",
     "Content-Type": "application/pdf",
-    "Vary": "Range",
+    "Vary": "Range, X-PDF-Canvas-Reader",
     "X-Content-Type-Options": "nosniff",
   };
 
@@ -87,9 +92,41 @@ function getContentRangeTotal(value: string) {
   return Number.isFinite(total) ? total : undefined;
 }
 
-function extractGoogleDriveFileId(value: string) {
+function resolvePdfSourceUrl(value: string) {
   try {
     const url = new URL(value);
+
+    if (url.hostname === DRIVE_HOST) {
+      const fileId = extractGoogleDriveFileId(url);
+      return fileId ? `https://${DRIVE_HOST}/uc?export=download&id=${encodeURIComponent(fileId)}` : "";
+    }
+
+    if (!isAllowedStorageUrl(url)) return "";
+
+    return url.toString();
+  } catch {
+    return "";
+  }
+}
+
+function isAllowedStorageUrl(url: URL) {
+  if (url.protocol !== "https:") return false;
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!supabaseUrl) return false;
+
+  try {
+    const allowedSupabaseUrl = new URL(supabaseUrl);
+    const storagePrefix = `/storage/v1/object/public/${PDF_BUCKET}/`;
+
+    return url.hostname === allowedSupabaseUrl.hostname && url.pathname.startsWith(storagePrefix);
+  } catch {
+    return false;
+  }
+}
+
+function extractGoogleDriveFileId(url: URL) {
+  try {
     if (url.hostname !== DRIVE_HOST) return "";
 
     const pathMatch = url.pathname.match(/\/file\/d\/([^/]+)/);
