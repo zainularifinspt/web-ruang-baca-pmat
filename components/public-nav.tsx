@@ -14,21 +14,16 @@ import {
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import type { CatalogSearchItem } from "@/lib/catalog-search";
 import { cn } from "@/lib/utils";
 
-type NavSearchItem = {
-  id: string;
-  type: "book" | "thesis";
-  title: string;
-  category: string;
-  coverUrl: string | null;
-  href: string;
-  searchText: string;
-};
-
-export function PublicNav() {
+export function PublicNav({
+  initialSearchItems = [],
+}: {
+  initialSearchItems?: CatalogSearchItem[];
+}) {
   const [scrolled, setScrolled] = useState(false);
-  const [searchItems, setSearchItems] = useState<NavSearchItem[]>([]);
+  const [searchItems, setSearchItems] = useState<CatalogSearchItem[]>(initialSearchItems);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -38,32 +33,39 @@ export function PublicNav() {
   }, []);
 
   useEffect(() => {
+    if (initialSearchItems.length) return;
+
     let ignore = false;
 
     async function loadSearchItems() {
       try {
         const response = await fetch("/api/catalog/search");
-        const payload = (await response.json()) as { items?: NavSearchItem[] };
+        const payload = (await response.json()) as { items?: CatalogSearchItem[] };
         if (!ignore) setSearchItems(payload.items ?? []);
       } catch {
         if (!ignore) setSearchItems([]);
       }
     }
 
-    void loadSearchItems();
+    const schedule = window.requestIdleCallback ?? ((callback: IdleRequestCallback) => window.setTimeout(callback, 900));
+    const cancel = window.cancelIdleCallback ?? window.clearTimeout;
+    const timer = schedule(() => {
+      void loadSearchItems();
+    });
 
     return () => {
       ignore = true;
+      cancel(timer);
     };
-  }, []);
+  }, [initialSearchItems.length]);
 
   return (
     <header
       className={cn(
-        "sticky top-0 z-40 border-b transition-all duration-500",
+        "sticky top-0 z-40 border-b transition-colors duration-200",
         scrolled
-          ? "border-white/30 bg-white/65 shadow-[0_8px_30px_rgba(15,23,42,0.03)] backdrop-blur-3xl"
-          : "border-transparent bg-white/40 backdrop-blur-3xl",
+          ? "border-white/50 bg-white/90 shadow-sm backdrop-blur-md"
+          : "border-transparent bg-white/80 backdrop-blur-sm",
       )}
     >
       <div className="mx-auto flex min-h-18 max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
@@ -87,7 +89,7 @@ export function PublicNav() {
           <NavLink href="/presensi" icon={ScanLine} label="Presensi" />
           <NavLink href="/tentang" icon={Info} label="Tentang" />
           <div className="mx-1 h-6 w-px bg-slate-200/50" />
-          <Button asChild size="sm" className="rounded-[1.25rem] bg-[#ff5e3a] px-6 font-semibold text-white shadow-[6px_6px_12px_rgba(255,94,58,0.35),-6px_-6px_12px_rgba(255,255,255,0.9),inset_3px_3px_6px_rgba(255,255,255,0.5),inset_-3px_-3px_6px_rgba(200,40,15,0.5)] transition-all duration-300 hover:-translate-y-0.5 hover:scale-[1.02] hover:shadow-[8px_8px_16px_rgba(255,94,58,0.4),-8px_-8px_16px_rgba(255,255,255,1),inset_3px_3px_6px_rgba(255,255,255,0.6),inset_-3px_-3px_6px_rgba(200,40,15,0.5)] active:scale-[0.98] active:shadow-[2px_2px_8px_rgba(255,94,58,0.3),-2px_-2px_8px_rgba(255,255,255,0.8),inset_4px_4px_10px_rgba(200,40,15,0.6),inset_-4px_-4px_10px_rgba(255,255,255,0.4)] border-0">
+          <Button asChild size="sm" className="rounded-[1.25rem] bg-[#ff5e3a] px-6 font-semibold text-white shadow-sm transition-colors duration-200 hover:bg-red-600 active:scale-[0.98] border-0">
             <Link href="/login?redirectTo=/dashboard">
               <LogIn className="size-4" />
               Admin
@@ -104,7 +106,7 @@ function NavbarSearch({
   items,
   className,
 }: {
-  items: NavSearchItem[];
+  items: CatalogSearchItem[];
   className?: string;
 }) {
   const [query, setQuery] = useState("");
@@ -142,7 +144,7 @@ function NavbarSearch({
           onFocus={() => setFocused(true)}
           onBlur={() => window.setTimeout(() => setFocused(false), 140)}
           placeholder="Cari buku atau skripsi..."
-          className="h-11 w-full rounded-full border border-white/40 bg-white/45 pl-10 pr-10 text-sm font-semibold text-slate-800 shadow-sm shadow-slate-950/[0.02] outline-none backdrop-blur-xl transition-all duration-300 placeholder:font-medium placeholder:text-slate-400 focus:border-yellow-300/80 focus:bg-white/85 focus:shadow-md focus:ring-4 focus:ring-yellow-500/5"
+          className="h-11 w-full rounded-full border border-white/60 bg-white/75 pl-10 pr-10 text-sm font-semibold text-slate-800 shadow-sm outline-none transition-colors duration-200 placeholder:font-medium placeholder:text-slate-400 focus:border-yellow-300/80 focus:bg-white focus:ring-4 focus:ring-yellow-500/5"
         />
         {query ? (
           <button
@@ -161,7 +163,7 @@ function NavbarSearch({
       </div>
 
       {isOpen ? (
-        <div className="nav-search-dropdown absolute left-0 right-0 top-full mt-2.5 origin-top overflow-hidden rounded-[1.75rem] border border-white/40 bg-white/75 shadow-[0_24px_50px_rgba(15,23,42,0.12)] ring-1 ring-slate-200/20 backdrop-blur-3xl">
+        <div className="nav-search-dropdown absolute left-0 right-0 top-full mt-2.5 origin-top overflow-hidden rounded-[1.75rem] border border-white/60 bg-white/95 shadow-xl ring-1 ring-slate-200/20">
           <div className="border-b border-slate-100/50 px-4 py-2.5 text-xs font-semibold text-slate-500">
             {results.length ? `${results.length} hasil cepat` : "Tidak ada hasil"}
           </div>
@@ -175,11 +177,11 @@ function NavbarSearch({
                     setQuery("");
                     setDebouncedQuery("");
                   }}
-                  className="group flex items-center gap-3 rounded-2xl p-2.5 transition-all duration-300 hover:bg-gradient-to-r hover:from-yellow-500/5 hover:to-orange-500/5"
+                  className="group flex items-center gap-3 rounded-2xl p-2.5 transition-colors duration-200 hover:bg-yellow-50"
                 >
                   <SearchCover item={item} />
                   <span className="min-w-0 flex-1">
-                    <span className="line-clamp-1 text-sm font-bold text-slate-900 group-hover:text-yellow-800 transition-colors duration-300">
+                    <span className="line-clamp-1 text-sm font-bold text-slate-900 transition-colors duration-200 group-hover:text-yellow-800">
                       {item.title}
                     </span>
                     <span className="mt-1 flex items-center gap-2 text-xs text-slate-500">
@@ -202,7 +204,7 @@ function NavbarSearch({
   );
 }
 
-function SearchCover({ item }: { item: NavSearchItem }) {
+function SearchCover({ item }: { item: CatalogSearchItem }) {
   const Icon = item.type === "book" ? BookOpen : GraduationCap;
 
   return (
@@ -236,9 +238,9 @@ function NavLink({
   return (
     <Link
       href={href}
-      className="group relative inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition-all duration-300 hover:bg-white/40 hover:text-slate-950"
+      className="group relative inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition-colors duration-200 hover:bg-white/70 hover:text-slate-950"
     >
-      <Icon className="size-4 text-red-600 transition duration-300 group-hover:-translate-y-0.5" />
+      <Icon className="size-4 text-red-600 transition-transform duration-200 group-hover:-translate-y-0.5" />
       {label}
       <span className="absolute inset-x-4 -bottom-px h-0.5 scale-x-0 rounded-full bg-[linear-gradient(90deg,#047857,#0891b2,#7c3aed)] transition-transform duration-300 group-hover:scale-x-100" />
     </Link>
@@ -254,7 +256,7 @@ function MobileNav() {
         variant="outline"
         size="icon"
         onClick={() => setIsOpen(!isOpen)}
-        className="size-10 rounded-full border-white/80 bg-white/75 shadow-sm backdrop-blur-xl transition hover:bg-slate-100"
+        className="size-10 rounded-full border-white/80 bg-white/85 shadow-sm transition-colors hover:bg-slate-100"
         aria-label="Toggle menu"
       >
         {isOpen ? <X className="size-5 text-slate-700" /> : <Menu className="size-5 text-slate-700" />}

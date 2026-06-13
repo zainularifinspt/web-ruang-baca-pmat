@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { TrendingUp } from "lucide-react";
-import { getSupabaseClient } from "@/lib/supabase";
 
 type WebsiteVisitorStatProps = {
   initialCount: number;
@@ -25,33 +24,17 @@ export function WebsiteVisitorStat({ initialCount }: WebsiteVisitorStatProps) {
   }, []);
 
   useEffect(() => {
-    const loadTimer = window.setTimeout(() => {
+    const schedule = window.requestIdleCallback ?? ((callback: IdleRequestCallback) => window.setTimeout(callback, 1200));
+    const cancel = window.cancelIdleCallback ?? window.clearTimeout;
+    const refreshId = schedule(() => {
       void loadCount();
-    }, 0);
+    });
 
-    let supabase: ReturnType<typeof getSupabaseClient> | null = null;
-
-    try {
-      supabase = getSupabaseClient();
-    } catch {
-      return;
-    }
-
-    const channel = supabase
-      .channel("landing-website-visits-realtime")
-      .on("postgres_changes", { event: "*", schema: "public", table: "website_visits" }, () => {
-        void loadCount();
-      })
-      .subscribe();
-
-    return () => {
-      window.clearTimeout(loadTimer);
-      if (supabase) void supabase.removeChannel(channel);
-    };
+    return () => cancel(refreshId);
   }, [loadCount]);
 
   return (
-    <div className="group flex items-center gap-4 rounded-[2rem] border border-white/40 bg-white/45 p-6 shadow-[0_18px_40px_rgba(15,23,42,0.03)] backdrop-blur-3xl transition-all duration-300 hover:-translate-y-1 hover:bg-white/80 hover:shadow-[0_24px_50px_rgba(15,23,42,0.06)]">
+    <div className="group flex items-center gap-4 rounded-[2rem] border border-white/40 bg-white/70 p-6 shadow-sm transition-all duration-200 hover:bg-white/90">
       <span className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500/10 via-yellow-500/5 to-transparent text-amber-700 shadow-sm ring-1 ring-amber-100/50 transition-all duration-300 group-hover:scale-105">
         <TrendingUp className="size-6" />
       </span>

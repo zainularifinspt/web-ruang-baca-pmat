@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Eye, RotateCw, ZoomIn, ZoomOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,6 +17,7 @@ import type { PDFDocumentLoadingTask, PDFDocumentProxy, RenderTask } from "pdfjs
 const MIN_PDF_ZOOM = 0.75;
 const MAX_PDF_ZOOM = 2.5;
 const PDF_ZOOM_STEP = 0.15;
+const CUSTOM_SCROLLBAR_PADDING = 12;
 
 type ThesisPdfViewerProps = {
   pdfUrl?: string;
@@ -122,29 +123,134 @@ function PdfCanvasReader({
   const [rotation, setRotation] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [inputPage, setInputPage] = useState("1");
+  const [scrollState, setScrollState] = useState({
+    canScroll: false,
+    thumbHeight: 96,
+    thumbTop: 0,
+  });
   const containerRef = useRef<HTMLDivElement>(null);
   const gestureScaleRef = useRef(1);
+  const pendingScrollRatioRef = useRef<{ left: number; top: number } | null>(null);
+  const verticalDragRef = useRef<{
+    pointerId: number;
+    startClientY: number;
+    startScrollTop: number;
+  } | null>(null);
 
   const zoomPercent = Math.round(zoom * 100);
 
-  function updateZoom(nextZoom: number | ((currentZoom: number) => number)) {
+  const captureScrollRatio = useCallback(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    pendingScrollRatioRef.current = {
+      left: getScrollRatio(container.scrollLeft, container.scrollWidth - container.clientWidth),
+      top: getScrollRatio(container.scrollTop, container.scrollHeight - container.clientHeight),
+    };
+  }, []);
+
+  const updateZoom = useCallback((nextZoom: number | ((currentZoom: number) => number)) => {
+    captureScrollRatio();
     setZoom((currentZoom) => {
       const resolvedZoom = typeof nextZoom === "function" ? nextZoom(currentZoom) : nextZoom;
       return clampZoom(resolvedZoom);
     });
-  }
+  }, [captureScrollRatio]);
 
-  function zoomIn() {
+  const zoomIn = useCallback(() => {
     updateZoom((currentZoom) => currentZoom + PDF_ZOOM_STEP);
-  }
+  }, [updateZoom]);
 
-  function zoomOut() {
+  const zoomOut = useCallback(() => {
     updateZoom((currentZoom) => currentZoom - PDF_ZOOM_STEP);
+  }, [updateZoom]);
+
+  const resetZoom = useCallback(() => {
+    updateZoom(1);
+  }, [updateZoom]);
+
+  const updateCustomScrollbar = useCallback(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const maxScrollTop = container.scrollHeight - container.clientHeight;
+
+    if (maxScrollTop <= 0) {
+      setScrollState({ canScroll: false, thumbHeight: 96, thumbTop: 0 });
+      return;
+    }
+
+    const trackHeight = Math.max(0, container.clientHeight - CUSTOM_SCROLLBAR_PADDING * 2);
+    const thumbHeight = Math.max(96, Math.round((container.clientHeight / container.scrollHeight) * trackHeight));
+    const maxThumbTop = Math.max(0, trackHeight - thumbHeight);
+    const thumbTop = CUSTOM_SCROLLBAR_PADDING + Math.round((container.scrollTop / maxScrollTop) * maxThumbTop);
+
+    setScrollState({
+      canScroll: true,
+      thumbHeight,
+      thumbTop,
+    });
+  }, []);
+
+  function handleScrollbarPointerDown(event: React.PointerEvent<HTMLButtonElement>) {
+    const container = containerRef.current;
+    if (!container) return;
+
+    event.preventDefault();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    verticalDragRef.current = {
+      pointerId: event.pointerId,
+      startClientY: event.clientY,
+      startScrollTop: container.scrollTop,
+    };
   }
 
-  function resetZoom() {
-    updateZoom(1);
+  function handleScrollbarPointerMove(event: React.PointerEvent<HTMLButtonElement>) {
+    const dragState = verticalDragRef.current;
+    const container = containerRef.current;
+    if (!dragState || dragState.pointerId !== event.pointerId || !container) return;
+
+    event.preventDefault();
+
+    const maxScrollTop = container.scrollHeight - container.clientHeight;
+    const maxThumbTop = Math.max(1, container.clientHeight - CUSTOM_SCROLLBAR_PADDING * 2 - scrollState.thumbHeight);
+    const scrollDelta = ((event.clientY - dragState.startClientY) / maxThumbTop) * maxScrollTop;
+    container.scrollTop = dragState.startScrollTop + scrollDelta;
   }
+
+  function handleScrollbarPointerUp(event: React.PointerEvent<HTMLButtonElement>) {
+    if (verticalDragRef.current?.pointerId !== event.pointerId) return;
+    verticalDragRef.current = null;
+  }
+
+  function handleScrollbarTrackPointerDown(event: React.PointerEvent<HTMLDivElement>) {
+    if (event.target !== event.currentTarget) return;
+
+    const container = containerRef.current;
+    if (!container) return;
+
+    const rect = event.currentTarget.getBoundingClientRect();
+    const targetRatio = getScrollRatio(
+      event.clientY - rect.top - CUSTOM_SCROLLBAR_PADDING - scrollState.thumbHeight / 2,
+      rect.height - CUSTOM_SCROLLBAR_PADDING * 2 - scrollState.thumbHeight,
+    );
+    container.scrollTop = targetRatio * (container.scrollHeight - container.clientHeight);
+  }
+
+  useLayoutEffect(() => {
+    const scrollRatio = pendingScrollRatioRef.current;
+    const container = containerRef.current;
+    if (!scrollRatio || !container) return;
+
+    const frame = window.requestAnimationFrame(() => {
+      container.scrollLeft = scrollRatio.left * Math.max(0, container.scrollWidth - container.clientWidth);
+      container.scrollTop = scrollRatio.top * Math.max(0, container.scrollHeight - container.clientHeight);
+      pendingScrollRatioRef.current = null;
+      updateCustomScrollbar();
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [updateCustomScrollbar, zoom]);
 
   useEffect(() => {
     if (!active) return;
@@ -252,6 +358,24 @@ function PdfCanvasReader({
     const container = containerRef.current;
     if (!container) return;
 
+    updateCustomScrollbar();
+    const resizeObserver = new ResizeObserver(updateCustomScrollbar);
+    resizeObserver.observe(container);
+
+    container.addEventListener("scroll", updateCustomScrollbar, { passive: true });
+
+    return () => {
+      container.removeEventListener("scroll", updateCustomScrollbar);
+      resizeObserver.disconnect();
+    };
+  }, [document, zoom, rotation, updateCustomScrollbar]);
+
+  useEffect(() => {
+    if (!document) return;
+
+    const container = containerRef.current;
+    if (!container) return;
+
     function handleWheel(event: WheelEvent) {
       if (!event.ctrlKey && !event.metaKey) return;
 
@@ -288,7 +412,7 @@ function PdfCanvasReader({
       container.removeEventListener("gesturestart", handleGestureStart);
       container.removeEventListener("gesturechange", handleGestureChange);
     };
-  }, [document]);
+  }, [document, updateZoom]);
 
   if (isLoading) {
     return (
@@ -327,37 +451,69 @@ function PdfCanvasReader({
   }
 
   return (
-    <div
-      ref={containerRef}
-      aria-label={title}
-      className="pdf-reader-scroll h-full overflow-auto bg-slate-200 px-4 py-6 select-none relative"
-      role="document"
-      tabIndex={0}
-      onKeyDown={(event) => {
-        if (!event.ctrlKey && !event.metaKey) return;
+    <div className="relative h-full overflow-hidden bg-slate-200">
+      {scrollState.canScroll ? (
+        <div
+          className="absolute bottom-0 right-0 top-0 z-30 w-14 touch-none px-2 py-3"
+          aria-hidden="true"
+          onPointerDown={handleScrollbarTrackPointerDown}
+        >
+          <button
+            type="button"
+            className="absolute left-1/2 w-9 -translate-x-1/2 rounded-full border border-red-300 bg-red-600 shadow-lg shadow-red-950/20 transition-colors hover:bg-red-700 active:bg-red-800"
+            style={{ height: scrollState.thumbHeight, top: scrollState.thumbTop }}
+            tabIndex={-1}
+            onPointerDown={handleScrollbarPointerDown}
+            onPointerMove={handleScrollbarPointerMove}
+            onPointerUp={handleScrollbarPointerUp}
+            onPointerCancel={handleScrollbarPointerUp}
+          />
+        </div>
+      ) : null}
 
-        const key = event.key.toLowerCase();
-        if (key === "+" || key === "=") {
-          event.preventDefault();
-          zoomIn();
-        } else if (key === "-" || key === "_") {
-          event.preventDefault();
-          zoomOut();
-        } else if (key === "0") {
-          event.preventDefault();
-          resetZoom();
-        }
-      }}
-    >
-      <div className="sticky top-0 z-10 mx-auto mb-4 flex w-fit items-center gap-2 rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-sm">
-        <div className="flex items-center gap-2 border-r border-slate-200 pr-3 mr-1">
-          <input
-            type="text"
-            className="h-8 w-12 rounded-lg border border-slate-200 text-center text-xs font-semibold text-slate-700 outline-none transition-colors focus:border-red-500 focus:ring-1 focus:ring-red-500"
-            value={inputPage}
-            onChange={(e) => setInputPage(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
+      <div
+        ref={containerRef}
+        aria-label={title}
+        className="pdf-reader-scroll h-full overflow-auto bg-slate-200 px-4 py-6 pr-16 select-none"
+        role="document"
+        tabIndex={0}
+        onKeyDown={(event) => {
+          if (!event.ctrlKey && !event.metaKey) return;
+
+          const key = event.key.toLowerCase();
+          if (key === "+" || key === "=") {
+            event.preventDefault();
+            zoomIn();
+          } else if (key === "-" || key === "_") {
+            event.preventDefault();
+            zoomOut();
+          } else if (key === "0") {
+            event.preventDefault();
+            resetZoom();
+          }
+        }}
+      >
+        <div className="sticky top-0 z-10 mx-auto mb-4 flex w-fit items-center gap-2 rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-sm">
+          <div className="flex items-center gap-2 border-r border-slate-200 pr-3 mr-1">
+            <input
+              type="text"
+              className="h-8 w-12 rounded-lg border border-slate-200 text-center text-xs font-semibold text-slate-700 outline-none transition-colors focus:border-red-500 focus:ring-1 focus:ring-red-500"
+              value={inputPage}
+              onChange={(e) => setInputPage(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  const newPage = parseInt(inputPage, 10);
+                  if (newPage >= 1 && newPage <= document.numPages) {
+                    const element = window.document.getElementById(`pdf-page-${newPage}`);
+                    if (element) {
+                      element.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }
+                  } else {
+                    setInputPage(String(currentPage));
+                  }
+                }
+              }}
+              onBlur={() => {
                 const newPage = parseInt(inputPage, 10);
                 if (newPage >= 1 && newPage <= document.numPages) {
                   const element = window.document.getElementById(`pdf-page-${newPage}`);
@@ -367,74 +523,63 @@ function PdfCanvasReader({
                 } else {
                   setInputPage(String(currentPage));
                 }
-              }
-            }}
-            onBlur={() => {
-              const newPage = parseInt(inputPage, 10);
-              if (newPage >= 1 && newPage <= document.numPages) {
-                const element = window.document.getElementById(`pdf-page-${newPage}`);
-                if (element) {
-                  element.scrollIntoView({ behavior: "smooth", block: "start" });
-                }
-              } else {
-                setInputPage(String(currentPage));
-              }
-            }}
-          />
-          <span className="text-xs font-medium text-slate-500">
-            / {document.numPages}
+              }}
+            />
+            <span className="text-xs font-medium text-slate-500">
+              / {document.numPages}
+            </span>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="size-9 rounded-xl p-0"
+            onClick={zoomOut}
+            disabled={zoom <= MIN_PDF_ZOOM}
+            aria-label="Zoom out"
+            title="Zoom out (Ctrl/Cmd + -)"
+          >
+            <ZoomOut className="size-4" />
+          </Button>
+          <span className="min-w-14 text-center text-xs font-semibold text-slate-600">
+            {zoomPercent}%
           </span>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="size-9 rounded-xl p-0"
+            onClick={zoomIn}
+            disabled={zoom >= MAX_PDF_ZOOM}
+            aria-label="Zoom in"
+            title="Zoom in (Ctrl/Cmd + + atau Ctrl/Cmd + scroll)"
+          >
+            <ZoomIn className="size-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-9 rounded-xl"
+            onClick={() => setRotation((currentRotation) => (currentRotation + 180) % 360)}
+            aria-label="Putar halaman"
+            title="Putar halaman"
+          >
+            <RotateCw className="size-4" />
+            Putar
+          </Button>
         </div>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="size-9 rounded-xl p-0"
-          onClick={zoomOut}
-          disabled={zoom <= MIN_PDF_ZOOM}
-          aria-label="Zoom out"
-          title="Zoom out (Ctrl/Cmd + -)"
-        >
-          <ZoomOut className="size-4" />
-        </Button>
-        <span className="min-w-14 text-center text-xs font-semibold text-slate-600">
-          {zoomPercent}%
-        </span>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="size-9 rounded-xl p-0"
-          onClick={zoomIn}
-          disabled={zoom >= MAX_PDF_ZOOM}
-          aria-label="Zoom in"
-          title="Zoom in (Ctrl/Cmd + + atau Ctrl/Cmd + scroll)"
-        >
-          <ZoomIn className="size-4" />
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="h-9 rounded-xl"
-          onClick={() => setRotation((currentRotation) => (currentRotation + 180) % 360)}
-          aria-label="Putar halaman"
-          title="Putar halaman"
-        >
-          <RotateCw className="size-4" />
-          Putar
-        </Button>
-      </div>
-      <div className="mx-auto flex w-max min-w-full flex-col items-center gap-6">
-        {Array.from({ length: document.numPages }, (_, index) => (
-          <PdfCanvasPage
-            key={`${pdfUrl}-${index + 1}`}
-            document={document}
-            pageNumber={index + 1}
-            rotation={rotation}
-            zoom={zoom}
-          />
-        ))}
+        <div className="mx-auto flex w-max min-w-full flex-col items-center gap-6">
+          {Array.from({ length: document.numPages }, (_, index) => (
+            <PdfCanvasPage
+              key={`${pdfUrl}-${index + 1}`}
+              document={document}
+              pageNumber={index + 1}
+              rotation={rotation}
+              zoom={zoom}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -442,6 +587,11 @@ function PdfCanvasReader({
 
 function clampZoom(value: number) {
   return Math.max(MIN_PDF_ZOOM, Math.min(MAX_PDF_ZOOM, Number(value.toFixed(2))));
+}
+
+function getScrollRatio(value: number, maxValue: number) {
+  if (maxValue <= 0) return 0;
+  return Math.max(0, Math.min(1, value / maxValue));
 }
 
 function PdfCanvasPage({
@@ -559,7 +709,7 @@ function PdfCanvasPage({
       className="relative flex justify-center pdf-page"
       style={{
         width: pageWidth,
-        ...(!isRendered ? { minHeight: placeholderHeight } : {}),
+        minHeight: placeholderHeight,
       }}
     >
       {!isRendered ? (

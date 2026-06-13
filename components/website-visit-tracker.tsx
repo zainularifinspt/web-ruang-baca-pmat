@@ -10,16 +10,22 @@ export function WebsiteVisitTracker() {
 
   useEffect(() => {
     const visitorId = getOrCreateVisitorId();
+    const schedule = window.requestIdleCallback ?? ((callback: IdleRequestCallback) => window.setTimeout(callback, 1500));
+    const cancel = window.cancelIdleCallback ?? window.clearTimeout;
 
-    void fetch("/api/website-visits", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ visitorId, pagePath: pathname || "/" }),
-      cache: "no-store",
-      keepalive: true,
-    }).catch(() => {
-      // Tracking should never interrupt the visitor experience.
+    const trackId = schedule(() => {
+      void fetch("/api/website-visits", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ visitorId, pagePath: pathname || "/" }),
+        cache: "no-store",
+        keepalive: true,
+      }).catch(() => {
+        // Tracking should never interrupt the visitor experience.
+      });
     });
+
+    return () => cancel(trackId);
   }, [pathname]);
 
   return null;

@@ -119,7 +119,52 @@ export function LoansManager({
         <AddLoanDialog availableBooks={availableBooks} availableTheses={availableTheses} />
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <div className="grid gap-3 xl:hidden">
+        {filteredLoans.length ? (
+          filteredLoans.map((loan) => (
+            <div key={loan.id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0">
+                  <p className="truncate text-base font-semibold text-slate-950">{loan.borrowerName}</p>
+                  <p className="mt-1 text-sm text-slate-500">{loan.borrowerPhone}</p>
+                </div>
+                <LoanStatusBadge status={loan.status} />
+              </div>
+              <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+                <LoanCardField label="Koleksi" value={loan.itemTitle} subvalue={loan.itemSubtitle || "-"} />
+                <LoanCardField label="Tipe" value={loan.itemType === "book" ? "Buku" : "Skripsi"} />
+                <LoanCardField label="Tanggal pinjam" value={formatDateOnly(loan.loanDate)} />
+                <LoanCardField label="Harus kembali" value={formatDateOnly(loan.dueDate)} />
+              </div>
+              <div className="mt-4 flex flex-wrap justify-end gap-2 border-t border-slate-100 pt-3">
+                <LoanDetailDialog loan={loan} />
+                {loan.status === "active" || loan.status === "overdue" ? (
+                  <>
+                    <LoanActionButton
+                      icon={RotateCcw}
+                      label="Tandai Dikembalikan"
+                      tone="emerald"
+                      action={() => markLoanReturned(loan.id)}
+                    />
+                    <LoanActionButton
+                      icon={Ban}
+                      label="Batalkan"
+                      tone="rose"
+                      action={() => cancelLoan(loan.id)}
+                    />
+                  </>
+                ) : null}
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="rounded-2xl border border-slate-200 bg-white px-4 py-10 text-center text-sm text-slate-500 shadow-sm">
+            Tidak ada data peminjaman sesuai filter.
+          </div>
+        )}
+      </div>
+
+      <div className="hidden overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm xl:block">
         <Table className="min-w-[980px]">
           <TableHeader>
             <TableRow>
@@ -181,6 +226,24 @@ export function LoansManager({
           </TableBody>
         </Table>
       </div>
+    </div>
+  );
+}
+
+function LoanCardField({
+  label,
+  value,
+  subvalue,
+}: {
+  label: string;
+  value: string;
+  subvalue?: string;
+}) {
+  return (
+    <div className="min-w-0 rounded-xl bg-slate-50 px-3 py-2">
+      <p className="text-xs font-medium text-slate-500">{label}</p>
+      <p className="mt-1 truncate font-semibold text-slate-900">{value}</p>
+      {subvalue ? <p className="mt-0.5 truncate text-xs text-slate-500">{subvalue}</p> : null}
     </div>
   );
 }

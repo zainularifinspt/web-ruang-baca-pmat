@@ -45,7 +45,7 @@ export default async function LoansPage() {
           description="Catat peminjaman buku dan skripsi, pantau pengembalian, dan kirim pengingat WhatsApp otomatis."
         />
 
-        <div className="grid gap-4 sm:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <Metric label="Aktif" value={data.activeCount} tone="emerald" />
           <Metric label="Terlambat" value={data.overdueCount} tone="rose" />
           <Metric label="Dikembalikan" value={data.returnedCount} tone="slate" />

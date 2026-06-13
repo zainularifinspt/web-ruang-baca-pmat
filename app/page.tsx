@@ -17,6 +17,7 @@ import { PublicNav } from "@/components/public-nav";
 import { RealtimeVisitorChart } from "@/components/realtime-visitor-chart";
 import { WebsiteVisitorStat } from "@/components/website-visitor-stat";
 import { Badge } from "@/components/ui/badge";
+import { buildCatalogSearchItems } from "@/lib/catalog-search";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
 import { hasValidSupabaseConfig } from "@/lib/supabase-config";
 import { fetchCatalogData } from "@/lib/supabase";
@@ -27,18 +28,19 @@ export default async function HomePage() {
   const catalogData = await fetchCatalogData({ visibility: "public" });
   const books = catalogData.books;
   const theses = catalogData.theses;
+  const searchItems = buildCatalogSearchItems({ books, theses });
   const staffCount = await fetchStaffCount();
   const todayWebsiteVisits = await fetchTodayWebsiteVisits();
 
   return (
     <div className="min-h-screen bg-[#fafbfe] text-slate-950 antialiased selection:bg-yellow-500/20 selection:text-yellow-900">
-      <PublicNav />
+      <PublicNav initialSearchItems={searchItems} />
       <main className="relative overflow-hidden bg-[linear-gradient(180deg,#fafbfe_0%,#f5f8ff_50%,#fafbfe_100%)]">
         <MathBackdrop />
 
         <section className="relative mx-auto max-w-6xl px-4 pb-12 pt-14 text-center sm:px-6 sm:pb-16 sm:pt-20 lg:pb-20 lg:pt-28">
-          <Badge className="rounded-full border-white/60 bg-white/45 px-4.5 py-1.5 text-red-800 shadow-sm shadow-slate-950/2 backdrop-blur-xl hover:bg-white/60 transition-all duration-300 font-semibold border text-xs">
-            <Image src="/ulm-logo.png" alt="Logo Universitas Lambung Mangkurat" width={22} height={22} className="mr-2 size-4.5 object-contain animate-pulse" priority />
+          <Badge className="rounded-full border-white/60 bg-white/75 px-4.5 py-1.5 text-red-800 shadow-sm transition-colors duration-200 hover:bg-white/90 font-semibold border text-xs">
+            <Image src="/ulm-logo.png" alt="Logo Universitas Lambung Mangkurat" width={22} height={22} className="mr-2 size-4.5 object-contain" priority />
             Jurusan Pendidikan Matematika ULM
           </Badge>
           <h1 className="mx-auto mt-8 max-w-4xl text-4xl font-extrabold leading-[1.05] tracking-tight text-slate-950 sm:text-6xl lg:text-7xl">
@@ -57,7 +59,7 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <section className="relative mx-auto max-w-5xl px-4 pb-6 sm:px-6">
+        <section className="content-auto relative mx-auto max-w-5xl px-4 pb-6 sm:px-6">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {/* Katalog Buku Button (Disabled) */}
             <div className="glass-panel p-8 flex flex-col items-center justify-center text-center opacity-80 relative overflow-hidden">
@@ -109,11 +111,11 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <section className="relative mx-auto max-w-6xl px-4 py-6 sm:px-6">
+        <section className="content-auto relative mx-auto max-w-6xl px-4 py-6 sm:px-6">
           <RealtimeVisitorChart />
         </section>
 
-        <section className="relative mx-auto grid max-w-6xl gap-5 px-4 pb-20 pt-4 sm:grid-cols-2 sm:px-6 lg:grid-cols-4">
+        <section className="content-auto relative mx-auto grid max-w-6xl gap-5 px-4 pb-20 pt-4 sm:grid-cols-2 sm:px-6 lg:grid-cols-4">
           <StatTile icon={BookOpen} label="Total Buku" value={books.length} description="Koleksi buku tersedia" />
           <StatTile icon={GraduationCap} label="Total Skripsi" value={theses.length} description="Koleksi skripsi tersedia" tone="sky" />
           <StatTile icon={Users} label="Total Petugas" value={staffCount} description="Pengelola ruang baca" tone="violet" />
@@ -187,8 +189,8 @@ function StatTile({
   };
 
   return (
-    <div className="group flex items-center gap-4 rounded-[2rem] border border-white/40 bg-white/45 p-6 shadow-[0_18px_40px_rgba(15,23,42,0.03)] backdrop-blur-3xl transition-all duration-300 hover:-translate-y-1 hover:bg-white/80 hover:shadow-[0_24px_50px_rgba(15,23,42,0.06)]">
-      <span className={`flex size-14 shrink-0 items-center justify-center rounded-2xl shadow-sm ring-1 transition-all duration-300 group-hover:scale-105 ${tones[tone]}`}>
+    <div className="group flex items-center gap-4 rounded-[2rem] border border-white/50 bg-white/70 p-6 shadow-sm transition-colors duration-200 hover:bg-white/90">
+      <span className={`flex size-14 shrink-0 items-center justify-center rounded-2xl shadow-sm ring-1 transition-transform duration-200 group-hover:scale-105 ${tones[tone]}`}>
         <Icon className="size-6" />
       </span>
       <span className="min-w-0 text-left">
@@ -207,9 +209,9 @@ function MathBackdrop() {
       <div className="absolute inset-0 bg-[radial-gradient(#94a3b8_1px,transparent_1px)] [background-size:24px_24px] [mask-image:radial-gradient(ellipse_100%_100%_at_50%_30%,#000_60%,transparent_100%)] opacity-20" />
       
       {/* Soft Gemini-inspired gradient orbs */}
-      <div className="absolute -left-20 top-[-10%] size-[35rem] rounded-full bg-gradient-to-tr from-yellow-400/10 via-rose-400/8 to-transparent blur-[80px] animate-drift-slow" />
-      <div className="absolute -right-20 top-[10%] size-[40rem] rounded-full bg-gradient-to-br from-orange-400/10 via-purple-400/8 to-transparent blur-[100px] animate-drift-reverse" />
-      <div className="absolute left-[20%] top-[40%] size-[30rem] rounded-full bg-gradient-to-tr from-red-400/5 via-yellow-400/5 to-transparent blur-[90px] animate-drift-slow" />
+      <div className="absolute -left-20 top-[-10%] hidden size-[28rem] rounded-full bg-gradient-to-tr from-yellow-400/8 via-rose-400/6 to-transparent blur-[44px] lg:block" />
+      <div className="absolute -right-20 top-[10%] hidden size-[30rem] rounded-full bg-gradient-to-br from-orange-400/8 via-purple-400/6 to-transparent blur-[52px] xl:block" />
+      <div className="absolute left-[20%] top-[40%] hidden size-[24rem] rounded-full bg-gradient-to-tr from-red-400/4 via-yellow-400/4 to-transparent blur-[48px] xl:block" />
       
       {/* Mathematical glyphs and outlines */}
       <div className="absolute left-[-2rem] top-28 hidden text-[11rem] font-light leading-none text-red-600/[0.04] sm:block">

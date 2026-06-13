@@ -99,8 +99,8 @@ function DashboardShell({ children }: { children: ReactNode }) {
   const currentPage = pageTitles[pathname] ?? pageTitles["/dashboard"];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-yellow-50 to-red-50 lg:grid lg:grid-cols-[19rem_minmax(0,1fr)]">
-      <aside className="hidden h-screen border-r border-white/80 bg-white/80 p-4 shadow-sm backdrop-blur-xl lg:sticky lg:top-0 lg:block">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-yellow-50 to-red-50 xl:grid xl:grid-cols-[19rem_minmax(0,1fr)]">
+      <aside className="hidden h-screen border-r border-white/80 bg-white/80 p-4 shadow-sm backdrop-blur-xl xl:sticky xl:top-0 xl:block">
         <SidebarContent />
       </aside>
       <div className="min-w-0 w-full">
@@ -109,7 +109,7 @@ function DashboardShell({ children }: { children: ReactNode }) {
             <div className="flex min-w-0 items-center gap-2">
               <Dialog open={open} onOpenChange={setOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" size="icon" className="shrink-0 rounded-2xl border-slate-200 bg-white shadow-sm lg:hidden">
+                  <Button variant="outline" size="icon" className="shrink-0 rounded-2xl border-slate-200 bg-white shadow-sm xl:hidden">
                     <Menu />
                     <span className="sr-only">Buka menu</span>
                   </Button>
@@ -129,7 +129,7 @@ function DashboardShell({ children }: { children: ReactNode }) {
             </div>
           </div>
         </header>
-        <main className="mx-auto w-full max-w-7xl p-4 sm:p-6 lg:p-8">{children}</main>
+        <main className="mx-auto w-full max-w-7xl p-4 sm:p-6 xl:p-8">{children}</main>
       </div>
     </div>
   );

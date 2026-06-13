@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Activity, TrendingUp } from "lucide-react";
 import { getSupabaseClient } from "@/lib/supabase";
 
@@ -20,13 +20,15 @@ type ChartCoordinate = ChartPoint & {
 };
 
 export function RealtimeVisitorChart() {
+  const sectionRef = useRef<HTMLDivElement | null>(null);
   const [rows, setRows] = useState<AttendanceRow[]>([]);
+  const [isVisible, setIsVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  async function loadRows() {
+  const loadRows = useCallback(async () => {
     try {
-      const response = await fetch("/api/attendance?limit=500", { cache: "no-store" });
+      const response = await fetch("/api/attendance?limit=120", { cache: "no-store" });
       const payload = (await response.json()) as { rows?: AttendanceRow[]; error?: string };
       if (!response.ok || payload.error) throw new Error(payload.error ?? "Gagal memuat data.");
       setRows(payload.rows ?? []);
@@ -36,9 +38,33 @@ export function RealtimeVisitorChart() {
     } finally {
       setIsLoading(false);
     }
-  }
+  }, []);
 
   useEffect(() => {
+    const element = sectionRef.current;
+    if (!element) return;
+
+    if (!("IntersectionObserver" in window)) {
+      const timer = globalThis.setTimeout(() => setIsVisible(true), 0);
+      return () => globalThis.clearTimeout(timer);
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) return;
+        setIsVisible(true);
+        observer.disconnect();
+      },
+      { rootMargin: "320px 0px" },
+    );
+
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!isVisible) return;
+
     const loadTimer = window.setTimeout(() => {
       void loadRows();
     }, 0);
@@ -63,7 +89,7 @@ export function RealtimeVisitorChart() {
       window.clearTimeout(loadTimer);
       if (supabase) void supabase.removeChannel(channel);
     };
-  }, []);
+  }, [isVisible, loadRows]);
 
   const points = useMemo(() => buildVisitorPoints(rows), [rows]);
   const totalVisitors = points.reduce((sum, point) => sum + point.value, 0);
@@ -73,7 +99,7 @@ export function RealtimeVisitorChart() {
 
   if (isLoading) {
     return (
-      <div className="rounded-[2.25rem] border border-white/40 bg-white/45 p-6 shadow-[0_24px_50px_rgba(15,23,42,0.04)] backdrop-blur-3xl">
+      <div ref={sectionRef} className="rounded-[2.25rem] border border-white/40 bg-white/70 p-6 shadow-sm">
         <div className="h-5 w-40 animate-pulse rounded-full bg-slate-200/50" />
         <div className="mt-6 h-52 animate-pulse rounded-2xl bg-slate-100/40" />
       </div>
@@ -81,7 +107,7 @@ export function RealtimeVisitorChart() {
   }
 
   return (
-    <section className="rounded-[2.25rem] border border-white/40 bg-white/45 p-5 shadow-[0_24px_50px_rgba(15,23,42,0.04)] backdrop-blur-3xl sm:p-7">
+    <section ref={sectionRef} className="rounded-[2.25rem] border border-white/40 bg-white/70 p-5 shadow-sm sm:p-7">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-base font-bold tracking-tight text-slate-950">Grafik Pengunjung</p>
