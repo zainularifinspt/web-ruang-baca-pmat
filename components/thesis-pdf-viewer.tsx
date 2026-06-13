@@ -17,7 +17,6 @@ import type { PDFDocumentLoadingTask, PDFDocumentProxy, PDFPageProxy, RenderTask
 const MIN_PDF_ZOOM = 0.75;
 const MAX_PDF_ZOOM = 2.5;
 const PDF_ZOOM_STEP = 0.15;
-const CUSTOM_SCROLLBAR_PADDING = 12;
 const PDF_RANGE_CHUNK_SIZE = 512 * 1024;
 const MAX_PAGE_BASE_WIDTH = 900;
 const MAX_RENDERED_PAGE_WIDTH = 1800;
@@ -126,19 +125,9 @@ function PdfCanvasReader({
   const [currentPage, setCurrentPage] = useState(1);
   const [inputPage, setInputPage] = useState("1");
   const [pageBaseWidth, setPageBaseWidth] = useState(820);
-  const [scrollState, setScrollState] = useState({
-    canScroll: false,
-    thumbHeight: 96,
-    thumbTop: 0,
-  });
   const containerRef = useRef<HTMLDivElement>(null);
   const gestureScaleRef = useRef(1);
   const pendingScrollRatioRef = useRef<{ left: number; top: number } | null>(null);
-  const verticalDragRef = useRef<{
-    pointerId: number;
-    startClientY: number;
-    startScrollTop: number;
-  } | null>(null);
 
   const zoomPercent = Math.round(zoom * 100);
 
@@ -172,74 +161,6 @@ function PdfCanvasReader({
     updateZoom(1);
   }, [updateZoom]);
 
-  const updateCustomScrollbar = useCallback(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    const maxScrollTop = container.scrollHeight - container.clientHeight;
-
-    if (maxScrollTop <= 0) {
-      setScrollState({ canScroll: false, thumbHeight: 96, thumbTop: 0 });
-      return;
-    }
-
-    const trackHeight = Math.max(0, container.clientHeight - CUSTOM_SCROLLBAR_PADDING * 2);
-    const thumbHeight = Math.max(96, Math.round((container.clientHeight / container.scrollHeight) * trackHeight));
-    const maxThumbTop = Math.max(0, trackHeight - thumbHeight);
-    const thumbTop = CUSTOM_SCROLLBAR_PADDING + Math.round((container.scrollTop / maxScrollTop) * maxThumbTop);
-
-    setScrollState({
-      canScroll: true,
-      thumbHeight,
-      thumbTop,
-    });
-  }, []);
-
-  function handleScrollbarPointerDown(event: React.PointerEvent<HTMLButtonElement>) {
-    const container = containerRef.current;
-    if (!container) return;
-
-    event.preventDefault();
-    event.currentTarget.setPointerCapture(event.pointerId);
-    verticalDragRef.current = {
-      pointerId: event.pointerId,
-      startClientY: event.clientY,
-      startScrollTop: container.scrollTop,
-    };
-  }
-
-  function handleScrollbarPointerMove(event: React.PointerEvent<HTMLButtonElement>) {
-    const dragState = verticalDragRef.current;
-    const container = containerRef.current;
-    if (!dragState || dragState.pointerId !== event.pointerId || !container) return;
-
-    event.preventDefault();
-
-    const maxScrollTop = container.scrollHeight - container.clientHeight;
-    const maxThumbTop = Math.max(1, container.clientHeight - CUSTOM_SCROLLBAR_PADDING * 2 - scrollState.thumbHeight);
-    const scrollDelta = ((event.clientY - dragState.startClientY) / maxThumbTop) * maxScrollTop;
-    container.scrollTop = dragState.startScrollTop + scrollDelta;
-  }
-
-  function handleScrollbarPointerUp(event: React.PointerEvent<HTMLButtonElement>) {
-    if (verticalDragRef.current?.pointerId !== event.pointerId) return;
-    verticalDragRef.current = null;
-  }
-
-  function handleScrollbarTrackPointerDown(event: React.PointerEvent<HTMLDivElement>) {
-    if (event.target !== event.currentTarget) return;
-
-    const container = containerRef.current;
-    if (!container) return;
-
-    const rect = event.currentTarget.getBoundingClientRect();
-    const targetRatio = getScrollRatio(
-      event.clientY - rect.top - CUSTOM_SCROLLBAR_PADDING - scrollState.thumbHeight / 2,
-      rect.height - CUSTOM_SCROLLBAR_PADDING * 2 - scrollState.thumbHeight,
-    );
-    container.scrollTop = targetRatio * (container.scrollHeight - container.clientHeight);
-  }
-
   useLayoutEffect(() => {
     const scrollRatio = pendingScrollRatioRef.current;
     const container = containerRef.current;
@@ -249,11 +170,10 @@ function PdfCanvasReader({
       container.scrollLeft = scrollRatio.left * Math.max(0, container.scrollWidth - container.clientWidth);
       container.scrollTop = scrollRatio.top * Math.max(0, container.scrollHeight - container.clientHeight);
       pendingScrollRatioRef.current = null;
-      updateCustomScrollbar();
     });
 
     return () => window.cancelAnimationFrame(frame);
-  }, [updateCustomScrollbar, zoom]);
+  }, [zoom]);
 
   useEffect(() => {
     if (!active) return;
@@ -371,20 +291,16 @@ function PdfCanvasReader({
       );
 
       setPageBaseWidth(Math.round(nextBaseWidth));
-      updateCustomScrollbar();
     };
 
     updateReaderMeasurements();
     const resizeObserver = new ResizeObserver(updateReaderMeasurements);
     resizeObserver.observe(container);
 
-    container.addEventListener("scroll", updateCustomScrollbar, { passive: true });
-
     return () => {
-      container.removeEventListener("scroll", updateCustomScrollbar);
       resizeObserver.disconnect();
     };
-  }, [document, zoom, rotation, updateCustomScrollbar]);
+  }, [document, zoom, rotation]);
 
   useEffect(() => {
     if (!document) return;
@@ -468,29 +384,10 @@ function PdfCanvasReader({
 
   return (
     <div className="relative h-full overflow-hidden bg-slate-200">
-      {scrollState.canScroll ? (
-        <div
-          className="absolute bottom-0 right-0 top-0 z-30 w-14 touch-none px-2 py-3"
-          aria-hidden="true"
-          onPointerDown={handleScrollbarTrackPointerDown}
-        >
-          <button
-            type="button"
-            className="absolute left-1/2 w-9 -translate-x-1/2 rounded-full border border-red-300 bg-red-600 shadow-lg shadow-red-950/20 transition-colors hover:bg-red-700 active:bg-red-800"
-            style={{ height: scrollState.thumbHeight, top: scrollState.thumbTop }}
-            tabIndex={-1}
-            onPointerDown={handleScrollbarPointerDown}
-            onPointerMove={handleScrollbarPointerMove}
-            onPointerUp={handleScrollbarPointerUp}
-            onPointerCancel={handleScrollbarPointerUp}
-          />
-        </div>
-      ) : null}
-
       <div
         ref={containerRef}
         aria-label={title}
-        className="pdf-reader-scroll h-full overflow-auto bg-slate-200 px-4 py-6 pr-16 select-none"
+        className="pdf-reader-scroll h-full overflow-auto bg-slate-200 px-4 py-6 select-none"
         role="document"
         tabIndex={0}
         onKeyDown={(event) => {
