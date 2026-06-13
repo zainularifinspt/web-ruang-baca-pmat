@@ -18,7 +18,7 @@ const MIN_PDF_ZOOM = 0.75;
 const MAX_PDF_ZOOM = 2.5;
 const PDF_ZOOM_STEP = 0.15;
 const CUSTOM_SCROLLBAR_PADDING = 12;
-const PDF_RANGE_CHUNK_SIZE = 128 * 1024;
+const PDF_RANGE_CHUNK_SIZE = 512 * 1024;
 const MAX_PAGE_BASE_WIDTH = 900;
 const MAX_RENDERED_PAGE_WIDTH = 1800;
 const MAX_CANVAS_PIXELS = 4_000_000;
@@ -42,7 +42,9 @@ type ThesisPdfViewerProps = {
 export function ThesisPdfViewer({ pdfUrl, studentName }: ThesisPdfViewerProps) {
   const resolvedPdfUrl = resolveThesisPdfUrl(pdfUrl);
   const [open, setOpen] = useState(false);
+  const [renderAsImage, setRenderAsImage] = useState(false);
   const readerTitle = studentName ? `File Skripsi - ${studentName}` : "File Skripsi";
+  const resolvedReaderPdfUrl = resolvedPdfUrl ? readerPdfUrl(resolvedPdfUrl) : "";
 
   useEffect(() => {
     if (!resolvedPdfUrl) return;
@@ -66,7 +68,15 @@ export function ThesisPdfViewer({ pdfUrl, studentName }: ThesisPdfViewerProps) {
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-2 sm:flex-row">
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog
+          open={open}
+          onOpenChange={(nextOpen) => {
+            setOpen(nextOpen);
+            if (!nextOpen) {
+              setRenderAsImage(false);
+            }
+          }}
+        >
           <DialogTrigger asChild>
             <Button
               type="button"
@@ -77,9 +87,20 @@ export function ThesisPdfViewer({ pdfUrl, studentName }: ThesisPdfViewerProps) {
             </Button>
           </DialogTrigger>
           <DialogContent className="left-0 top-0 h-dvh max-h-dvh w-screen max-w-none translate-x-0 translate-y-0 grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden rounded-none border-0 p-0">
-            <DialogHeader className="px-5 py-4 pr-12 sm:px-6">
-              <DialogTitle>File Skripsi</DialogTitle>
-              <DialogDescription>{studentName || "Nama mahasiswa belum tercatat"}</DialogDescription>
+            <DialogHeader className="flex-row items-start justify-between gap-4 px-5 py-4 pr-14 sm:px-6">
+              <div className="space-y-1">
+                <DialogTitle>File Skripsi</DialogTitle>
+                <DialogDescription>{studentName || "Nama mahasiswa belum tercatat"}</DialogDescription>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="shrink-0 rounded-xl"
+                onClick={() => setRenderAsImage((currentValue) => !currentValue)}
+              >
+                {renderAsImage ? "Buka cepat" : "Render gambar"}
+              </Button>
             </DialogHeader>
             <div
               className="min-h-0 select-none overflow-hidden border-t bg-slate-100"
@@ -94,11 +115,11 @@ export function ThesisPdfViewer({ pdfUrl, studentName }: ThesisPdfViewerProps) {
               onSelect={(event) => event.preventDefault()}
               onSelectCapture={(event) => event.preventDefault()}
             >
-              <PdfCanvasReader
-                active={open}
-                pdfUrl={readerPdfUrl(resolvedPdfUrl)}
-                title={readerTitle}
-              />
+              {renderAsImage ? (
+                <PdfCanvasReader active={open} pdfUrl={resolvedReaderPdfUrl} title={readerTitle} />
+              ) : (
+                <PdfNativeReader pdfUrl={resolvedReaderPdfUrl} title={readerTitle} />
+              )}
             </div>
           </DialogContent>
         </Dialog>
@@ -118,6 +139,18 @@ function isGoogleDriveUrl(value: string) {
   } catch {
     return false;
   }
+}
+
+function PdfNativeReader({ pdfUrl, title }: { pdfUrl: string; title: string }) {
+  const viewerUrl = `${pdfUrl}#toolbar=0&navpanes=0&scrollbar=1`;
+
+  return (
+    <iframe
+      className="h-full w-full border-0 bg-white"
+      src={viewerUrl}
+      title={title}
+    />
+  );
 }
 
 function PdfCanvasReader({
@@ -291,8 +324,6 @@ function PdfCanvasReader({
           url: pdfUrl,
           withCredentials: false,
           rangeChunkSize: PDF_RANGE_CHUNK_SIZE,
-          disableStream: true,
-          disableAutoFetch: true,
           cMapPacked: true,
           useSystemFonts: true,
         });
