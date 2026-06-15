@@ -100,7 +100,7 @@ function DashboardShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-yellow-50 to-red-50 xl:grid xl:grid-cols-[19rem_minmax(0,1fr)]">
-      <aside className="hidden h-screen border-r border-white/80 bg-white/80 p-4 shadow-sm backdrop-blur-xl xl:sticky xl:top-0 xl:block">
+      <aside className="hidden h-screen overflow-y-auto overscroll-contain border-r border-white/80 bg-white/80 p-4 shadow-sm backdrop-blur-xl xl:sticky xl:top-0 xl:block">
         <SidebarContent />
       </aside>
       <div className="min-w-0 w-full">
@@ -114,7 +114,7 @@ function DashboardShell({ children }: { children: ReactNode }) {
                     <span className="sr-only">Buka menu</span>
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="left-4 top-4 h-[calc(100vh-2rem)] max-w-80 translate-x-0 translate-y-0 rounded-3xl border-white/80 bg-white/90 p-0 shadow-2xl backdrop-blur-xl">
+                <DialogContent className="left-4 top-4 h-[calc(100vh-2rem)] max-w-80 translate-x-0 translate-y-0 overflow-y-auto overscroll-contain rounded-3xl border-white/80 bg-white/90 p-0 shadow-2xl backdrop-blur-xl">
                   <SidebarContent onNavigate={() => setOpen(false)} />
                 </DialogContent>
               </Dialog>
@@ -142,7 +142,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const loanSummary = useLoanSummary(visibleItems.some((item) => item.href === "/admin/peminjaman"));
 
   return (
-    <div className="flex h-full flex-col gap-6 rounded-3xl bg-white/75 p-4 backdrop-blur-xl lg:bg-transparent lg:p-0">
+    <div className="flex min-h-full flex-col gap-6 rounded-3xl bg-white/75 p-4 backdrop-blur-xl lg:bg-transparent lg:p-0">
       <Link href="/" className="group flex items-center gap-3 rounded-2xl p-2 transition hover:bg-white/80 hover:shadow-sm" onClick={onNavigate}>
         <div className="flex shrink-0 items-center -space-x-2">
           <div className="flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-red-600 via-yellow-600 to-violet-600 text-primary-foreground shadow-lg shadow-red-950/20 transition group-hover:scale-105">
