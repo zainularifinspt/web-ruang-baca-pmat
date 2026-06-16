@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Eye, RotateCw, ZoomIn, ZoomOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -546,7 +546,7 @@ function getCanvasOutputScale(viewportWidth: number, viewportHeight: number) {
   return Math.max(0.75, Math.min(devicePixelRatio, MAX_CANVAS_PIXEL_RATIO, maxAreaScale));
 }
 
-function PdfCanvasPage({
+const PdfCanvasPage = memo(function PdfCanvasPage({
   document,
   pageNumber,
   pageBaseWidth,
@@ -669,4 +669,4 @@ function PdfCanvasPage({
       />
     </div>
   );
-}
+});

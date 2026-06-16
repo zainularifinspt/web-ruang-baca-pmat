@@ -64,6 +64,13 @@ html {
   scroll-behavior: smooth;
 }
 
+.pdf-reader-scroll,
+.overflow-y-auto,
+.overflow-auto {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
 .content-auto {
   content-visibility: auto;
   contain-intrinsic-size: 1px 620px;
@@ -186,4 +193,22 @@ a {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
+}
+
+/* Defer rendering of off-screen PDF pages and hardware-accelerate them */
+.pdf-page {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 1100px;
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+}
+
+/* Hardware accelerate canvases and backdrop blurs to prevent scrolling stutter */
+.pdf-page canvas,
+.glass-panel,
+[class*="backdrop-blur"] {
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
 }
