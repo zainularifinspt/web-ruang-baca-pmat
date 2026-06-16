@@ -118,7 +118,7 @@ const publicBookFields = [
 const publicThesisFields = [
   "id",
   "title",
-  "tahun",
+  "year",
   "code",
   "location",
   "physical_location",
