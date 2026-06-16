@@ -96,7 +96,7 @@ const verificationStatuses: VerificationStatus[] = [
 const publicBookFields = [
   "id",
   "title",
-  "year",
+  "tahun",
   "code",
   "location",
   "rack_location",
@@ -118,8 +118,7 @@ const publicBookFields = [
 const publicThesisFields = [
   "id",
   "title",
-  "year",
-  "graduation_year",
+  "tahun",
   "code",
   "location",
   "physical_location",
@@ -319,33 +318,72 @@ async function fetchTableRows(
   } = {},
 ) {
   try {
-    let query = getSupabaseClient()
-      .from(table)
-      .select(options.select ?? "*")
-      .order("created_at", { ascending: false });
+    let selectFields = selectFieldsValue(options.select);
+    let applyPublicFilter = options.visibility === "public";
+    let lastError: string | undefined;
 
-    if (options.visibility === "public") {
-      query = query.eq("verification_status", "approved");
-    }
+    for (let attempt = 0; attempt < 12; attempt++) {
+      let query = getSupabaseClient()
+        .from(table)
+        .select(selectFields?.join(",") ?? "*")
+        .order("created_at", { ascending: false });
 
-    if (typeof options.limit === "number" && options.limit > 0) {
-      const offset = Math.max(0, options.offset ?? 0);
-      query = query.range(offset, offset + options.limit - 1);
-    }
+      if (applyPublicFilter) {
+        query = query.eq("verification_status", "approved");
+      }
 
-    const { data, error } = await query;
+      if (typeof options.limit === "number" && options.limit > 0) {
+        const offset = Math.max(0, options.offset ?? 0);
+        query = query.range(offset, offset + options.limit - 1);
+      }
 
-    if (error) {
+      const { data, error } = await query;
+
+      if (!error) {
+        return { rows: (data ?? []) as unknown as UnknownRow[], error: undefined };
+      }
+
+      lastError = error.message;
+      const missingColumn = missingColumnFromError(error.message, table);
+
+      if (missingColumn === "verification_status" && applyPublicFilter) {
+        applyPublicFilter = false;
+        continue;
+      }
+
+      if (missingColumn && selectFields?.includes(missingColumn)) {
+        selectFields = selectFields.filter((field) => field !== missingColumn);
+        continue;
+      }
+
       return { rows: [] as UnknownRow[], error: error.message };
     }
 
-    return { rows: (data ?? []) as unknown as UnknownRow[], error: undefined };
+    return { rows: [] as UnknownRow[], error: lastError ?? "Data belum dapat dimuat." };
   } catch (error) {
     return {
       rows: [] as UnknownRow[],
       error: error instanceof Error ? error.message : "Data belum dapat dimuat.",
     };
   }
+}
+
+function selectFieldsValue(select?: string) {
+  if (!select || select === "*") return undefined;
+  return select
+    .split(",")
+    .map((field) => field.trim())
+    .filter(Boolean);
+}
+
+function missingColumnFromError(message: string, table: "books" | "theses") {
+  const postgresColumnMatch = message.match(new RegExp(`column ${table}\\.([a-zA-Z0-9_]+) does not exist`));
+  if (postgresColumnMatch?.[1]) return postgresColumnMatch[1];
+
+  const schemaCacheMatch = message.match(/Could not find the '([^']+)' column/);
+  if (schemaCacheMatch?.[1]) return schemaCacheMatch[1];
+
+  return null;
 }
 
 async function fetchTableRowById(table: "books" | "theses", id: string) {

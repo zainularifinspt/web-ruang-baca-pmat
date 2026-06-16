@@ -6,12 +6,6 @@ create index if not exists books_public_created_at_idx
 create index if not exists theses_public_created_at_idx
   on public.theses (verification_status, created_at desc);
 
-create index if not exists books_year_idx
-  on public.books (year);
-
-create index if not exists theses_year_idx
-  on public.theses (year);
-
 create index if not exists books_category_idx
   on public.books (category);
 
@@ -69,5 +63,28 @@ begin
     execute 'create index if not exists theses_keywords_trgm_idx on public.theses using gin (lower(keywords) gin_trgm_ops)';
   elsif theses_keywords_type = 'jsonb' then
     execute 'create index if not exists theses_keywords_jsonb_gin_idx on public.theses using gin (keywords jsonb_path_ops)';
+  end if;
+end $$;
+
+do $$
+begin
+  if exists (
+    select 1
+    from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'books'
+      and column_name = 'year'
+  ) then
+    execute 'create index if not exists books_year_idx on public.books (year)';
+  end if;
+
+  if exists (
+    select 1
+    from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'theses'
+      and column_name = 'year'
+  ) then
+    execute 'create index if not exists theses_year_idx on public.theses (year)';
   end if;
 end $$;
