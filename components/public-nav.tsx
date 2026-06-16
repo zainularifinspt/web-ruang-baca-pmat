@@ -210,9 +210,12 @@ function SearchCover({ item }: { item: CatalogSearchItem }) {
   return (
     <span className="relative flex size-12 shrink-0 overflow-hidden rounded-2xl bg-red-900 text-white shadow-sm ring-1 ring-white/60">
       {item.coverUrl ? (
-        <span
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${item.coverUrl})` }}
+        <Image
+          src={item.coverUrl}
+          alt=""
+          fill
+          className="object-cover"
+          sizes="48px"
         />
       ) : (
         <span className="absolute inset-0 bg-[linear-gradient(145deg,#047857,#0284c7_55%,#7c3aed)]" />

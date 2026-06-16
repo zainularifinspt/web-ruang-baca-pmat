@@ -1,17 +1,17 @@
 import { NextResponse } from "next/server";
-import { buildCatalogSearchItems } from "@/lib/catalog-search";
-import { fetchCatalogData } from "@/lib/supabase";
+import { fetchPublicSearchItems, PUBLIC_CACHE_HEADERS } from "@/lib/public-cache";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export async function GET() {
-  const { books, theses, error } = await fetchCatalogData({ visibility: "public" });
+  const { items, error } = await fetchPublicSearchItems();
 
   if (error) {
-    return NextResponse.json({ items: [], error }, { status: 200 });
+    return NextResponse.json(
+      { items: [], error },
+      { status: 200, headers: PUBLIC_CACHE_HEADERS },
+    );
   }
 
-  const items = buildCatalogSearchItems({ books, theses });
-
-  return NextResponse.json({ items });
+  return NextResponse.json({ items }, { headers: PUBLIC_CACHE_HEADERS });
 }

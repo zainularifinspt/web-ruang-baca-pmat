@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { BookOpen, Calendar, FileText, GraduationCap, MapPin, Sparkles, UserRound, UsersRound } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -174,11 +175,13 @@ function BookCoverPreview({ coverUrl, title }: { coverUrl?: string; title: strin
     <div className="mt-4 flex justify-center">
       <div className="w-fit rounded-[1.75rem] border border-red-100 bg-white p-4 shadow-lg shadow-slate-200/70">
       {coverUrl ? (
-        <div
-          aria-label={`Cover ${title}`}
-          className="h-80 w-56 rounded-2xl bg-slate-100 bg-cover bg-center ring-1 ring-slate-200"
-          role="img"
-          style={{ backgroundImage: `url(${coverUrl})` }}
+        <Image
+          src={coverUrl}
+          alt={`Cover ${title}`}
+          width={224}
+          height={320}
+          className="h-80 w-56 rounded-2xl bg-slate-100 object-cover ring-1 ring-slate-200"
+          sizes="224px"
         />
       ) : (
         <div className="flex h-80 w-56 items-center justify-center rounded-2xl bg-slate-100 px-4 text-center text-sm font-medium text-slate-500 ring-1 ring-slate-200">

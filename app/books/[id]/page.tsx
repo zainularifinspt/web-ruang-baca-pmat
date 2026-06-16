@@ -5,6 +5,8 @@ import {
 } from "@/components/collection-detail-page";
 import { fetchBookById } from "@/lib/supabase";
 
+export const revalidate = 300;
+
 export async function generateMetadata({
   params,
 }: {

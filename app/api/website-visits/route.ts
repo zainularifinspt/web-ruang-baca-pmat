@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { PRIVATE_NO_STORE_HEADERS, PUBLIC_SHORT_CACHE_HEADERS } from "@/lib/public-cache";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
 import { hasValidSupabaseConfig } from "@/lib/supabase-config";
 
@@ -15,15 +16,21 @@ export async function GET() {
   const result = await fetchTodayWebsiteVisitCount();
 
   if (result.error) {
-    return NextResponse.json({ count: result.count, error: result.error }, { status: 500 });
+    return NextResponse.json(
+      { count: result.count, error: result.error },
+      { status: 500, headers: PRIVATE_NO_STORE_HEADERS },
+    );
   }
 
-  return NextResponse.json({ count: result.count }, { status: 200 });
+  return NextResponse.json(
+    { count: result.count },
+    { status: 200, headers: PUBLIC_SHORT_CACHE_HEADERS },
+  );
 }
 
 export async function POST(request: Request) {
   if (!hasValidSupabaseConfig()) {
-    return NextResponse.json({ count: 0 }, { status: 200 });
+    return NextResponse.json({ count: 0 }, { status: 200, headers: PRIVATE_NO_STORE_HEADERS });
   }
 
   try {
@@ -32,7 +39,10 @@ export async function POST(request: Request) {
     const pagePath = normalizePath(typeof body.pagePath === "string" ? body.pagePath : "/");
 
     if (!visitorId) {
-      return NextResponse.json({ error: "visitorId is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "visitorId is required" },
+        { status: 400, headers: PRIVATE_NO_STORE_HEADERS },
+      );
     }
 
     const today = getMakassarDateKey();
@@ -51,20 +61,29 @@ export async function POST(request: Request) {
     );
 
     if (error) {
-      return NextResponse.json({ count: 0, error: error.message }, { status: 500 });
+      return NextResponse.json(
+        { count: 0, error: error.message },
+        { status: 500, headers: PRIVATE_NO_STORE_HEADERS },
+      );
     }
 
     const result = await fetchTodayWebsiteVisitCount();
 
     if (result.error) {
-      return NextResponse.json({ count: result.count, error: result.error }, { status: 500 });
+      return NextResponse.json(
+        { count: result.count, error: result.error },
+        { status: 500, headers: PRIVATE_NO_STORE_HEADERS },
+      );
     }
 
-    return NextResponse.json({ count: result.count }, { status: 201 });
+    return NextResponse.json(
+      { count: result.count },
+      { status: 201, headers: PRIVATE_NO_STORE_HEADERS },
+    );
   } catch (err) {
     return NextResponse.json(
       { count: 0, error: err instanceof Error ? err.message : "Unknown error" },
-      { status: 500 },
+      { status: 500, headers: PRIVATE_NO_STORE_HEADERS },
     );
   }
 }

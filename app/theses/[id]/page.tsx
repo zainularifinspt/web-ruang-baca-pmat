@@ -5,6 +5,8 @@ import {
 } from "@/components/collection-detail-page";
 import { fetchThesisById } from "@/lib/supabase";
 
+export const revalidate = 300;
+
 export async function generateMetadata({
   params,
 }: {

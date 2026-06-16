@@ -154,7 +154,7 @@ function getEnvValue(key: string) {
 
 function readLocalEnvValue(key: string) {
   for (const filename of [".env.local", ".env"]) {
-    const filePath = path.join(process.cwd(), filename);
+    const filePath = path.join(/* turbopackIgnore: true */ process.cwd(), filename);
     if (!fs.existsSync(filePath)) continue;
 
     const value = parseEnvFileValue(fs.readFileSync(filePath, "utf8"), key);

@@ -45,7 +45,7 @@ export function ThesisPdfViewer({ pdfUrl, studentName }: ThesisPdfViewerProps) {
   const resolvedReaderPdfUrl = resolvedPdfUrl ? readerPdfUrl(resolvedPdfUrl) : "";
 
   useEffect(() => {
-    if (!resolvedPdfUrl) return;
+    if (!open || !resolvedPdfUrl) return;
 
     const warmup = window.setTimeout(() => {
       void import("pdfjs-dist").then((pdfjs) => {
@@ -57,7 +57,7 @@ export function ThesisPdfViewer({ pdfUrl, studentName }: ThesisPdfViewerProps) {
     }, 250);
 
     return () => window.clearTimeout(warmup);
-  }, [resolvedPdfUrl]);
+  }, [open, resolvedPdfUrl]);
 
   if (!resolvedPdfUrl) {
     return <p className="text-sm leading-6 text-slate-500">File PDF belum tersedia.</p>;

@@ -19,6 +19,10 @@ type CatalogData = {
 
 type CatalogFetchOptions = {
   visibility?: "public" | "internal";
+  limit?: number;
+  offset?: number;
+  includePdfMetadata?: boolean;
+  includeInputMetadata?: boolean;
 };
 
 type CatalogInputOverride = {
@@ -89,6 +93,51 @@ const verificationStatuses: VerificationStatus[] = [
   "rejected",
 ];
 
+const publicBookFields = [
+  "id",
+  "title",
+  "year",
+  "code",
+  "location",
+  "rack_location",
+  "author",
+  "publisher",
+  "category",
+  "stock",
+  "isbn",
+  "cover_url",
+  "status",
+  "verification_status",
+  "notes",
+  "keywords",
+  "created_at",
+  "input_source",
+  "input_by",
+].join(",");
+
+const publicThesisFields = [
+  "id",
+  "title",
+  "year",
+  "graduation_year",
+  "code",
+  "location",
+  "physical_location",
+  "student_name",
+  "student_nim",
+  "topic",
+  "supervisor_1",
+  "supervisor_2",
+  "cover_url",
+  "verification_status",
+  "notes",
+  "keywords",
+  "created_at",
+  "input_source",
+  "input_by",
+  "access_note",
+].join(",");
+
 let cachedClient: SupabaseClient | null = null;
 
 export function getSupabaseClient() {
@@ -114,18 +163,39 @@ export function getSupabaseClient() {
 }
 
 export async function fetchCatalogData(options: CatalogFetchOptions = {}): Promise<CatalogData> {
+  const publicOnly = options.visibility === "public";
+  const includePdfMetadata = options.includePdfMetadata ?? !publicOnly;
+  const includeInputMetadata = options.includeInputMetadata ?? !publicOnly;
+  const tableOptions = {
+    visibility: options.visibility,
+    limit: options.limit,
+    offset: options.offset,
+    select: publicOnly ? undefined : "*",
+  };
   const [booksResult, thesesResult] = await Promise.all([
-    fetchTableRows("books"),
-    fetchTableRows("theses"),
+    fetchTableRows("books", {
+      ...tableOptions,
+      select: publicOnly ? publicBookFields : "*",
+    }),
+    fetchTableRows("theses", {
+      ...tableOptions,
+      select: publicOnly
+        ? includePdfMetadata
+          ? `${publicThesisFields},pdf_url,pdf_filename,pdf_size`
+          : publicThesisFields
+        : "*",
+    }),
   ]);
   const bookVerificationOverrides = await getBookVerificationOverrides();
   const thesisVerificationOverrides = await getThesisVerificationOverrides();
-  const inputOverrides = await getCatalogInputOverrides();
-  const thesisPdfOverrides = await getThesisPdfOverrides();
-  const profileNamesById = await getProfileNamesForRows([
-    ...booksResult.rows,
-    ...thesesResult.rows,
-  ]);
+  const inputOverrides = includeInputMetadata ? await getCatalogInputOverrides() : {};
+  const thesisPdfOverrides = includePdfMetadata ? await getThesisPdfOverrides() : {};
+  const profileNamesById = includeInputMetadata
+    ? await getProfileNamesForRows([
+        ...booksResult.rows,
+        ...thesesResult.rows,
+      ])
+    : {};
 
   const errors = [booksResult.error, thesesResult.error].filter(Boolean);
   const books = booksResult.rows.map((row) =>
@@ -145,7 +215,6 @@ export async function fetchCatalogData(options: CatalogFetchOptions = {}): Promi
       thesisPdfOverrides[textValue(row, ["id"])],
     ),
   );
-  const publicOnly = options.visibility === "public";
 
   return {
     books: sortByNewest(publicOnly ? books.filter(isApproved) : books),
@@ -158,9 +227,14 @@ export async function fetchCollectionById(type: string, id: string, options: Cat
   const table = type === "buku" ? "books" : type === "skripsi" ? "theses" : null;
   if (!table) return null;
 
-  const { rows } = await fetchTableRows(table);
-  const bookVerificationOverrides = table === "books" ? await getBookVerificationOverrides() : {};
-  const thesisVerificationOverrides = table === "theses" ? await getThesisVerificationOverrides() : {};
+  const { row } = await fetchTableRowById(table, id);
+  if (!row) return null;
+
+  const rows = [row];
+  const bookVerificationOverrides =
+    table === "books" ? await getBookVerificationOverrides() : {};
+  const thesisVerificationOverrides =
+    table === "theses" ? await getThesisVerificationOverrides() : {};
   const inputOverrides = await getCatalogInputOverrides();
   const thesisPdfOverrides = table === "theses" ? await getThesisPdfOverrides() : {};
   const profileNamesById = await getProfileNamesForRows(rows);
@@ -235,15 +309,37 @@ export async function fetchThesisById(id: string, options: CatalogFetchOptions =
   };
 }
 
-async function fetchTableRows(table: "books" | "theses") {
+async function fetchTableRows(
+  table: "books" | "theses",
+  options: {
+    visibility?: "public" | "internal";
+    limit?: number;
+    offset?: number;
+    select?: string;
+  } = {},
+) {
   try {
-    const { data, error } = await getSupabaseClient().from(table).select("*");
+    let query = getSupabaseClient()
+      .from(table)
+      .select(options.select ?? "*")
+      .order("created_at", { ascending: false });
+
+    if (options.visibility === "public") {
+      query = query.eq("verification_status", "approved");
+    }
+
+    if (typeof options.limit === "number" && options.limit > 0) {
+      const offset = Math.max(0, options.offset ?? 0);
+      query = query.range(offset, offset + options.limit - 1);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       return { rows: [] as UnknownRow[], error: error.message };
     }
 
-    return { rows: (data ?? []) as UnknownRow[], error: undefined };
+    return { rows: (data ?? []) as unknown as UnknownRow[], error: undefined };
   } catch (error) {
     return {
       rows: [] as UnknownRow[],

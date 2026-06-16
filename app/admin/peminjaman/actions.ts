@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { requireStaffRole } from "@/lib/auth-guards";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
 import { formatLoanDatabaseError } from "@/lib/loans";
@@ -284,6 +284,9 @@ function textId(value: unknown) {
 }
 
 function revalidateLoanPaths() {
+  revalidateTag("public-catalog", "max");
+  revalidateTag("public-landing", "max");
+  revalidatePath("/");
   revalidatePath("/admin/peminjaman");
   revalidatePath("/admin/loans");
   revalidatePath("/dashboard/katalog");

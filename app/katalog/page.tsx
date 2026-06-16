@@ -2,18 +2,12 @@ import { Sparkles } from "lucide-react";
 import { CatalogBrowser } from "@/components/catalog-browser";
 import { PublicNav } from "@/components/public-nav";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { fetchCatalogData } from "@/lib/supabase";
+import { fetchPublicCatalogData } from "@/lib/public-cache";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
-export default async function CatalogPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ q?: string; tab?: string }>;
-}) {
-  const { q, tab } = await searchParams;
-  const initialTab = tab === "books" || tab === "theses" ? tab : "all";
-  const { books, theses, error } = await fetchCatalogData({ visibility: "public" });
+export default async function CatalogPage() {
+  const { books, theses, error } = await fetchPublicCatalogData();
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -26,7 +20,7 @@ export default async function CatalogPage({
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         ) : null}
-        <CatalogBrowser books={books} theses={theses} initialTab={initialTab} initialQuery={q ?? ""} />
+        <CatalogBrowser books={books} theses={theses} />
       </main>
     </div>
   );

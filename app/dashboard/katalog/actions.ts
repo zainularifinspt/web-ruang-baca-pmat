@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { read, utils } from "xlsx";
 import { requireStaffRole } from "@/lib/auth-guards";
 import {
@@ -581,6 +581,9 @@ function validateThesis(values: ThesisFormValues) {
 }
 
 function revalidateCatalogPaths() {
+  revalidateTag("public-catalog", "max");
+  revalidateTag("public-landing", "max");
+  revalidatePath("/");
   revalidatePath("/katalog");
   revalidatePath("/dashboard/katalog");
   revalidatePath("/petugas");

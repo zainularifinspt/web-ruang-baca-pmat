@@ -17,20 +17,18 @@ import { PublicNav } from "@/components/public-nav";
 import { RealtimeVisitorChart } from "@/components/realtime-visitor-chart";
 import { WebsiteVisitorStat } from "@/components/website-visitor-stat";
 import { Badge } from "@/components/ui/badge";
-import { buildCatalogSearchItems } from "@/lib/catalog-search";
-import { createSupabaseAdminClient } from "@/lib/supabase-admin";
-import { hasValidSupabaseConfig } from "@/lib/supabase-config";
-import { fetchCatalogData } from "@/lib/supabase";
+import {
+  fetchPublicLandingStats,
+  fetchPublicSearchItems,
+} from "@/lib/public-cache";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export default async function HomePage() {
-  const catalogData = await fetchCatalogData({ visibility: "public" });
-  const books = catalogData.books;
-  const theses = catalogData.theses;
-  const searchItems = buildCatalogSearchItems({ books, theses });
-  const staffCount = await fetchStaffCount();
-  const todayWebsiteVisits = await fetchTodayWebsiteVisits();
+  const [{ items: searchItems }, stats] = await Promise.all([
+    fetchPublicSearchItems(),
+    fetchPublicLandingStats(),
+  ]);
 
   return (
     <div className="min-h-screen bg-[#fafbfe] text-slate-950 antialiased selection:bg-yellow-500/20 selection:text-yellow-900">
@@ -116,54 +114,15 @@ export default async function HomePage() {
         </section>
 
         <section className="content-auto relative mx-auto grid max-w-6xl gap-5 px-4 pb-20 pt-4 sm:grid-cols-2 sm:px-6 lg:grid-cols-4">
-          <StatTile icon={BookOpen} label="Total Buku" value={books.length} description="Koleksi buku tersedia" />
-          <StatTile icon={GraduationCap} label="Total Skripsi" value={theses.length} description="Koleksi skripsi tersedia" tone="sky" />
-          <StatTile icon={Users} label="Total Petugas" value={staffCount} description="Pengelola ruang baca" tone="violet" />
-          <WebsiteVisitorStat initialCount={todayWebsiteVisits} />
+          <StatTile icon={BookOpen} label="Total Buku" value={stats.bookCount} description="Koleksi buku tersedia" />
+          <StatTile icon={GraduationCap} label="Total Skripsi" value={stats.thesisCount} description="Koleksi skripsi tersedia" tone="sky" />
+          <StatTile icon={Users} label="Total Petugas" value={stats.staffCount} description="Pengelola ruang baca" tone="violet" />
+          <WebsiteVisitorStat initialCount={stats.todayWebsiteVisits} />
         </section>
       </main>
       <Footer />
     </div>
   );
-}
-
-async function fetchStaffCount() {
-  if (!hasValidSupabaseConfig()) return 0;
-
-  try {
-    const { count, error } = await createSupabaseAdminClient()
-      .from("profiles")
-      .select("id", { count: "exact", head: true })
-      .in("role", ["admin", "petugas"]);
-
-    if (error) return 0;
-    return count ?? 0;
-  } catch {
-    return 0;
-  }
-}
-
-async function fetchTodayWebsiteVisits() {
-  if (!hasValidSupabaseConfig()) return 0;
-
-  const today = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Makassar",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date());
-
-  try {
-    const { count, error } = await createSupabaseAdminClient()
-      .from("website_visits")
-      .select("id", { count: "exact", head: true })
-      .eq("visit_date", today);
-
-    if (error) return 0;
-    return count ?? 0;
-  } catch {
-    return 0;
-  }
 }
 
 

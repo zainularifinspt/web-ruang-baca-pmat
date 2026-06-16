@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { requireStaffRole } from "@/lib/auth-guards";
 import {
   writeBookVerificationOverride,
@@ -108,6 +108,9 @@ export async function approveDraftSubmission(id: string): Promise<DraftSubmissio
     if (updateError) return failure(updateError.message);
 
     revalidateSubmissionPaths();
+    revalidateTag("public-catalog", "max");
+    revalidateTag("public-landing", "max");
+    revalidatePath("/");
     revalidatePath("/katalog");
     revalidatePath("/dashboard/katalog");
     revalidatePath("/dashboard/verifikasi");

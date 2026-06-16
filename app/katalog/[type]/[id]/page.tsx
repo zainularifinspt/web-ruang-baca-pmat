@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { PublicNav } from "@/components/public-nav";
@@ -8,6 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { fetchCollectionById } from "@/lib/supabase";
 import { formatDate } from "@/lib/utils";
+
+export const revalidate = 300;
 
 export default async function CollectionDetailPage({
   params,
@@ -84,11 +87,13 @@ function BookCoverBlock({ coverUrl, title }: { coverUrl?: string; title: string 
   return (
     <div className="w-fit rounded-2xl border bg-white p-3 shadow-sm">
       {coverUrl ? (
-        <div
-          aria-label={`Cover ${title}`}
-          className="h-52 w-36 rounded-xl bg-slate-100 bg-cover bg-center ring-1 ring-slate-200"
-          role="img"
-          style={{ backgroundImage: `url(${coverUrl})` }}
+        <Image
+          src={coverUrl}
+          alt={`Cover ${title}`}
+          width={144}
+          height={208}
+          className="h-52 w-36 rounded-xl bg-slate-100 object-cover ring-1 ring-slate-200"
+          sizes="144px"
         />
       ) : (
         <div className="flex h-52 w-36 items-center justify-center rounded-xl bg-slate-100 px-3 text-center text-xs font-medium text-slate-500 ring-1 ring-slate-200">

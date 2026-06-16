@@ -90,6 +90,26 @@ export function CatalogBrowser({
   }, []);
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const urlQuery = params.get("q")?.trim() ?? "";
+    const urlTab = params.get("tab");
+    const nextTab: CatalogTab =
+      urlTab === "books" || urlTab === "theses" ? urlTab : initialTab;
+    const frame = window.requestAnimationFrame(() => {
+      if (urlQuery && !initialQuery) {
+        setQuery(urlQuery);
+        setDebouncedQuery(urlQuery);
+      }
+
+      if (nextTab !== initialTab) {
+        setCollectionType(nextTab);
+      }
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [initialQuery, initialTab]);
+
+  useEffect(() => {
     if (searchTimer.current) clearTimeout(searchTimer.current);
 
     const normalizedInput = query.trim();
@@ -182,15 +202,6 @@ export function CatalogBrowser({
   }, [baseItems, bookAvailability, locationAdvisorFilter, normalizedQuery, sort, subjectFilter, yearFilter]);
 
   const yearOptions = useMemo(() => unique(baseItems.map((item) => String(item.year))), [baseItems]);
-  const subjectOptions = useMemo(
-    () =>
-      unique(
-        baseItems.flatMap((item) =>
-          item.type === "book" ? [item.category, ...item.keywords] : [item.topic, ...item.keywords],
-        ),
-      ),
-    [baseItems],
-  );
   const locationAdvisorOptions = useMemo(
     () =>
       unique(
@@ -669,16 +680,6 @@ function getAvailabilityValue(item: Book) {
   if (item.available <= 0) return "empty";
   if (item.available <= Math.max(1, item.stock / 2)) return "limited";
   return "available";
-}
-
-function availabilityLabel(value: string) {
-  const labels: Record<string, string> = {
-    all: "all",
-    available: "Tersedia",
-    limited: "Terbatas",
-    empty: "Tidak tersedia",
-  };
-  return labels[value] ?? value;
 }
 
 function collectionTypeLabel(value: CatalogTab) {
