@@ -72,15 +72,8 @@ export const fetchPublicLandingStats = unstable_cache(
 
     const today = getMakassarDateKey();
     const supabase = createSupabaseAdminClient();
-    const [booksResult, thesesResult, staffResult, visitResult] = await Promise.all([
-      supabase
-        .from("books")
-        .select("id", { count: "exact", head: true })
-        .eq("verification_status", "approved"),
-      supabase
-        .from("theses")
-        .select("id", { count: "exact", head: true })
-        .eq("verification_status", "approved"),
+    const [catalogData, staffResult, visitResult] = await Promise.all([
+      fetchPublicCatalogData(),
       supabase
         .from("profiles")
         .select("id", { count: "exact", head: true })
@@ -92,8 +85,8 @@ export const fetchPublicLandingStats = unstable_cache(
     ]);
 
     return {
-      bookCount: booksResult.error ? 0 : booksResult.count ?? 0,
-      thesisCount: thesesResult.error ? 0 : thesesResult.count ?? 0,
+      bookCount: catalogData.books?.length ?? 0,
+      thesisCount: catalogData.theses?.length ?? 0,
       staffCount: staffResult.error ? 0 : staffResult.count ?? 0,
       todayWebsiteVisits: visitResult.error ? 0 : visitResult.count ?? 0,
     };
