@@ -319,7 +319,7 @@ async function fetchTableRows(
 ) {
   try {
     let selectFields = selectFieldsValue(options.select);
-    let applyPublicFilter = options.visibility === "public";
+    let applyPublicFilter = false;
     let lastError: string | undefined;
 
     for (let attempt = 0; attempt < 12; attempt++) {
