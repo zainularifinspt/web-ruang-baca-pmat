@@ -32,6 +32,14 @@ type QueuedPageRender = {
 let activePageRenders = 0;
 const pageRenderQueue: QueuedPageRender[] = [];
 
+type PromiseWithResolvers = typeof Promise & {
+  withResolvers?: <T>() => {
+    promise: Promise<T>;
+    resolve: (value: T | PromiseLike<T>) => void;
+    reject: (reason?: unknown) => void;
+  };
+};
+
 type ThesisPdfViewerProps = {
   pdfUrl?: string;
   pdfFilename?: string;
@@ -48,9 +56,10 @@ export function ThesisPdfViewer({ pdfUrl, studentName }: ThesisPdfViewerProps) {
     if (!open || !resolvedPdfUrl) return;
 
     const warmup = window.setTimeout(() => {
-      void import("pdfjs-dist").then((pdfjs) => {
+      installPdfJsBrowserPolyfills();
+      void import("pdfjs-dist/legacy/build/pdf.mjs").then((pdfjs) => {
         pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-          "pdfjs-dist/build/pdf.worker.mjs",
+          "pdfjs-dist/legacy/build/pdf.worker.mjs",
           import.meta.url,
         ).toString();
       });
@@ -193,22 +202,26 @@ function PdfCanvasReader({
       setLoadingProgress(0);
 
       try {
-        const pdfjs = await import("pdfjs-dist");
+        installPdfJsBrowserPolyfills();
+        const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
         pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-          "pdfjs-dist/build/pdf.worker.mjs",
+          "pdfjs-dist/legacy/build/pdf.worker.mjs",
           import.meta.url,
         ).toString();
 
-        loadingTask = pdfjs.getDocument({
+        const documentOptions = {
           url: pdfUrl,
           httpHeaders: {
             "X-PDF-Canvas-Reader": "1",
           },
           withCredentials: false,
+          disableWorker: true,
           rangeChunkSize: PDF_RANGE_CHUNK_SIZE,
           cMapPacked: true,
           useSystemFonts: true,
-        });
+        };
+
+        loadingTask = pdfjs.getDocument(documentOptions as Parameters<typeof pdfjs.getDocument>[0]);
         loadingTask.onProgress = ({ loaded, total }: { loaded: number; total: number }) => {
           if (!total || isCancelled) return;
 
@@ -526,6 +539,41 @@ function clampZoom(value: number) {
 function getScrollRatio(value: number, maxValue: number) {
   if (maxValue <= 0) return 0;
   return Math.max(0, Math.min(1, value / maxValue));
+}
+
+function installPdfJsBrowserPolyfills() {
+  const promiseConstructor = Promise as PromiseWithResolvers;
+
+  if (!promiseConstructor.withResolvers) {
+    Object.defineProperty(Promise, "withResolvers", {
+      configurable: true,
+      writable: true,
+      value: function withResolvers<T>() {
+        let resolve!: (value: T | PromiseLike<T>) => void;
+        let reject!: (reason?: unknown) => void;
+        const promise = new Promise<T>((promiseResolve, promiseReject) => {
+          resolve = promiseResolve;
+          reject = promiseReject;
+        });
+
+        return { promise, resolve, reject };
+      },
+    });
+  }
+
+  if (!Array.prototype.at) {
+    Object.defineProperty(Array.prototype, "at", {
+      configurable: true,
+      writable: true,
+      value: function at<T>(this: T[], index: number) {
+        const length = this.length;
+        const relativeIndex = Math.trunc(index) || 0;
+        const resolvedIndex = relativeIndex < 0 ? length + relativeIndex : relativeIndex;
+
+        return resolvedIndex < 0 || resolvedIndex >= length ? undefined : this[resolvedIndex];
+      },
+    });
+  }
 }
 
 async function detectChapterFourPages(document: PDFDocumentProxy) {
