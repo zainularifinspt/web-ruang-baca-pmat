@@ -468,9 +468,9 @@ function mapThesisRow(
       ["access_note"],
       "Dokumen lengkap tersedia dalam bentuk fisik di Ruang Baca Program Studi Pendidikan Matematika.",
     ),
-    pdfUrl: resolveThesisPdfUrl(pdfOverride?.url) ?? resolveThesisPdfUrl(pdfUrl),
-    pdfFilename: pdfOverride?.filename ?? optionalTextValue(row, ["pdf_filename", "pdfFilename"]),
-    pdfSize: pdfOverride?.size ?? optionalNumberValue(row, ["pdf_size", "pdfSize"]),
+    pdfUrl: resolveThesisPdfUrl(pdfUrl) ?? resolveThesisPdfUrl(pdfOverride?.url),
+    pdfFilename: optionalTextValue(row, ["pdf_filename", "pdfFilename"]) ?? pdfOverride?.filename,
+    pdfSize: optionalNumberValue(row, ["pdf_size", "pdfSize"]) ?? pdfOverride?.size,
     keywords: [topic],
   };
 }

@@ -182,22 +182,41 @@ export async function syncExistingThesisPdfUrlsFromGoogleSheets(): Promise<
   if (!auth.ok) return failure(auth.message);
 
   try {
-    const [sheetRows, pdfUrlsByRow, existingTheses] = await Promise.all([
+    const [sheetRows, pdfRows, existingTheses] = await Promise.all([
       getGoogleSheetThesisRows(thesisMetadataSheetUrl),
-      getGoogleSheetThesisPdfUrlsByRow(),
+      getGoogleSheetThesisPdfRows(),
       getExistingThesisPdfIdentityRows(),
     ]);
 
     const pdfUrlsByIdentity = new Map<string, string>();
+    const pdfUrlsByName = new Map<string, string>();
+
+    for (const pdfRow of pdfRows) {
+      if (!pdfRow.pdfUrl) continue;
+
+      const normalizedName = normalizeIdentity(pdfRow.studentName);
+      const normalizedNim = normalizeNim(pdfRow.studentNim);
+
+      if (normalizedName && normalizedNim) {
+        pdfUrlsByIdentity.set(thesisIdentityKey(normalizedName, normalizedNim), pdfRow.pdfUrl);
+      }
+      if (normalizedName) {
+        pdfUrlsByName.set(normalizedName, pdfRow.pdfUrl);
+      }
+    }
+
     for (const [index, row] of sheetRows.entries()) {
       const studentName = sheetText(row, ["NAMA", "nama"]);
       const studentNim = sheetText(row, ["NIM", "nim", "NIM/NIP", "nim_nip"]);
       const normalizedName = normalizeIdentity(studentName);
       const normalizedNim = normalizeNim(studentNim);
-      const publicPdfUrl = pdfUrlsByRow[index] ?? "";
+      const publicPdfUrl = pdfRows[index]?.pdfUrl ?? "";
 
-      if (!normalizedName || !normalizedNim || !publicPdfUrl) continue;
-      pdfUrlsByIdentity.set(thesisIdentityKey(normalizedName, normalizedNim), publicPdfUrl);
+      if (!normalizedName || !publicPdfUrl) continue;
+      if (normalizedNim) {
+        pdfUrlsByIdentity.set(thesisIdentityKey(normalizedName, normalizedNim), publicPdfUrl);
+      }
+      pdfUrlsByName.set(normalizedName, publicPdfUrl);
     }
 
     let updatedCount = 0;
@@ -206,12 +225,14 @@ export async function syncExistingThesisPdfUrlsFromGoogleSheets(): Promise<
     for (const thesis of existingTheses) {
       const normalizedName = normalizeIdentity(thesis.student_name);
       const normalizedNim = normalizeNim(thesis.student_nim);
-      if (!normalizedName || !normalizedNim) {
+      if (!normalizedName) {
         skippedCount++;
         continue;
       }
 
-      const publicPdfUrl = pdfUrlsByIdentity.get(thesisIdentityKey(normalizedName, normalizedNim));
+      const publicPdfUrl = normalizedNim
+        ? pdfUrlsByIdentity.get(thesisIdentityKey(normalizedName, normalizedNim)) ?? pdfUrlsByName.get(normalizedName)
+        : pdfUrlsByName.get(normalizedName);
       if (!publicPdfUrl) {
         skippedCount++;
         continue;
@@ -241,9 +262,9 @@ export async function syncExistingThesisPdfUrlsFromGoogleSheets(): Promise<
 }
 
 async function getNewGoogleSheetThesisCandidates() {
-  const [sheetRows, pdfUrlsByRow, existingTheses] = await Promise.all([
+  const [sheetRows, pdfRows, existingTheses] = await Promise.all([
     getGoogleSheetThesisRows(thesisMetadataSheetUrl),
-    getGoogleSheetThesisPdfUrlsByRow(),
+    getGoogleSheetThesisPdfRows(),
     getExistingThesisIdentityRows(),
   ]);
 
@@ -276,7 +297,7 @@ async function getNewGoogleSheetThesisCandidates() {
     }
 
     seenSheetKeys.add(key);
-    const publicPdfUrl = pdfUrlsByRow[index] ?? "";
+    const publicPdfUrl = pdfRows[index]?.pdfUrl ?? "";
     if (!publicPdfUrl) continue;
 
     candidates.push({
@@ -308,9 +329,13 @@ async function getGoogleSheetThesisRows(sheetUrl: string) {
   return utils.sheet_to_json<Record<string, string>>(sheet, { raw: false });
 }
 
-async function getGoogleSheetThesisPdfUrlsByRow() {
+async function getGoogleSheetThesisPdfRows() {
   const response = await fetch(thesisPdfSheetUrl, { cache: "no-store" });
-  if (!response.ok) throw new Error("Gagal mengunduh link PDF dari Google Sheet baru.");
+  if (!response.ok) {
+    throw new Error(
+      `Gagal mengunduh link PDF dari Google Sheet baru (HTTP ${response.status}). Pastikan Sheet PDF bisa diakses publik melalui link atau isi THESIS_PDF_SHEET_URL dengan URL export CSV yang publik.`,
+    );
+  }
 
   const buffer = await response.arrayBuffer();
   const workbook = read(buffer, { type: "array" });
@@ -324,9 +349,15 @@ async function getGoogleSheetThesisPdfUrlsByRow() {
     raw: false,
     defval: "",
   });
-  const dataRows = looksLikeSpreadsheetHeader(rows[0]) ? rows.slice(1) : rows;
+  const headerRow = looksLikeSpreadsheetHeader(rows[0]) ? rows[0] : undefined;
+  const dataRows = headerRow ? rows.slice(1) : rows;
+  const columns = sheetColumnIndexes(headerRow);
 
-  return dataRows.map((row) => sheetColumnText(row, 3));
+  return dataRows.map((row) => ({
+    pdfUrl: sheetColumnText(row, 3),
+    studentName: columns.name >= 0 ? sheetColumnText(row, columns.name) : guessPdfSheetStudentName(row),
+    studentNim: columns.nim >= 0 ? sheetColumnText(row, columns.nim) : guessPdfSheetStudentNim(row),
+  }));
 }
 
 async function getExistingThesisIdentityRows(): Promise<Array<{ student_name?: string | null; student_nim?: string | null }>> {
@@ -361,10 +392,17 @@ async function getExistingThesisPdfIdentityRows(): Promise<
     throw new Error(error.message);
   }
 
-  const fallback = await supabase.from("theses").select("id, student_name");
-  if (fallback.error) throw new Error(fallback.error.message);
+  const fallback = await supabase.from("theses").select("id, student_name, pdf_url");
+  if (!fallback.error) return fallback.data ?? [];
 
-  return fallback.data ?? [];
+  if (!isMissingThesisPdfColumn(fallback.error.message)) {
+    throw new Error(fallback.error.message);
+  }
+
+  const minimalFallback = await supabase.from("theses").select("id, student_name");
+  if (minimalFallback.error) throw new Error(minimalFallback.error.message);
+
+  return minimalFallback.data ?? [];
 }
 
 function sheetText(row: Record<string, string>, keys: string[]) {
@@ -390,6 +428,34 @@ function looksLikeSpreadsheetHeader(row: unknown[] | undefined) {
     .join(" ");
 
   return /\b(nim|nama|judul|skripsi|pdf|file)\b/.test(text) && !/^https?:\/\//i.test(sheetColumnText(row, 3));
+}
+
+function sheetColumnIndexes(row: unknown[] | undefined) {
+  const labels = (row ?? []).map((value) =>
+    value === undefined || value === null ? "" : value.toString().trim().toLowerCase(),
+  );
+
+  return {
+    name: labels.findIndex((label) => ["nama", "nama mahasiswa", "student_name"].includes(label)),
+    nim: labels.findIndex((label) => ["nim", "nim/nip", "student_nim"].includes(label)),
+  };
+}
+
+function guessPdfSheetStudentName(row: unknown[] | undefined) {
+  const cells = (row ?? []).slice(0, 3).map((_, index) => sheetColumnText(row, index));
+  const candidates = cells.filter((value) =>
+    value &&
+    !/^https?:\/\//i.test(value) &&
+    !/^\d+$/.test(value.replace(/\D/g, "")) &&
+    /[a-z]/i.test(value),
+  );
+
+  return candidates.at(-1) ?? "";
+}
+
+function guessPdfSheetStudentNim(row: unknown[] | undefined) {
+  const cells = (row ?? []).slice(0, 3).map((_, index) => sheetColumnText(row, index));
+  return cells.find((value) => normalizeNim(value).length >= 6) ?? "";
 }
 
 function graduationYear(dateStr: string) {
