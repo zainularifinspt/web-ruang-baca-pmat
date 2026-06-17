@@ -203,7 +203,22 @@ function PdfCanvasReader({
           useSystemFonts: true,
         };
 
-        loadingTask = pdfjs.getDocument(documentOptions as Parameters<typeof pdfjs.getDocument>[0]);
+        const originalWorker = typeof window !== "undefined" ? window.Worker : undefined;
+        if (typeof window !== "undefined") {
+          try {
+            // @ts-ignore
+            window.Worker = undefined;
+          } catch {}
+        }
+        try {
+          loadingTask = pdfjs.getDocument(documentOptions as Parameters<typeof pdfjs.getDocument>[0]);
+        } finally {
+          if (typeof window !== "undefined" && originalWorker) {
+            try {
+              window.Worker = originalWorker;
+            } catch {}
+          }
+        }
         loadingTask.onProgress = ({ loaded, total }: { loaded: number; total: number }) => {
           if (!total || isCancelled) return;
 

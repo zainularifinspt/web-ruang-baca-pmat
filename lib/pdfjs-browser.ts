@@ -63,6 +63,7 @@ function installPdfJsBrowserPolyfills() {
   defineAt(String.prototype);
   if (typeof Blob !== "undefined") defineBytes(Blob.prototype as BytesCapable);
   if (typeof Response !== "undefined") defineBytes(Response.prototype as BytesCapable);
+  defineReadableStreamAsyncIterator();
 
   const typedArrayNames: ConstructorName[] = [
     "Int8Array",
@@ -147,6 +148,36 @@ function defineBytes(prototype: BytesCapable | undefined) {
     writable: true,
     value: async function bytes(this: BytesCapable) {
       return new Uint8Array(await this.arrayBuffer());
+    },
+  });
+}
+
+function defineReadableStreamAsyncIterator() {
+  if (typeof ReadableStream === "undefined") return;
+
+  const prototype = ReadableStream.prototype as any;
+  if (prototype[Symbol.asyncIterator]) return;
+
+  Object.defineProperty(prototype, Symbol.asyncIterator, {
+    configurable: true,
+    writable: true,
+    value: function asyncIterator(this: ReadableStream) {
+      const reader = this.getReader();
+      return {
+        async next() {
+          try {
+            const { value, done } = await reader.read();
+            return { value, done };
+          } catch (error) {
+            reader.releaseLock();
+            throw error;
+          }
+        },
+        async return() {
+          reader.releaseLock();
+          return { value: undefined, done: true };
+        },
+      };
     },
   });
 }
