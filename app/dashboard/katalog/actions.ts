@@ -450,7 +450,7 @@ function guessPdfSheetStudentName(row: unknown[] | undefined) {
     /[a-z]/i.test(value),
   );
 
-  return candidates.at(-1) ?? "";
+  return candidates[candidates.length - 1] ?? "";
 }
 
 function guessPdfSheetStudentNim(row: unknown[] | undefined) {
