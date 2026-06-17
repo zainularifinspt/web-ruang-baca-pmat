@@ -49,8 +49,55 @@ const browserCompatPolyfills = `
       });
     }
 
+    function defineFindLast(prototype) {
+      if (!prototype || prototype.findLast) return;
+      Object.defineProperty(prototype, "findLast", {
+        configurable: true,
+        writable: true,
+        value: function findLast(predicate, thisArg) {
+          if (this == null) {
+            throw new TypeError("Array.prototype.findLast called on null or undefined");
+          }
+          if (typeof predicate !== "function") {
+            throw new TypeError("predicate must be a function");
+          }
+
+          var object = Object(this);
+          var length = object.length >>> 0;
+          for (var index = length - 1; index >= 0; index--) {
+            var value = object[index];
+            if (predicate.call(thisArg, value, index, object)) {
+              return value;
+            }
+          }
+
+          return undefined;
+        }
+      });
+    }
+
+    function defineBytes(prototype) {
+      if (!prototype || prototype.bytes) return;
+      Object.defineProperty(prototype, "bytes", {
+        configurable: true,
+        writable: true,
+        value: function bytes() {
+          return this.arrayBuffer().then(function (buffer) {
+            return new Uint8Array(buffer);
+          });
+        }
+      });
+    }
+
     defineAt(Array.prototype);
+    defineFindLast(Array.prototype);
     defineAt(String.prototype);
+    if (typeof Blob !== "undefined") {
+      defineBytes(Blob.prototype);
+    }
+    if (typeof Response !== "undefined") {
+      defineBytes(Response.prototype);
+    }
     [
       "Int8Array",
       "Uint8Array",

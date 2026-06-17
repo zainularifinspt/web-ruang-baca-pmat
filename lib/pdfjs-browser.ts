@@ -19,6 +19,11 @@ type ConstructorName =
   | "BigInt64Array"
   | "BigUint64Array";
 
+type BytesCapable = {
+  bytes?: () => Promise<Uint8Array>;
+  arrayBuffer: () => Promise<ArrayBuffer>;
+};
+
 installPdfJsBrowserPolyfills();
 
 export async function loadPdfJs() {
@@ -54,7 +59,10 @@ function installPdfJsBrowserPolyfills() {
   }
 
   defineAt(Array.prototype);
+  defineFindLast(Array.prototype);
   defineAt(String.prototype);
+  if (typeof Blob !== "undefined") defineBytes(Blob.prototype as BytesCapable);
+  if (typeof Response !== "undefined") defineBytes(Response.prototype as BytesCapable);
 
   const typedArrayNames: ConstructorName[] = [
     "Int8Array",
@@ -89,6 +97,56 @@ function defineAt(prototype: { at?: (index: number) => unknown } | undefined) {
       const resolvedIndex = relativeIndex < 0 ? length + relativeIndex : relativeIndex;
 
       return resolvedIndex < 0 || resolvedIndex >= length ? undefined : this[resolvedIndex];
+    },
+  });
+}
+
+function defineFindLast<T>(prototype: {
+  findLast?: (
+    predicate: (value: T, index: number, array: ArrayLike<T>) => unknown,
+    thisArg?: unknown,
+  ) => T | undefined;
+} | undefined) {
+  if (!prototype || prototype.findLast) return;
+
+  Object.defineProperty(prototype, "findLast", {
+    configurable: true,
+    writable: true,
+    value: function findLast(
+      this: ArrayLike<T> | null | undefined,
+      predicate: (value: T, index: number, array: ArrayLike<T>) => unknown,
+      thisArg?: unknown,
+    ) {
+      if (this == null) {
+        throw new TypeError("Array.prototype.findLast called on null or undefined");
+      }
+
+      if (typeof predicate !== "function") {
+        throw new TypeError("predicate must be a function");
+      }
+
+      const object = Object(this) as ArrayLike<T>;
+      const length = object.length >>> 0;
+      for (let index = length - 1; index >= 0; index--) {
+        const value = object[index];
+        if (predicate.call(thisArg, value, index, object)) {
+          return value;
+        }
+      }
+
+      return undefined;
+    },
+  });
+}
+
+function defineBytes(prototype: BytesCapable | undefined) {
+  if (!prototype || prototype.bytes) return;
+
+  Object.defineProperty(prototype, "bytes", {
+    configurable: true,
+    writable: true,
+    value: async function bytes(this: BytesCapable) {
+      return new Uint8Array(await this.arrayBuffer());
     },
   });
 }
