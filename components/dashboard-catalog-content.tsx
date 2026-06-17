@@ -16,6 +16,7 @@ import { useRole } from "@/components/role-provider";
 import { Button } from "@/components/ui/button";
 import {
   previewThesisSyncFromGoogleSheets,
+  syncExistingThesisPdfUrlsFromGoogleSheets,
   syncThesisFromGoogleSheets,
   type GoogleSheetThesisCandidate,
 } from "@/app/dashboard/katalog/actions";
@@ -95,6 +96,7 @@ export function DashboardCatalogActions() {
             {canImport ? <CatalogImportDialog importType="thesis" triggerLabel="Import skripsi" /> : null}
             {canAddThesis ? <AddThesisDialog /> : null}
             {canSyncThesis ? <SyncGoogleSheetButton /> : null}
+            {canSyncThesis ? <UpdateThesisPdfLinksButton /> : null}
           </div>
         </div>
       </div>
@@ -104,6 +106,43 @@ export function DashboardCatalogActions() {
         </p>
       ) : null}
     </section>
+  );
+}
+
+function UpdateThesisPdfLinksButton() {
+  const [isPending, startTransition] = useTransition();
+
+  const handleUpdate = () => {
+    startTransition(async () => {
+      const result = await syncExistingThesisPdfUrlsFromGoogleSheets();
+      if (!result.ok) {
+        toast.error("Update Link Gagal", {
+          description: result.message,
+        });
+        return;
+      }
+
+      toast.success("Link PDF Diperbarui", {
+        description:
+          result.skipped && result.skipped > 0
+            ? `${result.message} ${result.skipped} data dilewati karena belum cocok atau belum ada link publik.`
+            : result.message,
+      });
+    });
+  };
+
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      className="rounded-xl border-emerald-200 bg-emerald-50 text-emerald-900 hover:bg-emerald-100 hover:text-emerald-950"
+      onClick={handleUpdate}
+      disabled={isPending}
+    >
+      <RefreshCw className={cn("mr-2 size-4", isPending && "animate-spin")} />
+      {isPending ? "Memperbarui..." : "Update PDF kolom D"}
+    </Button>
   );
 }
 
