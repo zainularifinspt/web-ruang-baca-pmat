@@ -32,14 +32,6 @@ type QueuedPageRender = {
 let activePageRenders = 0;
 const pageRenderQueue: QueuedPageRender[] = [];
 
-type PromiseWithResolvers = typeof Promise & {
-  withResolvers?: <T>() => {
-    promise: Promise<T>;
-    resolve: (value: T | PromiseLike<T>) => void;
-    reject: (reason?: unknown) => void;
-  };
-};
-
 type ThesisPdfViewerProps = {
   pdfUrl?: string;
   pdfFilename?: string;
@@ -56,13 +48,7 @@ export function ThesisPdfViewer({ pdfUrl, studentName }: ThesisPdfViewerProps) {
     if (!open || !resolvedPdfUrl) return;
 
     const warmup = window.setTimeout(() => {
-      installPdfJsBrowserPolyfills();
-      void import("pdfjs-dist/legacy/build/pdf.mjs").then((pdfjs) => {
-        pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-          "pdfjs-dist/legacy/build/pdf.worker.mjs",
-          import.meta.url,
-        ).toString();
-      });
+      void import("@/lib/pdfjs-browser").then(({ loadPdfJs }) => loadPdfJs());
     }, 250);
 
     return () => window.clearTimeout(warmup);
@@ -202,12 +188,8 @@ function PdfCanvasReader({
       setLoadingProgress(0);
 
       try {
-        installPdfJsBrowserPolyfills();
-        const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
-        pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-          "pdfjs-dist/legacy/build/pdf.worker.mjs",
-          import.meta.url,
-        ).toString();
+        const { loadPdfJs } = await import("@/lib/pdfjs-browser");
+        const pdfjs = await loadPdfJs();
 
         const documentOptions = {
           url: pdfUrl,
@@ -539,41 +521,6 @@ function clampZoom(value: number) {
 function getScrollRatio(value: number, maxValue: number) {
   if (maxValue <= 0) return 0;
   return Math.max(0, Math.min(1, value / maxValue));
-}
-
-function installPdfJsBrowserPolyfills() {
-  const promiseConstructor = Promise as PromiseWithResolvers;
-
-  if (!promiseConstructor.withResolvers) {
-    Object.defineProperty(Promise, "withResolvers", {
-      configurable: true,
-      writable: true,
-      value: function withResolvers<T>() {
-        let resolve!: (value: T | PromiseLike<T>) => void;
-        let reject!: (reason?: unknown) => void;
-        const promise = new Promise<T>((promiseResolve, promiseReject) => {
-          resolve = promiseResolve;
-          reject = promiseReject;
-        });
-
-        return { promise, resolve, reject };
-      },
-    });
-  }
-
-  if (!Array.prototype.at) {
-    Object.defineProperty(Array.prototype, "at", {
-      configurable: true,
-      writable: true,
-      value: function at<T>(this: T[], index: number) {
-        const length = this.length;
-        const relativeIndex = Math.trunc(index) || 0;
-        const resolvedIndex = relativeIndex < 0 ? length + relativeIndex : relativeIndex;
-
-        return resolvedIndex < 0 || resolvedIndex >= length ? undefined : this[resolvedIndex];
-      },
-    });
-  }
 }
 
 async function detectChapterFourPages(document: PDFDocumentProxy) {
