@@ -117,8 +117,10 @@ function PdfCanvasReader({
   title: string;
 }) {
   const [document, setDocument] = useState<PDFDocumentProxy | null>(null);
+  const [hiddenPageNumbers, setHiddenPageNumbers] = useState<Set<number>>(() => new Set());
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState("Memuat file PDF...");
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
@@ -184,8 +186,10 @@ function PdfCanvasReader({
 
     async function loadPdf() {
       setIsLoading(true);
+      setLoadingMessage("Memuat file PDF...");
       setError("");
       setDocument(null);
+      setHiddenPageNumbers(new Set());
       setLoadingProgress(0);
 
       try {
@@ -213,7 +217,15 @@ function PdfCanvasReader({
         loadedDocument = await loadingTask.promise;
 
         if (!isCancelled) {
+          setLoadingMessage("Menyiapkan PDF tanpa Bab IV...");
+          const nextHiddenPageNumbers = await detectChapterFourPages(loadedDocument);
+          if (isCancelled) {
+            loadedDocument.destroy();
+            return;
+          }
+
           setLoadingProgress(100);
+          setHiddenPageNumbers(nextHiddenPageNumbers);
           setDocument(loadedDocument);
         } else {
           loadedDocument.destroy();
@@ -276,7 +288,7 @@ function PdfCanvasReader({
       clearTimeout(timeout);
       observer.disconnect();
     };
-  }, [document, zoom, rotation]);
+  }, [document, hiddenPageNumbers, zoom, rotation]);
 
   useEffect(() => {
     if (!document) return;
@@ -351,9 +363,9 @@ function PdfCanvasReader({
       <div className="flex h-full items-center justify-center px-6 text-center text-sm font-medium text-slate-500">
         <div className="w-full max-w-sm space-y-3">
           <div>
-            <p>Memuat file PDF...</p>
+            <p>{loadingMessage}</p>
             <p className="mt-1 text-xs font-normal text-slate-400">
-              PDF dirender sebagai gambar agar teks tidak bisa disalin.
+              PDF dirender sebagai gambar dan Bab IV disembunyikan dari pembaca.
             </p>
           </div>
           <div className="h-2 overflow-hidden rounded-full bg-white">
@@ -381,6 +393,9 @@ function PdfCanvasReader({
   if (!document) {
     return null;
   }
+
+  const visiblePageNumbers = Array.from({ length: document.numPages }, (_, index) => index + 1)
+    .filter((pageNumber) => !hiddenPageNumbers.has(pageNumber));
 
   return (
     <div className="relative h-full overflow-hidden bg-slate-200">
@@ -416,7 +431,7 @@ function PdfCanvasReader({
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   const newPage = parseInt(inputPage, 10);
-                  if (newPage >= 1 && newPage <= document.numPages) {
+                  if (newPage >= 1 && newPage <= document.numPages && !hiddenPageNumbers.has(newPage)) {
                     const element = window.document.getElementById(`pdf-page-${newPage}`);
                     if (element) {
                       element.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -428,7 +443,7 @@ function PdfCanvasReader({
               }}
               onBlur={() => {
                 const newPage = parseInt(inputPage, 10);
-                if (newPage >= 1 && newPage <= document.numPages) {
+                if (newPage >= 1 && newPage <= document.numPages && !hiddenPageNumbers.has(newPage)) {
                   const element = window.document.getElementById(`pdf-page-${newPage}`);
                   if (element) {
                     element.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -482,12 +497,17 @@ function PdfCanvasReader({
             Putar
           </Button>
         </div>
+        {hiddenPageNumbers.size ? (
+          <p className="mx-auto mb-4 w-fit rounded-full bg-white/90 px-3 py-1 text-xs font-medium text-slate-500 shadow-sm">
+            Bab IV disembunyikan dari viewer
+          </p>
+        ) : null}
         <div className="mx-auto flex w-max min-w-full flex-col items-center gap-6">
-          {Array.from({ length: document.numPages }, (_, index) => (
+          {visiblePageNumbers.map((pageNumber) => (
             <PdfCanvasPage
-              key={`${pdfUrl}-${index + 1}`}
+              key={`${pdfUrl}-${pageNumber}`}
               document={document}
-              pageNumber={index + 1}
+              pageNumber={pageNumber}
               pageBaseWidth={pageBaseWidth}
               rotation={rotation}
               zoom={zoom}
@@ -506,6 +526,43 @@ function clampZoom(value: number) {
 function getScrollRatio(value: number, maxValue: number) {
   if (maxValue <= 0) return 0;
   return Math.max(0, Math.min(1, value / maxValue));
+}
+
+async function detectChapterFourPages(document: PDFDocumentProxy) {
+  const hiddenPageNumbers = new Set<number>();
+  let chapterFourStart = 0;
+  let chapterFiveStart = 0;
+
+  for (let pageNumber = 1; pageNumber <= document.numPages; pageNumber++) {
+    const page = await document.getPage(pageNumber);
+
+    try {
+      const textContent = await page.getTextContent();
+      const pageText = textContent.items
+        .map((item) => ("str" in item && typeof item.str === "string" ? item.str : ""))
+        .join(" ")
+        .replace(/\s+/g, " ")
+        .toUpperCase();
+
+      if (!chapterFourStart && /^(\d+\s+)?BAB\s*(IV|4)\b/.test(pageText)) {
+        chapterFourStart = pageNumber;
+      } else if (chapterFourStart && /^(\d+\s+)?BAB\s*(V|5)\b/.test(pageText)) {
+        chapterFiveStart = pageNumber;
+        break;
+      }
+    } finally {
+      page.cleanup();
+    }
+  }
+
+  if (!chapterFourStart) return hiddenPageNumbers;
+
+  const endPage = chapterFiveStart ? chapterFiveStart - 1 : document.numPages;
+  for (let pageNumber = chapterFourStart; pageNumber <= endPage; pageNumber++) {
+    hiddenPageNumbers.add(pageNumber);
+  }
+
+  return hiddenPageNumbers;
 }
 
 function queuePdfPageRender(run: () => Promise<void>) {
