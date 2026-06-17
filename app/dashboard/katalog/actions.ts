@@ -217,7 +217,10 @@ export async function syncExistingThesisPdfUrlsFromGoogleSheets(): Promise<
         continue;
       }
 
-      if ((thesis.pdf_url ?? "").trim() === publicPdfUrl) continue;
+      if ((thesis.pdf_url ?? "").trim() === publicPdfUrl) {
+        await writeThesisPdfOverrideFromId(thesis.id, { pdf_url: publicPdfUrl });
+        continue;
+      }
 
       const result = await updateThesisRow(thesis.id, { pdf_url: publicPdfUrl });
       if (result.ok) updatedCount++;
@@ -613,6 +616,7 @@ async function updateThesisRow(id: string, payload: MutationPayload) {
     if (typeof payload.verification_status === "string") {
       await writeThesisVerificationOverride(id, payload.verification_status as VerificationStatus);
     }
+    await writeThesisPdfOverrideFromId(id, payload);
     return success("ok");
   }
 
