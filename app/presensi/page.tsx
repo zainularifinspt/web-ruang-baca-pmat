@@ -3,6 +3,7 @@
 import { type ComponentType, type FormEvent, type ReactNode, useEffect, useState } from "react";
 import Link from "next/link";
 import {
+  AlertCircle,
   ArrowLeft,
   CalendarCheck,
   CheckCircle2,
@@ -236,7 +237,7 @@ export default function AttendancePage() {
                       />
                     </div>
                     {matchedUser ? (
-                      <div className="flex w-fit items-center gap-2 rounded-full bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 shadow-sm ring-1 ring-red-100">
+                      <div className="flex w-fit items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 shadow-sm ring-1 ring-emerald-100">
                         <CheckCircle2 className="size-3.5" />
                         Data ditemukan
                       </div>
@@ -245,9 +246,10 @@ export default function AttendancePage() {
                         Mencari data NIM/NIP...
                       </p>
                     ) : isUnknownIdentifier ? (
-                      <p className="rounded-2xl bg-amber-50 px-3 py-2 text-sm text-amber-800 ring-1 ring-amber-100">
-                        Data belum ditemukan, silakan lengkapi manual.
-                      </p>
+                      <div className="flex w-fit items-center gap-2 rounded-full bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 shadow-sm ring-1 ring-red-100">
+                        <AlertCircle className="size-3.5" />
+                        Data tidak ditemukan, silakan lengkapi manual.
+                      </div>
                     ) : null}
                   </div>
 
