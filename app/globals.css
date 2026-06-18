@@ -212,3 +212,53 @@ a {
   transform: translate3d(0, 0, 0);
   backface-visibility: hidden;
 }
+
+/* Claymorphism Shapes */
+.clay-shape {
+  background: #ffffff;
+  border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+  box-shadow: 
+    15px 15px 30px rgba(0, 0, 0, 0.05),
+    inset 10px 10px 20px rgba(255, 255, 255, 0.8),
+    inset -10px -10px 20px rgba(0, 0, 0, 0.05);
+  animation: morph 8s ease-in-out infinite both alternate, drift 20s infinite alternate ease-in-out;
+}
+
+@keyframes morph {
+  0% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; }
+  34% { border-radius: 70% 30% 50% 50% / 30% 30% 70% 70%; }
+  67% { border-radius: 100% 60% 60% 100% / 100% 100% 60% 60%; }
+  100% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; }
+}
+
+.clay-color-1 {
+  background: #fecaca;
+  box-shadow: 
+    15px 15px 30px rgba(239, 68, 68, 0.15),
+    inset 10px 10px 20px rgba(255, 255, 255, 0.9),
+    inset -10px -10px 20px rgba(220, 38, 38, 0.08);
+}
+
+.clay-color-2 {
+  background: #fef08a;
+  box-shadow: 
+    15px 15px 30px rgba(234, 179, 8, 0.15),
+    inset 10px 10px 20px rgba(255, 255, 255, 0.9),
+    inset -10px -10px 20px rgba(202, 138, 4, 0.08);
+}
+
+.clay-color-3 {
+  background: #fed7aa;
+  box-shadow: 
+    15px 15px 30px rgba(249, 115, 22, 0.15),
+    inset 10px 10px 20px rgba(255, 255, 255, 0.9),
+    inset -10px -10px 20px rgba(234, 88, 12, 0.08);
+}
+
+.clay-color-4 {
+  background: #e0f2fe;
+  box-shadow: 
+    15px 15px 30px rgba(14, 165, 233, 0.15),
+    inset 10px 10px 20px rgba(255, 255, 255, 0.9),
+    inset -10px -10px 20px rgba(2, 132, 197, 0.08);
+}

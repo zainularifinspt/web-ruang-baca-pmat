@@ -167,26 +167,17 @@ function MathBackdrop() {
       {/* Modern dot pattern background */}
       <div className="absolute inset-0 bg-[radial-gradient(#94a3b8_1px,transparent_1px)] [background-size:24px_24px] [mask-image:radial-gradient(ellipse_100%_100%_at_50%_30%,#000_60%,transparent_100%)] opacity-20" />
       
-      {/* Soft Gemini-inspired gradient orbs */}
+      {/* Soft Gemini-inspired gradient orbs (toned down to blend with claymorphism) */}
       <div className="absolute -left-20 top-[-10%] hidden size-[28rem] rounded-full bg-gradient-to-tr from-yellow-400/8 via-rose-400/6 to-transparent blur-[44px] lg:block" />
       <div className="absolute -right-20 top-[10%] hidden size-[30rem] rounded-full bg-gradient-to-br from-orange-400/8 via-purple-400/6 to-transparent blur-[52px] xl:block" />
-      <div className="absolute left-[20%] top-[40%] hidden size-[24rem] rounded-full bg-gradient-to-tr from-red-400/4 via-yellow-400/4 to-transparent blur-[48px] xl:block" />
       
-      {/* Mathematical glyphs and outlines */}
-      <div className="absolute left-[-2rem] top-28 hidden text-[11rem] font-light leading-none text-red-600/[0.04] sm:block">
-        ∫
-      </div>
-      <div className="absolute right-[9%] top-24 hidden text-7xl font-semibold text-amber-600/[0.05] lg:block">
-        Σ
-      </div>
-      <div className="absolute left-[18%] top-20 hidden text-3xl italic text-red-600/[0.06] sm:block">
-        A = πr²
-      </div>
-      <div className="absolute right-[18%] top-20 hidden text-3xl italic text-orange-600/[0.06] lg:block">
-        f(x) = x² - 4x + 3
-      </div>
-      <div className="absolute left-[5%] top-48 hidden h-36 w-56 -rotate-12 rounded-[50%] border border-red-500/[0.05] sm:block" />
-      <div className="absolute bottom-28 right-[7%] hidden size-32 rotate-45 border border-amber-500/[0.05] lg:block" />
+      {/* Claymorphism Floating Shapes */}
+      <div className="clay-shape clay-color-1 absolute -left-10 top-[5%] hidden size-[18rem] opacity-80 sm:block" />
+      <div className="clay-shape clay-color-2 absolute -right-16 top-[15%] hidden size-[22rem] opacity-70 lg:block" style={{ animationDelay: '-2s' }} />
+      <div className="clay-shape clay-color-3 absolute left-[20%] top-[40%] hidden size-[15rem] opacity-80 lg:block" style={{ animationDelay: '-4s' }} />
+      <div className="clay-shape clay-color-4 absolute right-[25%] top-[50%] hidden size-[16rem] opacity-70 sm:block" style={{ animationDelay: '-6s' }} />
+      <div className="clay-shape absolute left-[45%] top-[10%] hidden size-[12rem] opacity-90 lg:block" style={{ animationDelay: '-3s' }} />
+      <div className="clay-shape clay-color-1 absolute right-[10%] bottom-[10%] hidden size-[14rem] opacity-70 sm:block" style={{ animationDelay: '-8s' }} />
     </div>
   );
 }
