@@ -33,21 +33,21 @@ export default async function HomePage() {
   return (
     <div className="min-h-screen bg-[#fafbfe] text-slate-950 antialiased selection:bg-yellow-500/20 selection:text-yellow-900">
       <PublicNav initialSearchItems={searchItems} />
-      <main className="relative overflow-hidden bg-[linear-gradient(180deg,#fafbfe_0%,#f5f8ff_50%,#fafbfe_100%)]">
+      <main className="relative overflow-hidden bg-gradient-to-b from-[#fc5c4c] via-[#fa793d] to-[#fafbfe]">
         <MathBackdrop />
 
         <section className="relative mx-auto max-w-6xl px-4 pb-12 pt-14 text-center sm:px-6 sm:pb-16 sm:pt-20 lg:pb-20 lg:pt-28">
-          <Badge className="rounded-full border-white/60 bg-white/75 px-4.5 py-1.5 text-red-800 shadow-sm transition-colors duration-200 hover:bg-white/90 font-semibold border text-xs">
+          <Badge className="rounded-full border-white/30 bg-white/20 px-4.5 py-1.5 text-white shadow-sm transition-colors duration-200 hover:bg-white/30 font-semibold border text-xs">
             <Image src="/ulm-logo.png" alt="Logo Universitas Lambung Mangkurat" width={22} height={22} className="mr-2 size-4.5 object-contain" priority />
             Jurusan Pendidikan Matematika ULM
           </Badge>
-          <h1 className="mx-auto mt-8 max-w-4xl text-4xl font-extrabold leading-[1.05] tracking-tight text-slate-950 sm:text-6xl lg:text-7xl">
+          <h1 className="mx-auto mt-8 max-w-4xl text-4xl font-extrabold leading-[1.05] tracking-tight text-white sm:text-6xl lg:text-7xl">
             Ruang Baca{" "}
-            <span className="bg-gradient-to-r from-red-600 via-yellow-600 to-orange-600 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-yellow-200 via-yellow-100 to-white bg-clip-text text-transparent">
               Pendidikan Matematika
             </span>
           </h1>
-          <p className="mx-auto mt-6 max-w-3xl text-sm leading-7 text-slate-500 sm:text-base md:text-lg">
+          <p className="mx-auto mt-6 max-w-3xl text-sm leading-7 text-white/90 sm:text-base md:text-lg font-medium">
             Portal referensi akademik Jurusan Pendidikan Matematika Universitas Lambung Mangkurat
             untuk menemukan buku, skripsi, lokasi koleksi, dan informasi ruang baca dengan cepat.
           </p>
@@ -164,20 +164,41 @@ function StatTile({
 function MathBackdrop() {
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-      {/* Modern dot pattern background */}
-      <div className="absolute inset-0 bg-[radial-gradient(#94a3b8_1px,transparent_1px)] [background-size:24px_24px] [mask-image:radial-gradient(ellipse_100%_100%_at_50%_30%,#000_60%,transparent_100%)] opacity-20" />
+      {/* Soft gradient orb to blend the top background */}
+      <div className="absolute -left-20 top-[-10%] hidden size-[40rem] rounded-full bg-gradient-to-tr from-yellow-400/20 via-rose-400/10 to-transparent blur-[60px] lg:block" />
       
-      {/* Soft Gemini-inspired gradient orbs (toned down to blend with claymorphism) */}
-      <div className="absolute -left-20 top-[-10%] hidden size-[28rem] rounded-full bg-gradient-to-tr from-yellow-400/8 via-rose-400/6 to-transparent blur-[44px] lg:block" />
-      <div className="absolute -right-20 top-[10%] hidden size-[30rem] rounded-full bg-gradient-to-br from-orange-400/8 via-purple-400/6 to-transparent blur-[52px] xl:block" />
+      {/* Vibrant 3D Floating Shapes */}
+      {/* Top Left Giant Comet */}
+      <div className="vibrant-comet float-anim-1 absolute -left-20 top-[-5%] size-[24rem] opacity-90 sm:block hidden" />
       
-      {/* Claymorphism Floating Shapes */}
-      <div className="clay-shape clay-color-1 absolute -left-10 top-[5%] hidden size-[18rem] opacity-80 sm:block" />
-      <div className="clay-shape clay-color-2 absolute -right-16 top-[15%] hidden size-[22rem] opacity-70 lg:block" style={{ animationDelay: '-2s' }} />
-      <div className="clay-shape clay-color-3 absolute left-[20%] top-[40%] hidden size-[15rem] opacity-80 lg:block" style={{ animationDelay: '-4s' }} />
-      <div className="clay-shape clay-color-4 absolute right-[25%] top-[50%] hidden size-[16rem] opacity-70 sm:block" style={{ animationDelay: '-6s' }} />
-      <div className="clay-shape absolute left-[45%] top-[10%] hidden size-[12rem] opacity-90 lg:block" style={{ animationDelay: '-3s' }} />
-      <div className="clay-shape clay-color-1 absolute right-[10%] bottom-[10%] hidden size-[14rem] opacity-70 sm:block" style={{ animationDelay: '-8s' }} />
+      {/* Middle Left Sphere */}
+      <div className="vibrant-sphere float-anim-2 absolute left-[15%] top-[35%] size-[12rem] opacity-90 lg:block hidden" style={{ animationDelay: '-2s' }} />
+      
+      {/* Bottom Left Small Sphere */}
+      <div className="vibrant-sphere float-anim-1 absolute left-[30%] top-[60%] size-[6rem] opacity-80 sm:block hidden" style={{ animationDelay: '-5s' }} />
+      
+      {/* Top Right Small Sphere */}
+      <div className="vibrant-sphere float-anim-2 absolute right-[35%] top-[5%] size-[5rem] opacity-80 lg:block hidden" style={{ animationDelay: '-3s' }} />
+      
+      {/* Middle Right Spheres */}
+      <div className="vibrant-sphere float-anim-1 absolute right-[15%] top-[25%] size-[8rem] opacity-90 sm:block hidden" style={{ animationDelay: '-1s' }} />
+      <div className="vibrant-sphere float-anim-2 absolute right-[8%] top-[35%] size-[4rem] opacity-70 lg:block hidden" style={{ animationDelay: '-7s' }} />
+      
+      {/* Bottom Right Giant Comet/Sphere */}
+      <div className="vibrant-sphere float-anim-1 absolute -right-10 bottom-[10%] size-[26rem] opacity-90 lg:block hidden" style={{ animationDelay: '-4s' }} />
+      
+      {/* Geometric Outlines & Dots */}
+      <div className="geo-outline geo-circle absolute left-[10%] top-[15%] size-6 opacity-60 float-anim-2" />
+      <div className="geo-triangle absolute left-[25%] top-[8%] opacity-50 float-anim-1" style={{ animationDelay: '-2s' }} />
+      <div className="geo-cross absolute right-[20%] top-[10%] opacity-70 float-anim-2" style={{ animationDelay: '-1s' }} />
+      <div className="geo-outline geo-circle absolute right-[25%] top-[20%] size-8 opacity-50 float-anim-1" />
+      <div className="geo-triangle absolute right-[10%] bottom-[30%] opacity-40 float-anim-2" style={{ transform: 'rotate(45deg)', animationDelay: '-3s' }} />
+      <div className="geo-outline geo-circle absolute left-[20%] bottom-[20%] size-10 opacity-40 float-anim-1" />
+      
+      <div className="geo-dot absolute left-[15%] top-[25%] size-2 opacity-80 float-anim-1" style={{ animationDelay: '-4s' }} />
+      <div className="geo-dot absolute right-[30%] top-[30%] size-1.5 opacity-60 float-anim-2" style={{ animationDelay: '-2s' }} />
+      <div className="geo-dot absolute right-[12%] top-[18%] size-3 opacity-90 float-anim-1" style={{ animationDelay: '-6s' }} />
+      <div className="geo-dot absolute left-[35%] top-[45%] size-2 opacity-70 float-anim-2" style={{ animationDelay: '-5s' }} />
     </div>
   );
 }

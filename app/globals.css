@@ -213,52 +213,75 @@ a {
   backface-visibility: hidden;
 }
 
-/* Claymorphism Shapes */
-.clay-shape {
-  background: #ffffff;
-  border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+/* Vibrant 3D Shapes */
+.vibrant-sphere {
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #fffde7 0%, #fde047 20%, #f97316 60%, #e11d48 100%);
   box-shadow: 
-    15px 15px 30px rgba(0, 0, 0, 0.05),
-    inset 10px 10px 20px rgba(255, 255, 255, 0.8),
-    inset -10px -10px 20px rgba(0, 0, 0, 0.05);
-  animation: morph 8s ease-in-out infinite both alternate, drift 20s infinite alternate ease-in-out;
+    10px 10px 30px rgba(225, 29, 72, 0.4),
+    inset -10px -10px 30px rgba(159, 18, 57, 0.5),
+    inset 10px 10px 20px rgba(255, 255, 255, 0.8);
+  will-change: transform;
 }
 
-@keyframes morph {
-  0% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; }
-  34% { border-radius: 70% 30% 50% 50% / 30% 30% 70% 70%; }
-  67% { border-radius: 100% 60% 60% 100% / 100% 100% 60% 60%; }
-  100% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; }
+.vibrant-comet {
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  background: linear-gradient(135deg, #fffde7 0%, #fde047 20%, #f97316 60%, #e11d48 100%);
+  box-shadow: 
+    10px 10px 30px rgba(225, 29, 72, 0.4),
+    inset -10px -10px 30px rgba(159, 18, 57, 0.5),
+    inset 10px 10px 20px rgba(255, 255, 255, 0.8);
+  will-change: transform;
 }
 
-.clay-color-1 {
-  background: #fecaca;
-  box-shadow: 
-    15px 15px 30px rgba(239, 68, 68, 0.15),
-    inset 10px 10px 20px rgba(255, 255, 255, 0.9),
-    inset -10px -10px 20px rgba(220, 38, 38, 0.08);
+@keyframes float-vibrant-1 {
+  0% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(30px, -40px) scale(1.05); }
+  66% { transform: translate(-20px, 30px) scale(0.95); }
+  100% { transform: translate(0, 0) scale(1); }
 }
 
-.clay-color-2 {
-  background: #fef08a;
-  box-shadow: 
-    15px 15px 30px rgba(234, 179, 8, 0.15),
-    inset 10px 10px 20px rgba(255, 255, 255, 0.9),
-    inset -10px -10px 20px rgba(202, 138, 4, 0.08);
+@keyframes float-vibrant-2 {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  50% { transform: translate(-40px, -20px) rotate(15deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
 }
 
-.clay-color-3 {
-  background: #fed7aa;
-  box-shadow: 
-    15px 15px 30px rgba(249, 115, 22, 0.15),
-    inset 10px 10px 20px rgba(255, 255, 255, 0.9),
-    inset -10px -10px 20px rgba(234, 88, 12, 0.08);
-}
+.float-anim-1 { animation: float-vibrant-1 15s infinite ease-in-out alternate; }
+.float-anim-2 { animation: float-vibrant-2 18s infinite ease-in-out alternate-reverse; }
 
-.clay-color-4 {
-  background: #e0f2fe;
-  box-shadow: 
-    15px 15px 30px rgba(14, 165, 233, 0.15),
-    inset 10px 10px 20px rgba(255, 255, 255, 0.9),
-    inset -10px -10px 20px rgba(2, 132, 197, 0.08);
+/* Geometry outlines */
+.geo-outline {
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  background: transparent;
+  will-change: transform;
+}
+.geo-circle { border-radius: 50%; }
+.geo-triangle {
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 16px solid rgba(255, 255, 255, 0.4);
+  background: transparent;
+  border-top: none;
+}
+.geo-cross {
+  position: relative;
+  width: 16px;
+  height: 16px;
+}
+.geo-cross::before, .geo-cross::after {
+  content: '';
+  position: absolute;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 2px;
+}
+.geo-cross::before { top: 6px; left: 0; width: 16px; height: 3px; }
+.geo-cross::after { top: 0; left: 6px; width: 3px; height: 16px; }
+
+.geo-dot {
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+  will-change: transform;
 }
