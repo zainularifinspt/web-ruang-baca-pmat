@@ -234,6 +234,29 @@ a {
   will-change: transform;
 }
 
+.vibrant-capsule {
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #fffde7 0%, #fde047 20%, #f97316 60%, #e11d48 100%);
+  box-shadow: 
+    10px 10px 30px rgba(225, 29, 72, 0.4),
+    inset -10px -10px 30px rgba(159, 18, 57, 0.5),
+    inset 10px 10px 20px rgba(255, 255, 255, 0.8);
+  will-change: transform;
+}
+
+.vibrant-math-symbol {
+  font-weight: 800;
+  background: linear-gradient(135deg, #fffde7 0%, #fde047 30%, #f97316 70%, #e11d48 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: 
+    drop-shadow(6px 6px 12px rgba(225, 29, 72, 0.5))
+    drop-shadow(-2px -2px 4px rgba(255, 255, 255, 0.3));
+  will-change: transform;
+  line-height: 1;
+}
+
 @keyframes float-vibrant-1 {
   0% { transform: translate(0, 0) scale(1); }
   33% { transform: translate(30px, -40px) scale(1.05); }

@@ -171,18 +171,24 @@ function MathBackdrop() {
       {/* Top Left Giant Comet */}
       <div className="vibrant-comet float-anim-1 absolute -left-20 top-[-5%] size-[24rem] opacity-90 sm:block hidden" />
       
-      {/* Middle Left Sphere */}
-      <div className="vibrant-sphere float-anim-2 absolute left-[15%] top-[35%] size-[12rem] opacity-90 lg:block hidden" style={{ animationDelay: '-2s' }} />
+      {/* Middle Left Math Symbol (Integral) */}
+      <div className="vibrant-math-symbol float-anim-2 absolute left-[12%] top-[30%] text-[14rem] opacity-90 lg:block hidden" style={{ animationDelay: '-2s' }}>
+        ∫
+      </div>
       
-      {/* Bottom Left Small Sphere */}
-      <div className="vibrant-sphere float-anim-1 absolute left-[30%] top-[60%] size-[6rem] opacity-80 sm:block hidden" style={{ animationDelay: '-5s' }} />
+      {/* Bottom Left Capsule (Cylinder) */}
+      <div className="vibrant-capsule float-anim-1 absolute left-[28%] top-[65%] h-[4rem] w-[12rem] rotate-12 opacity-80 sm:block hidden" style={{ animationDelay: '-5s' }} />
       
       {/* Top Right Small Sphere */}
-      <div className="vibrant-sphere float-anim-2 absolute right-[35%] top-[5%] size-[5rem] opacity-80 lg:block hidden" style={{ animationDelay: '-3s' }} />
+      <div className="vibrant-sphere float-anim-2 absolute right-[35%] top-[8%] size-[5rem] opacity-80 lg:block hidden" style={{ animationDelay: '-3s' }} />
       
-      {/* Middle Right Spheres */}
-      <div className="vibrant-sphere float-anim-1 absolute right-[15%] top-[25%] size-[8rem] opacity-90 sm:block hidden" style={{ animationDelay: '-1s' }} />
-      <div className="vibrant-sphere float-anim-2 absolute right-[8%] top-[35%] size-[4rem] opacity-70 lg:block hidden" style={{ animationDelay: '-7s' }} />
+      {/* Middle Right Math Symbol (Sigma) */}
+      <div className="vibrant-math-symbol float-anim-1 absolute right-[15%] top-[25%] text-[10rem] opacity-90 sm:block hidden" style={{ animationDelay: '-1s' }}>
+        Σ
+      </div>
+      
+      {/* Middle Right Capsule */}
+      <div className="vibrant-capsule float-anim-2 absolute right-[10%] top-[45%] h-[3rem] w-[8rem] -rotate-45 opacity-80 lg:block hidden" style={{ animationDelay: '-7s' }} />
       
       {/* Bottom Right Giant Comet/Sphere */}
       <div className="vibrant-sphere float-anim-1 absolute -right-10 bottom-[10%] size-[26rem] opacity-90 lg:block hidden" style={{ animationDelay: '-4s' }} />
