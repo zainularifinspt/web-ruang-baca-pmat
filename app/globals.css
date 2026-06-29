@@ -256,6 +256,8 @@ a {
     drop-shadow(-2px -2px 4px rgba(255, 255, 255, 0.3));
   will-change: transform;
   line-height: 1;
+  padding: 0.25em 0.25em;
+  margin: -0.25em -0.25em;
 }
 
 @keyframes float-vibrant-1 {
