@@ -196,7 +196,7 @@ function MathBackdrop() {
       <div className="vibrant-comet float-anim-1 absolute -left-20 top-[-5%] size-[24rem] opacity-90 sm:block hidden" />
       
       {/* Middle Left Math Symbol (Integral) */}
-      <div className="vibrant-math-symbol float-anim-2 absolute left-[12%] top-[30%] text-[14rem] opacity-90 lg:block hidden" style={{ animationDelay: '-2s' }}>
+      <div className="vibrant-math-symbol float-anim-2 absolute left-[12%] top-[30%] text-[14rem] opacity-90 lg:block hidden italic" style={{ animationDelay: '-2s' }}>
         ∫
       </div>
       
@@ -208,7 +208,7 @@ function MathBackdrop() {
       
       {/* Middle Right Math Symbol (Sigma) */}
       <div className="vibrant-math-symbol float-anim-1 absolute right-[15%] top-[25%] text-[10rem] opacity-90 sm:block hidden" style={{ animationDelay: '-1s' }}>
-        Σ
+        ∑
       </div>
       
       {/* Middle Right Capsule */}

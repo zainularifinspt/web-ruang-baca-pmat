@@ -245,7 +245,8 @@ a {
 }
 
 .vibrant-math-symbol {
-  font-weight: 800;
+  font-family: "Cambria Math", "STIXGeneral", "Times New Roman", "Georgia", serif;
+  font-weight: 600;
   background: linear-gradient(135deg, #fffde7 0%, #fde047 30%, #f97316 70%, #e11d48 100%);
   -webkit-background-clip: text;
   background-clip: text;
