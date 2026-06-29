@@ -1,3 +1,5 @@
+"use client";
+
 import {
   BookMarked,
   Calendar,
@@ -12,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import type { Book, Thesis } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { FadeIn } from "@/components/ui/framer";
 
 type CollectionItem = Book | Thesis;
 
@@ -21,10 +24,19 @@ export function CollectionCard({ item }: { item: CollectionItem }) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <button
-          type="button"
-          className="group flex h-full min-h-[218px] flex-col overflow-hidden rounded-2xl bg-white text-left shadow-sm ring-1 ring-slate-200/75 transition duration-200 hover:-translate-y-0.5 hover:shadow-md hover:ring-red-200"
+        <FadeIn
+          whileHover={{ 
+            y: -5, 
+            scale: 1.015,
+            transition: { type: "spring", stiffness: 400, damping: 25 }
+          }}
+          whileTap={{ scale: 0.985 }}
+          className="h-full w-full block text-left cursor-pointer"
         >
+          <button
+            type="button"
+            className="group flex h-full w-full min-h-[218px] flex-col overflow-hidden rounded-2xl bg-white text-left shadow-sm ring-1 ring-slate-200/75 transition duration-200 hover:shadow-md hover:ring-red-200"
+          >
           <CompactHeader item={item} />
           <div className="flex flex-1 flex-col p-4">
             {isBook ? (
@@ -47,6 +59,7 @@ export function CollectionCard({ item }: { item: CollectionItem }) {
             )}
           </div>
         </button>
+        </FadeIn>
       </DialogTrigger>
       <CollectionDetailContent item={item} />
     </Dialog>

@@ -17,6 +17,7 @@ import { PublicNav } from "@/components/public-nav";
 import { RealtimeVisitorChart } from "@/components/realtime-visitor-chart";
 import { WebsiteVisitorStat } from "@/components/website-visitor-stat";
 import { Badge } from "@/components/ui/badge";
+import { FadeIn, FadeInStagger, ScaleIn } from "@/components/ui/framer";
 import {
   fetchPublicLandingStats,
   fetchPublicSearchItems,
@@ -36,31 +37,39 @@ export default async function HomePage() {
       <main className="relative overflow-hidden bg-gradient-to-b from-[#fc5c4c] via-[#fa793d] to-[#fafbfe]">
         <MathBackdrop />
 
-        <section className="relative mx-auto max-w-6xl px-4 pb-12 pt-14 text-center sm:px-6 sm:pb-16 sm:pt-20 lg:pb-20 lg:pt-28">
-          <Badge className="rounded-full border-white/30 bg-white/20 px-4.5 py-1.5 text-white shadow-sm transition-colors duration-200 hover:bg-white/30 font-semibold border text-xs">
-            <Image src="/ulm-logo.png" alt="Logo Universitas Lambung Mangkurat" width={22} height={22} className="mr-2 size-4.5 object-contain" priority />
-            Jurusan Pendidikan Matematika ULM
-          </Badge>
-          <h1 className="mx-auto mt-8 max-w-4xl text-4xl font-extrabold leading-[1.05] tracking-tight text-white sm:text-6xl lg:text-7xl">
-            Ruang Baca{" "}
-            <span className="bg-gradient-to-r from-yellow-200 via-yellow-100 to-white bg-clip-text text-transparent">
-              Pendidikan Matematika
-            </span>
-          </h1>
-          <p className="mx-auto mt-6 max-w-3xl text-sm leading-7 text-white/90 sm:text-base md:text-lg font-medium">
-            Portal referensi akademik Jurusan Pendidikan Matematika Universitas Lambung Mangkurat
-            untuk menemukan buku, skripsi, lokasi koleksi, dan informasi ruang baca dengan cepat.
-          </p>
+        <FadeInStagger>
+          <section className="relative mx-auto max-w-6xl px-4 pb-12 pt-14 text-center sm:px-6 sm:pb-16 sm:pt-20 lg:pb-20 lg:pt-28">
+            <FadeIn>
+              <Badge className="rounded-full border-white/30 bg-white/20 px-4.5 py-1.5 text-white shadow-sm transition-colors duration-200 hover:bg-white/30 font-semibold border text-xs">
+                <Image src="/ulm-logo.png" alt="Logo Universitas Lambung Mangkurat" width={22} height={22} className="mr-2 size-4.5 object-contain" priority />
+                Jurusan Pendidikan Matematika ULM
+              </Badge>
+            </FadeIn>
+            <FadeIn>
+              <h1 className="mx-auto mt-8 max-w-4xl text-4xl font-extrabold leading-[1.05] tracking-tight text-white sm:text-6xl lg:text-7xl">
+                Ruang Baca{" "}
+                <span className="bg-gradient-to-r from-yellow-200 via-yellow-100 to-white bg-clip-text text-transparent">
+                  Pendidikan Matematika
+                </span>
+              </h1>
+            </FadeIn>
+            <FadeIn>
+              <p className="mx-auto mt-6 max-w-3xl text-sm leading-7 text-white/90 sm:text-base md:text-lg font-medium">
+                Portal referensi akademik Jurusan Pendidikan Matematika Universitas Lambung Mangkurat
+                untuk menemukan buku, skripsi, lokasi koleksi, dan informasi ruang baca dengan cepat.
+              </p>
+            </FadeIn>
 
-          <div className="mt-10">
-            <LandingSearchForm />
-          </div>
-        </section>
+            <FadeIn className="mt-10">
+              <LandingSearchForm />
+            </FadeIn>
+          </section>
+        </FadeInStagger>
 
-        <section className="content-auto relative mx-auto max-w-5xl px-4 pb-6 sm:px-6">
+        <FadeInStagger className="content-auto relative mx-auto max-w-5xl px-4 pb-6 sm:px-6">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {/* Katalog Buku Button (Disabled) */}
-            <div className="glass-panel p-8 flex flex-col items-center justify-center text-center opacity-80 relative overflow-hidden">
+            <ScaleIn className="glass-panel p-8 flex flex-col items-center justify-center text-center opacity-80 relative overflow-hidden h-full">
               <div className="absolute top-4 right-4">
                 <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold text-slate-500 ring-1 ring-slate-200">
                   Belum Tersedia
@@ -73,52 +82,64 @@ export default async function HomePage() {
               <p className="mt-2 text-sm text-slate-500 font-medium px-4">
                 Saat ini tidak tersedia karena datanya belum ada.
               </p>
-            </div>
+            </ScaleIn>
 
             {/* Katalog Skripsi Button */}
-            <Link href="/katalog?tab=theses" className="glass-panel glass-panel-hover p-8 flex flex-col items-center justify-center text-center group relative overflow-hidden">
-              <div className="absolute top-4 right-4">
-                <span className="rounded-full bg-yellow-100 px-2.5 py-1 text-[10px] font-bold text-yellow-700 ring-1 ring-yellow-200/50">
-                  Tersedia
-                </span>
-              </div>
-              <div className="size-16 rounded-3xl bg-gradient-to-br from-yellow-50 to-orange-50 flex items-center justify-center text-orange-600 mb-5 shadow-inner ring-1 ring-white group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-500">
-                 <GraduationCap className="size-8" />
-              </div>
-              <h3 className="text-2xl font-bold tracking-tight text-slate-900">Katalog Skripsi</h3>
-              <p className="mt-2 text-sm text-slate-500 font-medium px-4">
-                Jelajahi dan temukan koleksi skripsi dan tugas akhir mahasiswa.
-              </p>
-            </Link>
+            <ScaleIn 
+              whileHover={{ y: -6, scale: 1.015, transition: { type: "spring", stiffness: 400, damping: 25 } }}
+              whileTap={{ scale: 0.985 }}
+              className="w-full h-full"
+            >
+              <Link href="/katalog?tab=theses" className="glass-panel glass-panel-hover p-8 flex flex-col items-center justify-center text-center group relative overflow-hidden h-full">
+                <div className="absolute top-4 right-4">
+                  <span className="rounded-full bg-yellow-100 px-2.5 py-1 text-[10px] font-bold text-yellow-700 ring-1 ring-yellow-200/50">
+                    Tersedia
+                  </span>
+                </div>
+                <div className="size-16 rounded-3xl bg-gradient-to-br from-yellow-50 to-orange-50 flex items-center justify-center text-orange-600 mb-5 shadow-inner ring-1 ring-white group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-500">
+                   <GraduationCap className="size-8" />
+                </div>
+                <h3 className="text-2xl font-bold tracking-tight text-slate-900">Katalog Skripsi</h3>
+                <p className="mt-2 text-sm text-slate-500 font-medium px-4">
+                  Jelajahi dan temukan koleksi skripsi dan tugas akhir mahasiswa.
+                </p>
+              </Link>
+            </ScaleIn>
 
             {/* Presensi Button */}
-            <Link href="/presensi" className="glass-panel glass-panel-hover p-8 flex flex-col items-center justify-center text-center group relative overflow-hidden">
-              <div className="absolute top-4 right-4">
-                <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-[10px] font-bold text-emerald-700 ring-1 ring-emerald-200/50">
-                  Terbuka
-                </span>
-              </div>
-              <div className="size-16 rounded-3xl bg-gradient-to-br from-emerald-50 to-teal-50 flex items-center justify-center text-emerald-600 mb-5 shadow-inner ring-1 ring-white group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
-                 <ScanLine className="size-8" />
-              </div>
-              <h3 className="text-2xl font-bold tracking-tight text-slate-900">Presensi Harian</h3>
-              <p className="mt-2 text-sm text-slate-500 font-medium px-4">
-                Catat kehadiran Anda saat mengunjungi ruang baca.
-              </p>
-            </Link>
+            <ScaleIn 
+              whileHover={{ y: -6, scale: 1.015, transition: { type: "spring", stiffness: 400, damping: 25 } }}
+              whileTap={{ scale: 0.985 }}
+              className="w-full h-full"
+            >
+              <Link href="/presensi" className="glass-panel glass-panel-hover p-8 flex flex-col items-center justify-center text-center group relative overflow-hidden h-full">
+                <div className="absolute top-4 right-4">
+                  <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-[10px] font-bold text-emerald-700 ring-1 ring-emerald-200/50">
+                    Terbuka
+                  </span>
+                </div>
+                <div className="size-16 rounded-3xl bg-gradient-to-br from-emerald-50 to-teal-50 flex items-center justify-center text-emerald-600 mb-5 shadow-inner ring-1 ring-white group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
+                   <ScanLine className="size-8" />
+                </div>
+                <h3 className="text-2xl font-bold tracking-tight text-slate-900">Presensi Harian</h3>
+                <p className="mt-2 text-sm text-slate-500 font-medium px-4">
+                  Catat kehadiran Anda saat mengunjungi ruang baca.
+                </p>
+              </Link>
+            </ScaleIn>
           </div>
-        </section>
+        </FadeInStagger>
 
-        <section className="content-auto relative mx-auto max-w-6xl px-4 py-6 sm:px-6">
+        <FadeIn className="content-auto relative mx-auto max-w-6xl px-4 py-6 sm:px-6">
           <RealtimeVisitorChart />
-        </section>
+        </FadeIn>
 
-        <section className="content-auto relative mx-auto grid max-w-6xl gap-5 px-4 pb-20 pt-4 sm:grid-cols-2 sm:px-6 lg:grid-cols-4">
+        <FadeInStagger className="content-auto relative mx-auto grid max-w-6xl gap-5 px-4 pb-20 pt-4 sm:grid-cols-2 sm:px-6 lg:grid-cols-4">
           <StatTile icon={BookOpen} label="Total Buku" value={stats.bookCount} description="Koleksi buku tersedia" />
           <StatTile icon={GraduationCap} label="Total Skripsi" value={stats.thesisCount} description="Koleksi skripsi tersedia" tone="sky" />
           <StatTile icon={Users} label="Total Petugas" value={stats.staffCount} description="Pengelola ruang baca" tone="violet" />
           <WebsiteVisitorStat initialCount={stats.todayWebsiteVisits} />
-        </section>
+        </FadeInStagger>
       </main>
       <Footer />
     </div>
@@ -148,7 +169,10 @@ function StatTile({
   };
 
   return (
-    <div className="group flex items-center gap-4 rounded-[2rem] border border-white/50 bg-white/70 p-6 shadow-sm transition-colors duration-200 hover:bg-white/90">
+    <FadeIn 
+      whileHover={{ y: -4, scale: 1.01, transition: { type: "spring", stiffness: 450, damping: 25 } }}
+      className="group flex items-center gap-4 rounded-[2rem] border border-white/50 bg-white/70 p-6 shadow-sm transition-colors duration-200 hover:bg-white/90 w-full"
+    >
       <span className={`flex size-14 shrink-0 items-center justify-center rounded-2xl shadow-sm ring-1 transition-transform duration-200 group-hover:scale-105 ${tones[tone]}`}>
         <Icon className="size-6" />
       </span>
@@ -157,7 +181,7 @@ function StatTile({
         <span className="mt-0.5 block text-sm font-bold text-slate-800">{label}</span>
         <span className="mt-0.5 block text-xs font-medium text-slate-400">{description}</span>
       </span>
-    </div>
+    </FadeIn>
   );
 }
 

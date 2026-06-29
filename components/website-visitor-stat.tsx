@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { TrendingUp } from "lucide-react";
+import { FadeIn } from "@/components/ui/framer";
 
 type WebsiteVisitorStatProps = {
   initialCount: number;
@@ -34,7 +35,10 @@ export function WebsiteVisitorStat({ initialCount }: WebsiteVisitorStatProps) {
   }, [loadCount]);
 
   return (
-    <div className="group flex items-center gap-4 rounded-[2rem] border border-white/40 bg-white/70 p-6 shadow-sm transition-all duration-200 hover:bg-white/90">
+    <FadeIn 
+      whileHover={{ y: -4, scale: 1.01, transition: { type: "spring", stiffness: 450, damping: 25 } }}
+      className="group flex items-center gap-4 rounded-[2rem] border border-white/40 bg-white/70 p-6 shadow-sm transition-all duration-200 hover:bg-white/90 w-full"
+    >
       <span className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500/10 via-yellow-500/5 to-transparent text-amber-700 shadow-sm ring-1 ring-amber-100/50 transition-all duration-300 group-hover:scale-105">
         <TrendingUp className="size-6" />
       </span>
@@ -47,6 +51,6 @@ export function WebsiteVisitorStat({ initialCount }: WebsiteVisitorStatProps) {
           Total pengunjung website hari ini
         </span>
       </span>
-    </div>
+    </FadeIn>
   );
 }

@@ -18,6 +18,7 @@
     "@supabase/supabase-js": "^2.106.0",
     "class-variance-authority": "latest",
     "clsx": "latest",
+    "framer-motion": "^12.42.0",
     "lucide-react": "latest",
     "next": "latest",
     "pdfjs-dist": "^5.7.284",
