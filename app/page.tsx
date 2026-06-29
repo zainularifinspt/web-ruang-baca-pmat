@@ -66,7 +66,7 @@ export default async function HomePage() {
           </section>
         </FadeInStagger>
 
-        <FadeInStagger className="content-auto relative mx-auto max-w-5xl px-4 pb-6 sm:px-6">
+        <FadeInStagger className="relative mx-auto max-w-5xl px-4 pb-6 sm:px-6">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {/* Katalog Buku Button (Disabled) */}
             <ScaleIn className="glass-panel p-8 flex flex-col items-center justify-center text-center opacity-80 relative overflow-hidden h-full">
@@ -130,11 +130,11 @@ export default async function HomePage() {
           </div>
         </FadeInStagger>
 
-        <FadeIn className="content-auto relative mx-auto max-w-6xl px-4 py-6 sm:px-6">
+        <FadeIn className="relative mx-auto max-w-6xl px-4 py-6 sm:px-6">
           <RealtimeVisitorChart />
         </FadeIn>
 
-        <FadeInStagger className="content-auto relative mx-auto grid max-w-6xl gap-5 px-4 pb-20 pt-4 sm:grid-cols-2 sm:px-6 lg:grid-cols-4">
+        <FadeInStagger className="relative mx-auto grid max-w-6xl gap-5 px-4 pb-20 pt-4 sm:grid-cols-2 sm:px-6 lg:grid-cols-4">
           <StatTile icon={BookOpen} label="Total Buku" value={stats.bookCount} description="Koleksi buku tersedia" />
           <StatTile icon={GraduationCap} label="Total Skripsi" value={stats.thesisCount} description="Koleksi skripsi tersedia" tone="sky" />
           <StatTile icon={Users} label="Total Petugas" value={stats.staffCount} description="Pengelola ruang baca" tone="violet" />
