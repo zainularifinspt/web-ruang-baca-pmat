@@ -630,8 +630,9 @@ const PdfCanvasPage = memo(function PdfCanvasPage({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [isVisible, setIsVisible] = useState(pageNumber === 1);
   const [isRendered, setIsRendered] = useState(false);
+  const [aspectRatio, setAspectRatio] = useState(1.414);
   const pageWidth = Math.round(Math.max(320, Math.min(MAX_RENDERED_PAGE_WIDTH, pageBaseWidth * zoom)));
-  const placeholderHeight = Math.round(pageWidth * 1.414);
+  const placeholderHeight = Math.round(pageWidth * aspectRatio);
 
   useEffect(() => {
     if (isVisible) return;
@@ -671,6 +672,11 @@ const PdfCanvasPage = memo(function PdfCanvasPage({
         if (isCancelled) return;
 
         const initialViewport = page.getViewport({ scale: 1, rotation });
+        
+        if (!isCancelled) {
+          setAspectRatio(initialViewport.height / initialViewport.width);
+        }
+
         const scale = pageWidth / initialViewport.width;
         const viewport = page.getViewport({ scale, rotation });
         const context = targetCanvas.getContext("2d", { alpha: false });
