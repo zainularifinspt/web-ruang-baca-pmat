@@ -128,16 +128,15 @@ function PdfCanvasReader({
 
   const zoomPercent = Math.round(zoom * 100);
 
-  const captureScrollRatio = useCallback(() => {
+  const captureScrollRatio = useCallback((focalX?: number, focalY?: number) => {
     if (pendingScrollRatioRef.current) return;
 
     const container = containerRef.current;
     if (!container || container.scrollWidth <= 0 || container.scrollHeight <= 0) return;
 
     const containerRect = container.getBoundingClientRect();
-    // Titik fokus diletakkan 120px dari atas layar (agar teks yang sedang dibaca di bagian atas tidak lari ke atas saat dizoom)
-    const absCenterY = containerRect.top + 120;
-    const absCenterX = containerRect.left + container.clientWidth / 2;
+    const absCenterY = focalY !== undefined ? focalY : containerRect.top + 90;
+    const absCenterX = focalX !== undefined ? focalX : containerRect.left + container.clientWidth / 2;
 
     const pageElements = Array.from(container.querySelectorAll('.pdf-page')) as HTMLElement[];
     let targetPage: HTMLElement | null = null;
@@ -175,6 +174,8 @@ function PdfCanvasReader({
         pageNumber,
         ratioY: rect.height > 0 ? offsetY / rect.height : 0,
         ratioX: rect.width > 0 ? offsetX / rect.width : 0,
+        focalY: absCenterY,
+        focalX: absCenterX,
         timerId,
       };
     } else {
@@ -187,8 +188,8 @@ function PdfCanvasReader({
     }
   }, []);
 
-  const updateZoom = useCallback((nextZoom: number | ((currentZoom: number) => number)) => {
-    captureScrollRatio();
+  const updateZoom = useCallback((nextZoom: number | ((currentZoom: number) => number), focalX?: number, focalY?: number) => {
+    captureScrollRatio(focalX, focalY);
     setZoom((currentZoom) => {
       const resolvedZoom = typeof nextZoom === "function" ? nextZoom(currentZoom) : nextZoom;
       return clampZoom(resolvedZoom);
@@ -217,16 +218,15 @@ function PdfCanvasReader({
     if (scrollInfo.type === 'page' && scrollInfo.pageNumber) {
       const targetPage = container.querySelector(`.pdf-page[data-page-number="${scrollInfo.pageNumber}"]`) as HTMLElement;
       if (targetPage) {
-        const containerRect = container.getBoundingClientRect();
-        const absCenterY = containerRect.top + 120;
-        const absCenterX = containerRect.left + container.clientWidth / 2;
+        const targetAbsY = scrollInfo.focalY !== undefined ? scrollInfo.focalY : (container.getBoundingClientRect().top + 90);
+        const targetAbsX = scrollInfo.focalX !== undefined ? scrollInfo.focalX : (container.getBoundingClientRect().left + container.clientWidth / 2);
         
         const rect = targetPage.getBoundingClientRect();
-        const targetAbsY = rect.top + rect.height * scrollInfo.ratioY;
-        const targetAbsX = rect.left + rect.width * scrollInfo.ratioX;
+        const newPointAbsY = rect.top + rect.height * scrollInfo.ratioY;
+        const newPointAbsX = rect.left + rect.width * scrollInfo.ratioX;
         
-        container.scrollTop += (targetAbsY - absCenterY);
-        container.scrollLeft += (targetAbsX - absCenterX);
+        container.scrollTop += (newPointAbsY - targetAbsY);
+        container.scrollLeft += (newPointAbsX - targetAbsX);
       }
     } else if (scrollInfo.type === 'fallback') {
       container.scrollLeft = scrollInfo.left * Math.max(0, container.scrollWidth - container.clientWidth);
@@ -492,6 +492,14 @@ function PdfCanvasReader({
           } else if (key === "0") {
             event.preventDefault();
             resetZoom();
+          }
+        }}
+        onWheel={(event) => {
+          if (event.ctrlKey || event.metaKey) {
+            event.preventDefault();
+            const delta = Math.abs(event.deltaY) > Math.abs(event.deltaX) ? event.deltaY : event.deltaX;
+            // delta bernilai negatif saat pinch in (zoom in) di Mac
+            updateZoom((currentZoom) => currentZoom - delta * 0.01, event.clientX, event.clientY);
           }
         }}
       >
