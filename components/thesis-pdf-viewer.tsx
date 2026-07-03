@@ -159,10 +159,6 @@ function PdfCanvasReader({
       });
     }
 
-    const timerId = setTimeout(() => {
-      pendingScrollRatioRef.current = null;
-    }, 150);
-
     if (targetPage) {
       const rect = targetPage.getBoundingClientRect();
       const pageNumber = targetPage.getAttribute('data-page-number');
@@ -176,14 +172,12 @@ function PdfCanvasReader({
         ratioX: rect.width > 0 ? offsetX / rect.width : 0,
         focalY: absCenterY,
         focalX: absCenterX,
-        timerId,
       };
     } else {
       pendingScrollRatioRef.current = {
         type: 'fallback',
         left: getScrollRatio(container.scrollLeft, container.scrollWidth - container.clientWidth),
         top: getScrollRatio(container.scrollTop, container.scrollHeight - container.clientHeight),
-        timerId,
       };
     }
   }, []);
@@ -212,8 +206,6 @@ function PdfCanvasReader({
     const scrollInfo = pendingScrollRatioRef.current;
     const container = containerRef.current;
     if (!scrollInfo || !container) return;
-
-    clearTimeout(scrollInfo.timerId);
 
     if (scrollInfo.type === 'page' && scrollInfo.pageNumber) {
       const targetPage = container.querySelector(`.pdf-page[data-page-number="${scrollInfo.pageNumber}"]`) as HTMLElement;
