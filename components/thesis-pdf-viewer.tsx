@@ -124,7 +124,7 @@ function PdfCanvasReader({
   const [pageBaseWidth, setPageBaseWidth] = useState(820);
   const containerRef = useRef<HTMLDivElement>(null);
   const gestureScaleRef = useRef(1);
-  const pendingScrollRatioRef = useRef<{ left: number; top: number } | null>(null);
+  const pendingScrollRatioRef = useRef<any>(null);
 
   const zoomPercent = Math.round(zoom * 100);
 
@@ -134,10 +134,50 @@ function PdfCanvasReader({
     const container = containerRef.current;
     if (!container || container.scrollWidth <= 0 || container.scrollHeight <= 0) return;
 
-    pendingScrollRatioRef.current = {
-      left: getScrollRatio(container.scrollLeft, container.scrollWidth - container.clientWidth),
-      top: getScrollRatio(container.scrollTop, container.scrollHeight - container.clientHeight),
-    };
+    const containerRect = container.getBoundingClientRect();
+    const absCenterY = containerRect.top + container.clientHeight / 2;
+    const absCenterX = containerRect.left + container.clientWidth / 2;
+
+    const pageElements = Array.from(container.querySelectorAll('.pdf-page')) as HTMLElement[];
+    let targetPage: HTMLElement | null = null;
+
+    for (const page of pageElements) {
+      const rect = page.getBoundingClientRect();
+      if (absCenterY >= rect.top && absCenterY <= rect.bottom) {
+        targetPage = page;
+        break;
+      }
+    }
+    
+    if (!targetPage && pageElements.length > 0) {
+      targetPage = pageElements.reduce((closest, current) => {
+        const closestRect = closest.getBoundingClientRect();
+        const currentRect = current.getBoundingClientRect();
+        const closestDist = Math.min(Math.abs(absCenterY - closestRect.top), Math.abs(absCenterY - closestRect.bottom));
+        const currentDist = Math.min(Math.abs(absCenterY - currentRect.top), Math.abs(absCenterY - currentRect.bottom));
+        return currentDist < closestDist ? current : closest;
+      });
+    }
+
+    if (targetPage) {
+      const rect = targetPage.getBoundingClientRect();
+      const pageNumber = targetPage.getAttribute('data-page-number');
+      const offsetY = absCenterY - rect.top;
+      const offsetX = absCenterX - rect.left;
+      
+      pendingScrollRatioRef.current = {
+        type: 'page',
+        pageNumber,
+        ratioY: rect.height > 0 ? offsetY / rect.height : 0,
+        ratioX: rect.width > 0 ? offsetX / rect.width : 0,
+      };
+    } else {
+      pendingScrollRatioRef.current = {
+        type: 'fallback',
+        left: getScrollRatio(container.scrollLeft, container.scrollWidth - container.clientWidth),
+        top: getScrollRatio(container.scrollTop, container.scrollHeight - container.clientHeight),
+      };
+    }
 
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
@@ -171,8 +211,24 @@ function PdfCanvasReader({
     const container = containerRef.current;
     if (!scrollRatio || !container) return;
 
-    container.scrollLeft = scrollRatio.left * Math.max(0, container.scrollWidth - container.clientWidth);
-    container.scrollTop = scrollRatio.top * Math.max(0, container.scrollHeight - container.clientHeight);
+    if (scrollInfo.type === 'page' && scrollInfo.pageNumber) {
+      const targetPage = container.querySelector(`.pdf-page[data-page-number="${scrollInfo.pageNumber}"]`) as HTMLElement;
+      if (targetPage) {
+        const containerRect = container.getBoundingClientRect();
+        const absCenterY = containerRect.top + container.clientHeight / 2;
+        const absCenterX = containerRect.left + container.clientWidth / 2;
+        
+        const rect = targetPage.getBoundingClientRect();
+        const targetAbsY = rect.top + rect.height * scrollInfo.ratioY;
+        const targetAbsX = rect.left + rect.width * scrollInfo.ratioX;
+        
+        container.scrollTop += (targetAbsY - absCenterY);
+        container.scrollLeft += (targetAbsX - absCenterX);
+      }
+    } else if (scrollInfo.type === 'fallback') {
+      container.scrollLeft = scrollInfo.left * Math.max(0, container.scrollWidth - container.clientWidth);
+      container.scrollTop = scrollInfo.top * Math.max(0, container.scrollHeight - container.clientHeight);
+    }
     pendingScrollRatioRef.current = null;
   }, [zoom]);
 
