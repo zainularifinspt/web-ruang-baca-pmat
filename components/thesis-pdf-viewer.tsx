@@ -159,6 +159,10 @@ function PdfCanvasReader({
       });
     }
 
+    const timerId = setTimeout(() => {
+      pendingScrollRatioRef.current = null;
+    }, 150);
+
     if (targetPage) {
       const rect = targetPage.getBoundingClientRect();
       const pageNumber = targetPage.getAttribute('data-page-number');
@@ -170,20 +174,16 @@ function PdfCanvasReader({
         pageNumber,
         ratioY: rect.height > 0 ? offsetY / rect.height : 0,
         ratioX: rect.width > 0 ? offsetX / rect.width : 0,
+        timerId,
       };
     } else {
       pendingScrollRatioRef.current = {
         type: 'fallback',
         left: getScrollRatio(container.scrollLeft, container.scrollWidth - container.clientWidth),
         top: getScrollRatio(container.scrollTop, container.scrollHeight - container.clientHeight),
+        timerId,
       };
     }
-
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        pendingScrollRatioRef.current = null;
-      });
-    });
   }, []);
 
   const updateZoom = useCallback((nextZoom: number | ((currentZoom: number) => number)) => {
@@ -210,6 +210,8 @@ function PdfCanvasReader({
     const scrollInfo = pendingScrollRatioRef.current;
     const container = containerRef.current;
     if (!scrollInfo || !container) return;
+
+    clearTimeout(scrollInfo.timerId);
 
     if (scrollInfo.type === 'page' && scrollInfo.pageNumber) {
       const targetPage = container.querySelector(`.pdf-page[data-page-number="${scrollInfo.pageNumber}"]`) as HTMLElement;
@@ -473,6 +475,7 @@ function PdfCanvasReader({
         ref={containerRef}
         aria-label={title}
         className="pdf-reader-scroll h-full overflow-auto bg-slate-200 px-4 py-6 select-none"
+        style={{ '--pdf-zoom': zoom } as React.CSSProperties}
         role="document"
         tabIndex={0}
         onKeyDown={(event) => {
@@ -580,7 +583,6 @@ function PdfCanvasReader({
               pageNumber={pageNumber}
               pageBaseWidth={pageBaseWidth}
               rotation={rotation}
-              zoom={zoom}
             />
           ))}
         </div>
@@ -684,23 +686,32 @@ const PdfCanvasPage = memo(function PdfCanvasPage({
   pageNumber: number;
   pageBaseWidth: number;
   rotation: number;
-  zoom: number;
 }) {
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [isVisible, setIsVisible] = useState(pageNumber === 1);
   const [isRendered, setIsRendered] = useState(false);
   const [aspectRatio, setAspectRatio] = useState(1.414);
-  const pageWidth = Math.round(Math.max(320, Math.min(MAX_RENDERED_PAGE_WIDTH, pageBaseWidth * zoom)));
-  const placeholderHeight = Math.round(pageWidth * aspectRatio);
-  const [renderPageWidth, setRenderPageWidth] = useState(pageWidth);
+  const [renderPageWidth, setRenderPageWidth] = useState(pageBaseWidth);
 
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      setRenderPageWidth(pageWidth);
-    }, 250);
-    return () => clearTimeout(timeout);
-  }, [pageWidth]);
+    const wrapper = wrapperRef.current;
+    if (!wrapper) return;
+
+    let timeout: NodeJS.Timeout;
+    const observer = new ResizeObserver(([entry]) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        setRenderPageWidth(entry.contentRect.width);
+      }, 250);
+    });
+
+    observer.observe(wrapper);
+    return () => {
+      observer.disconnect();
+      clearTimeout(timeout);
+    };
+  }, []);
 
   useEffect(() => {
     if (isVisible) return;
@@ -792,8 +803,8 @@ const PdfCanvasPage = memo(function PdfCanvasPage({
       ref={wrapperRef}
       className="relative flex justify-center pdf-page"
       style={{
-        width: pageWidth,
-        minHeight: placeholderHeight,
+        width: `calc(max(320px, min(${MAX_RENDERED_PAGE_WIDTH}px, ${pageBaseWidth}px * var(--pdf-zoom, 1))))`,
+        minHeight: `calc(max(320px, min(${MAX_RENDERED_PAGE_WIDTH}px, ${pageBaseWidth}px * var(--pdf-zoom, 1))) * ${aspectRatio})`,
       }}
     >
       {!isRendered ? (
