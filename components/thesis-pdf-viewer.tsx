@@ -138,48 +138,13 @@ function PdfCanvasReader({
     const absCenterY = focalY !== undefined ? focalY : containerRect.top + 90;
     const absCenterX = focalX !== undefined ? focalX : containerRect.left + container.clientWidth / 2;
 
-    const pageElements = Array.from(container.querySelectorAll('.pdf-page')) as HTMLElement[];
-    let targetPage: HTMLElement | null = null;
-
-    for (const page of pageElements) {
-      const rect = page.getBoundingClientRect();
-      if (absCenterY >= rect.top && absCenterY <= rect.bottom) {
-        targetPage = page;
-        break;
-      }
-    }
-    
-    if (!targetPage && pageElements.length > 0) {
-      targetPage = pageElements.reduce((closest, current) => {
-        const closestRect = closest.getBoundingClientRect();
-        const currentRect = current.getBoundingClientRect();
-        const closestDist = Math.min(Math.abs(absCenterY - closestRect.top), Math.abs(absCenterY - closestRect.bottom));
-        const currentDist = Math.min(Math.abs(absCenterY - currentRect.top), Math.abs(absCenterY - currentRect.bottom));
-        return currentDist < closestDist ? current : closest;
-      });
-    }
-
-    if (targetPage) {
-      const rect = targetPage.getBoundingClientRect();
-      const pageNumber = targetPage.getAttribute('data-page-number');
-      const offsetY = absCenterY - rect.top;
-      const offsetX = absCenterX - rect.left;
-      
-      pendingScrollRatioRef.current = {
-        type: 'page',
-        pageNumber,
-        ratioY: rect.height > 0 ? offsetY / rect.height : 0,
-        ratioX: rect.width > 0 ? offsetX / rect.width : 0,
-        focalY: absCenterY,
-        focalX: absCenterX,
-      };
-    } else {
-      pendingScrollRatioRef.current = {
-        type: 'fallback',
-        left: getScrollRatio(container.scrollLeft, container.scrollWidth - container.clientWidth),
-        top: getScrollRatio(container.scrollTop, container.scrollHeight - container.clientHeight),
-      };
-    }
+    pendingScrollRatioRef.current = {
+      scrollTop: container.scrollTop,
+      scrollLeft: container.scrollLeft,
+      zoom, // ini adalah old zoom sebelum state update
+      focalY: absCenterY,
+      focalX: absCenterX,
+    };
   }, []);
 
   const updateZoom = useCallback((nextZoom: number | ((currentZoom: number) => number), focalX?: number, focalY?: number) => {
@@ -207,25 +172,31 @@ function PdfCanvasReader({
     const container = containerRef.current;
     if (!scrollInfo || !container) return;
 
-    if (scrollInfo.type === 'page' && scrollInfo.pageNumber) {
-      const targetPage = container.querySelector(`.pdf-page[data-page-number="${scrollInfo.pageNumber}"]`) as HTMLElement;
-      if (targetPage) {
-        const targetAbsY = scrollInfo.focalY !== undefined ? scrollInfo.focalY : (container.getBoundingClientRect().top + 90);
-        const targetAbsX = scrollInfo.focalX !== undefined ? scrollInfo.focalX : (container.getBoundingClientRect().left + container.clientWidth / 2);
-        
-        const rect = targetPage.getBoundingClientRect();
-        const newPointAbsY = rect.top + rect.height * scrollInfo.ratioY;
-        const newPointAbsX = rect.left + rect.width * scrollInfo.ratioX;
-        
-        container.scrollTop += (newPointAbsY - targetAbsY);
-        container.scrollLeft += (newPointAbsX - targetAbsX);
-      }
-    } else if (scrollInfo.type === 'fallback') {
-      container.scrollLeft = scrollInfo.left * Math.max(0, container.scrollWidth - container.clientWidth);
-      container.scrollTop = scrollInfo.top * Math.max(0, container.scrollHeight - container.clientHeight);
-    }
+    const oldWidth = Math.max(320, Math.min(MAX_RENDERED_PAGE_WIDTH, pageBaseWidth * scrollInfo.zoom));
+    const newWidth = Math.max(320, Math.min(MAX_RENDERED_PAGE_WIDTH, pageBaseWidth * zoom));
+    const actualScale = oldWidth > 0 ? newWidth / oldWidth : 1;
+
+    // Header sticky dan padding container bagian atas kurang lebih 90px (tidak ikut membesar saat dizoom)
+    const NON_SCALING_TOP = 90;
+
+    const containerRect = container.getBoundingClientRect();
+    const viewportFocalY = scrollInfo.focalY !== undefined ? (scrollInfo.focalY - containerRect.top) : 90;
+    const viewportFocalX = scrollInfo.focalX !== undefined ? (scrollInfo.focalX - containerRect.left) : container.clientWidth / 2;
+
+    const oldAbsY = scrollInfo.scrollTop + viewportFocalY;
+    const oldAbsX = scrollInfo.scrollLeft + viewportFocalX;
+
+    // Hitung posisi baru dengan asumsi semua hal di bawah header ikut terskalakan secara linear
+    const scaledOldAbsY = Math.max(0, oldAbsY - NON_SCALING_TOP);
+    const newAbsY = scaledOldAbsY * actualScale + NON_SCALING_TOP;
+    
+    // Untuk horizontal, asumsikan terskalakan penuh dari titik 0
+    const newAbsX = oldAbsX * actualScale;
+
+    container.scrollTop = newAbsY - viewportFocalY;
+    container.scrollLeft = newAbsX - viewportFocalX;
     pendingScrollRatioRef.current = null;
-  }, [zoom]);
+  }, [zoom, pageBaseWidth]);
 
   useEffect(() => {
     if (!active) return;
@@ -576,7 +547,10 @@ function PdfCanvasReader({
             Bab IV disembunyikan dari viewer
           </p>
         ) : null}
-        <div className="mx-auto flex w-max min-w-full flex-col items-center gap-6">
+        <div 
+          className="mx-auto flex w-max min-w-full flex-col items-center"
+          style={{ gap: `calc(1.5rem * var(--pdf-zoom, 1))` }}
+        >
           {visiblePageNumbers.map((pageNumber) => (
             <PdfCanvasPage
               key={`${pdfUrl}-${pageNumber}`}
