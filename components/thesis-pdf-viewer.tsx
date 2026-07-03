@@ -207,9 +207,9 @@ function PdfCanvasReader({
   }, [updateZoom]);
 
   useLayoutEffect(() => {
-    const scrollRatio = pendingScrollRatioRef.current;
+    const scrollInfo = pendingScrollRatioRef.current;
     const container = containerRef.current;
-    if (!scrollRatio || !container) return;
+    if (!scrollInfo || !container) return;
 
     if (scrollInfo.type === 'page' && scrollInfo.pageNumber) {
       const targetPage = container.querySelector(`.pdf-page[data-page-number="${scrollInfo.pageNumber}"]`) as HTMLElement;
