@@ -129,6 +129,8 @@ function PdfCanvasReader({
   const zoomPercent = Math.round(zoom * 100);
 
   const captureScrollRatio = useCallback(() => {
+    if (pendingScrollRatioRef.current) return;
+
     const container = containerRef.current;
     if (!container) return;
 
@@ -136,6 +138,12 @@ function PdfCanvasReader({
       left: getScrollRatio(container.scrollLeft, container.scrollWidth - container.clientWidth),
       top: getScrollRatio(container.scrollTop, container.scrollHeight - container.clientHeight),
     };
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        pendingScrollRatioRef.current = null;
+      });
+    });
   }, []);
 
   const updateZoom = useCallback((nextZoom: number | ((currentZoom: number) => number)) => {
@@ -163,13 +171,9 @@ function PdfCanvasReader({
     const container = containerRef.current;
     if (!scrollRatio || !container) return;
 
-    const frame = window.requestAnimationFrame(() => {
-      container.scrollLeft = scrollRatio.left * Math.max(0, container.scrollWidth - container.clientWidth);
-      container.scrollTop = scrollRatio.top * Math.max(0, container.scrollHeight - container.clientHeight);
-      pendingScrollRatioRef.current = null;
-    });
-
-    return () => window.cancelAnimationFrame(frame);
+    container.scrollLeft = scrollRatio.left * Math.max(0, container.scrollWidth - container.clientWidth);
+    container.scrollTop = scrollRatio.top * Math.max(0, container.scrollHeight - container.clientHeight);
+    pendingScrollRatioRef.current = null;
   }, [zoom]);
 
   useEffect(() => {
@@ -336,7 +340,7 @@ function PdfCanvasReader({
       event.preventDefault();
       const direction = event.deltaY < 0 ? 1 : -1;
       const sensitivity = event.deltaMode === WheelEvent.DOM_DELTA_PIXEL ? 0.004 : 0.08;
-      const delta = Math.max(0.04, Math.min(0.22, Math.abs(event.deltaY) * sensitivity));
+      const delta = Math.min(0.22, Math.abs(event.deltaY) * sensitivity);
       updateZoom((currentZoom) => currentZoom + direction * delta);
     }
 
