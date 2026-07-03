@@ -135,8 +135,8 @@ function PdfCanvasReader({
     if (!container || container.scrollWidth <= 0 || container.scrollHeight <= 0) return;
 
     pendingScrollRatioRef.current = {
-      left: (container.scrollLeft + container.clientWidth / 2) / container.scrollWidth,
-      top: (container.scrollTop + container.clientHeight / 2) / container.scrollHeight,
+      left: getScrollRatio(container.scrollLeft, container.scrollWidth - container.clientWidth),
+      top: getScrollRatio(container.scrollTop, container.scrollHeight - container.clientHeight),
     };
 
     requestAnimationFrame(() => {
@@ -171,8 +171,8 @@ function PdfCanvasReader({
     const container = containerRef.current;
     if (!scrollRatio || !container) return;
 
-    container.scrollLeft = scrollRatio.left * container.scrollWidth - container.clientWidth / 2;
-    container.scrollTop = scrollRatio.top * container.scrollHeight - container.clientHeight / 2;
+    container.scrollLeft = scrollRatio.left * Math.max(0, container.scrollWidth - container.clientWidth);
+    container.scrollTop = scrollRatio.top * Math.max(0, container.scrollHeight - container.clientHeight);
     pendingScrollRatioRef.current = null;
   }, [zoom]);
 
