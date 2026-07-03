@@ -476,7 +476,7 @@ function PdfCanvasReader({
         ref={containerRef}
         aria-label={title}
         className="pdf-reader-scroll h-full overflow-auto bg-slate-200 px-4 py-6 select-none"
-        style={{ '--pdf-zoom': zoom } as React.CSSProperties}
+        style={{ '--pdf-zoom': zoom, overflowAnchor: 'none' } as React.CSSProperties}
         role="document"
         tabIndex={0}
         onKeyDown={(event) => {
