@@ -680,7 +680,6 @@ const PdfCanvasPage = memo(function PdfCanvasPage({
   pageNumber,
   pageBaseWidth,
   rotation,
-  zoom,
 }: {
   document: PDFDocumentProxy;
   pageNumber: number;
