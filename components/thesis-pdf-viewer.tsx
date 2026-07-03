@@ -135,7 +135,8 @@ function PdfCanvasReader({
     if (!container || container.scrollWidth <= 0 || container.scrollHeight <= 0) return;
 
     const containerRect = container.getBoundingClientRect();
-    const absCenterY = containerRect.top + container.clientHeight / 2;
+    // Titik fokus diletakkan 120px dari atas layar (agar teks yang sedang dibaca di bagian atas tidak lari ke atas saat dizoom)
+    const absCenterY = containerRect.top + 120;
     const absCenterX = containerRect.left + container.clientWidth / 2;
 
     const pageElements = Array.from(container.querySelectorAll('.pdf-page')) as HTMLElement[];
@@ -217,7 +218,7 @@ function PdfCanvasReader({
       const targetPage = container.querySelector(`.pdf-page[data-page-number="${scrollInfo.pageNumber}"]`) as HTMLElement;
       if (targetPage) {
         const containerRect = container.getBoundingClientRect();
-        const absCenterY = containerRect.top + container.clientHeight / 2;
+        const absCenterY = containerRect.top + 120;
         const absCenterX = containerRect.left + container.clientWidth / 2;
         
         const rect = targetPage.getBoundingClientRect();
