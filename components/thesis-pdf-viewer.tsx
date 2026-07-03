@@ -193,6 +193,10 @@ function PdfCanvasReader({
     // Untuk horizontal, asumsikan terskalakan penuh dari titik 0
     const newAbsX = oldAbsX * actualScale;
 
+    // Paksa browser untuk melakukan reflow seketika agar scrollHeight terupdate sebelum kita set scrollTop
+    // (Mencegah masalah browser memotong nilai scrollTop karena mengira scrollHeight masih pendek)
+    void container.offsetHeight;
+
     container.scrollTop = newAbsY - viewportFocalY;
     container.scrollLeft = newAbsX - viewportFocalX;
     pendingScrollRatioRef.current = null;
@@ -438,8 +442,12 @@ function PdfCanvasReader({
       <div
         ref={containerRef}
         aria-label={title}
-        className="pdf-reader-scroll h-full overflow-auto bg-slate-200 px-4 py-6 select-none"
-        style={{ '--pdf-zoom': zoom, overflowAnchor: 'none' } as React.CSSProperties}
+        className="pdf-reader-scroll h-full overflow-auto bg-slate-200 px-4 select-none"
+        style={{
+          overflowAnchor: 'none',
+          paddingTop: `calc(1.5rem * ${zoom})`,
+          paddingBottom: `calc(1.5rem * ${zoom})`,
+        } as React.CSSProperties}
         role="document"
         tabIndex={0}
         onKeyDown={(event) => {
@@ -549,7 +557,7 @@ function PdfCanvasReader({
         ) : null}
         <div 
           className="mx-auto flex w-max min-w-full flex-col items-center"
-          style={{ gap: `calc(1.5rem * var(--pdf-zoom, 1))` }}
+          style={{ gap: `calc(1.5rem * ${zoom})` }}
         >
           {visiblePageNumbers.map((pageNumber) => (
             <PdfCanvasPage
@@ -558,6 +566,7 @@ function PdfCanvasReader({
               pageNumber={pageNumber}
               pageBaseWidth={pageBaseWidth}
               rotation={rotation}
+              zoom={zoom}
             />
           ))}
         </div>
@@ -650,17 +659,21 @@ function getCanvasOutputScale(viewportWidth: number, viewportHeight: number) {
   return Math.max(0.75, Math.min(devicePixelRatio, MAX_CANVAS_PIXEL_RATIO, maxAreaScale));
 }
 
+interface PdfCanvasPageProps {
+  document: PDFDocumentProxy;
+  pageNumber: number;
+  pageBaseWidth: number;
+  rotation: number;
+  zoom: number;
+}
+
 const PdfCanvasPage = memo(function PdfCanvasPage({
   document,
   pageNumber,
   pageBaseWidth,
   rotation,
-}: {
-  document: PDFDocumentProxy;
-  pageNumber: number;
-  pageBaseWidth: number;
-  rotation: number;
-}) {
+  zoom,
+}: PdfCanvasPageProps) {
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [isVisible, setIsVisible] = useState(pageNumber === 1);
@@ -777,8 +790,8 @@ const PdfCanvasPage = memo(function PdfCanvasPage({
       ref={wrapperRef}
       className="relative flex justify-center pdf-page"
       style={{
-        width: `calc(max(320px, min(${MAX_RENDERED_PAGE_WIDTH}px, ${pageBaseWidth}px * var(--pdf-zoom, 1))))`,
-        minHeight: `calc(max(320px, min(${MAX_RENDERED_PAGE_WIDTH}px, ${pageBaseWidth}px * var(--pdf-zoom, 1))) * ${aspectRatio})`,
+        width: `calc(max(320px, min(${MAX_RENDERED_PAGE_WIDTH}px, ${pageBaseWidth}px * ${zoom})))`,
+        minHeight: `calc(max(320px, min(${MAX_RENDERED_PAGE_WIDTH}px, ${pageBaseWidth}px * ${zoom})) * ${aspectRatio})`,
       }}
     >
       {!isRendered ? (
