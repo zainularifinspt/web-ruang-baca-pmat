@@ -132,11 +132,11 @@ function PdfCanvasReader({
     if (pendingScrollRatioRef.current) return;
 
     const container = containerRef.current;
-    if (!container) return;
+    if (!container || container.scrollWidth <= 0 || container.scrollHeight <= 0) return;
 
     pendingScrollRatioRef.current = {
-      left: getScrollRatio(container.scrollLeft, container.scrollWidth - container.clientWidth),
-      top: getScrollRatio(container.scrollTop, container.scrollHeight - container.clientHeight),
+      left: (container.scrollLeft + container.clientWidth / 2) / container.scrollWidth,
+      top: (container.scrollTop + container.clientHeight / 2) / container.scrollHeight,
     };
 
     requestAnimationFrame(() => {
@@ -171,8 +171,8 @@ function PdfCanvasReader({
     const container = containerRef.current;
     if (!scrollRatio || !container) return;
 
-    container.scrollLeft = scrollRatio.left * Math.max(0, container.scrollWidth - container.clientWidth);
-    container.scrollTop = scrollRatio.top * Math.max(0, container.scrollHeight - container.clientHeight);
+    container.scrollLeft = scrollRatio.left * container.scrollWidth - container.clientWidth / 2;
+    container.scrollTop = scrollRatio.top * container.scrollHeight - container.clientHeight / 2;
     pendingScrollRatioRef.current = null;
   }, [zoom]);
 
@@ -637,6 +637,14 @@ const PdfCanvasPage = memo(function PdfCanvasPage({
   const [aspectRatio, setAspectRatio] = useState(1.414);
   const pageWidth = Math.round(Math.max(320, Math.min(MAX_RENDERED_PAGE_WIDTH, pageBaseWidth * zoom)));
   const placeholderHeight = Math.round(pageWidth * aspectRatio);
+  const [renderPageWidth, setRenderPageWidth] = useState(pageWidth);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setRenderPageWidth(pageWidth);
+    }, 250);
+    return () => clearTimeout(timeout);
+  }, [pageWidth]);
 
   useEffect(() => {
     if (isVisible) return;
@@ -681,7 +689,7 @@ const PdfCanvasPage = memo(function PdfCanvasPage({
           setAspectRatio(initialViewport.height / initialViewport.width);
         }
 
-        const scale = pageWidth / initialViewport.width;
+        const scale = renderPageWidth / initialViewport.width;
         const viewport = page.getViewport({ scale, rotation });
         const context = targetCanvas.getContext("2d", { alpha: false });
         if (!context) return;
@@ -689,8 +697,6 @@ const PdfCanvasPage = memo(function PdfCanvasPage({
         const outputScale = getCanvasOutputScale(viewport.width, viewport.height);
         targetCanvas.width = Math.floor(viewport.width * outputScale);
         targetCanvas.height = Math.floor(viewport.height * outputScale);
-        targetCanvas.style.width = `${Math.floor(viewport.width)}px`;
-        targetCanvas.style.height = `${Math.floor(viewport.height)}px`;
 
         context.setTransform(outputScale, 0, 0, outputScale, 0, 0);
 
@@ -721,7 +727,7 @@ const PdfCanvasPage = memo(function PdfCanvasPage({
       cancelQueuedRender();
       renderTask?.cancel();
     };
-  }, [document, isVisible, pageNumber, pageWidth, rotation]);
+  }, [document, isVisible, pageNumber, renderPageWidth, rotation]);
 
   return (
     <div
@@ -742,7 +748,7 @@ const PdfCanvasPage = memo(function PdfCanvasPage({
       <canvas
         ref={canvasRef}
         aria-label={`Halaman ${pageNumber}`}
-        className="select-none rounded-sm bg-white shadow-lg ring-1 ring-slate-300"
+        className="select-none rounded-sm bg-white shadow-lg ring-1 ring-slate-300 w-full h-auto"
       />
     </div>
   );
