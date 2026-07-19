@@ -134,18 +134,26 @@ function PdfCanvasReader({
     const container = containerRef.current;
     if (!container || container.scrollWidth <= 0 || container.scrollHeight <= 0) return;
 
+    const pageElement = window.document.getElementById(`pdf-page-${currentPage}`);
+    if (!pageElement) return;
+
     const containerRect = container.getBoundingClientRect();
+    const pageRect = pageElement.getBoundingClientRect();
+
     const absCenterY = focalY !== undefined ? focalY : containerRect.top + container.clientHeight / 2;
     const absCenterX = focalX !== undefined ? focalX : containerRect.left + container.clientWidth / 2;
 
+    const ratioY = (absCenterY - pageRect.top) / pageRect.height;
+    const ratioX = (absCenterX - pageRect.left) / pageRect.width;
+
     pendingScrollRatioRef.current = {
-      scrollTop: container.scrollTop,
-      scrollLeft: container.scrollLeft,
-      zoom, // ini adalah old zoom sebelum state update
-      focalY: absCenterY,
-      focalX: absCenterX,
+      pageNumber: currentPage,
+      ratioY,
+      ratioX,
+      viewportFocalY: absCenterY - containerRect.top,
+      viewportFocalX: absCenterX - containerRect.left,
     };
-  }, [zoom]);
+  }, [currentPage]);
 
   const updateZoom = useCallback((nextZoom: number | ((currentZoom: number) => number), focalX?: number, focalY?: number) => {
     captureScrollRatio(focalX, focalY);
@@ -172,45 +180,34 @@ function PdfCanvasReader({
     const container = containerRef.current;
     if (!scrollInfo || !container) return;
 
-    const oldWidth = Math.max(320, Math.min(MAX_RENDERED_PAGE_WIDTH, pageBaseWidth * scrollInfo.zoom));
-    const newWidth = Math.max(320, Math.min(MAX_RENDERED_PAGE_WIDTH, pageBaseWidth * zoom));
-    const actualScale = oldWidth > 0 ? newWidth / oldWidth : 1;
-
-    // Header sticky toolbar tingginya kurang lebih 68px (tidak ikut membesar saat dizoom)
-    const NON_SCALING_TOP = 68;
-
-    const containerRect = container.getBoundingClientRect();
-    const viewportFocalY = scrollInfo.focalY !== undefined ? (scrollInfo.focalY - containerRect.top) : (container.clientHeight / 2);
-    const viewportFocalX = scrollInfo.focalX !== undefined ? (scrollInfo.focalX - containerRect.left) : container.clientWidth / 2;
-
-    const oldAbsY = scrollInfo.scrollTop + viewportFocalY;
-    const oldAbsX = scrollInfo.scrollLeft + viewportFocalX;
-
-    // Hitung posisi baru dengan asumsi semua hal di bawah header ikut terskalakan secara linear
-    const scaledOldAbsY = Math.max(0, oldAbsY - NON_SCALING_TOP);
-    const newAbsY = scaledOldAbsY * actualScale + NON_SCALING_TOP;
-    
-    // Untuk horizontal, asumsikan terskalakan penuh dari titik 0
-    const newAbsX = oldAbsX * actualScale;
-
-    // Paksa browser untuk melakukan reflow seketika agar scrollHeight terupdate sebelum kita set scrollTop
-    // (Mencegah masalah browser memotong nilai scrollTop karena mengira scrollHeight masih pendek)
-    void container.offsetHeight;
+    const pageElement = window.document.getElementById(`pdf-page-${scrollInfo.pageNumber}`);
+    if (!pageElement) {
+      pendingScrollRatioRef.current = null;
+      return;
+    }
 
     let isCancelled = false;
     const applyScroll = () => {
-      if (!isCancelled && container) {
-        container.scrollTop = newAbsY - viewportFocalY;
-        container.scrollLeft = newAbsX - viewportFocalX;
-      }
+      if (isCancelled || !container) return;
+      const pageRect = pageElement.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
+
+      const targetAbsoluteFocalY = pageRect.top + pageRect.height * scrollInfo.ratioY;
+      const targetAbsoluteFocalX = pageRect.left + pageRect.width * scrollInfo.ratioX;
+
+      const currentAbsoluteFocalY = containerRect.top + scrollInfo.viewportFocalY;
+      const currentAbsoluteFocalX = containerRect.left + scrollInfo.viewportFocalX;
+
+      const diffY = targetAbsoluteFocalY - currentAbsoluteFocalY;
+      const diffX = targetAbsoluteFocalX - currentAbsoluteFocalX;
+
+      container.scrollTop += diffY;
+      container.scrollLeft += diffX;
     };
 
     applyScroll();
     
-    // Fallback: If the browser clamped the scroll position because it hasn't 
-    // fully updated the scrollHeight yet, set it again in the next frame and after paint.
-    // By clearing the pendingScrollRatioRef inside the timeout, we also prevent race 
-    // conditions if the user rapidly clicks the zoom button multiple times.
+    // Fallback untuk memastikan reflow selesai
     let timeoutId: NodeJS.Timeout;
     const frameId = requestAnimationFrame(() => {
       applyScroll();
