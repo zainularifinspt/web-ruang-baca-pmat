@@ -135,7 +135,7 @@ function PdfCanvasReader({
     if (!container || container.scrollWidth <= 0 || container.scrollHeight <= 0) return;
 
     const containerRect = container.getBoundingClientRect();
-    const absCenterY = focalY !== undefined ? focalY : containerRect.top + 90;
+    const absCenterY = focalY !== undefined ? focalY : containerRect.top + container.clientHeight / 2;
     const absCenterX = focalX !== undefined ? focalX : containerRect.left + container.clientWidth / 2;
 
     pendingScrollRatioRef.current = {
@@ -180,7 +180,7 @@ function PdfCanvasReader({
     const NON_SCALING_TOP = 90;
 
     const containerRect = container.getBoundingClientRect();
-    const viewportFocalY = scrollInfo.focalY !== undefined ? (scrollInfo.focalY - containerRect.top) : 90;
+    const viewportFocalY = scrollInfo.focalY !== undefined ? (scrollInfo.focalY - containerRect.top) : (container.clientHeight / 2);
     const viewportFocalX = scrollInfo.focalX !== undefined ? (scrollInfo.focalX - containerRect.left) : container.clientWidth / 2;
 
     const oldAbsY = scrollInfo.scrollTop + viewportFocalY;
