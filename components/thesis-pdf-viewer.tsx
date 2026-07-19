@@ -145,7 +145,7 @@ function PdfCanvasReader({
       focalY: absCenterY,
       focalX: absCenterX,
     };
-  }, []);
+  }, [zoom]);
 
   const updateZoom = useCallback((nextZoom: number | ((currentZoom: number) => number), focalX?: number, focalY?: number) => {
     captureScrollRatio(focalX, focalY);
