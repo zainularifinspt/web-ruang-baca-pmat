@@ -176,8 +176,8 @@ function PdfCanvasReader({
     const newWidth = Math.max(320, Math.min(MAX_RENDERED_PAGE_WIDTH, pageBaseWidth * zoom));
     const actualScale = oldWidth > 0 ? newWidth / oldWidth : 1;
 
-    // Header sticky dan padding container bagian atas kurang lebih 90px (tidak ikut membesar saat dizoom)
-    const NON_SCALING_TOP = 90;
+    // Header sticky toolbar tingginya kurang lebih 68px (tidak ikut membesar saat dizoom)
+    const NON_SCALING_TOP = 68;
 
     const containerRect = container.getBoundingClientRect();
     const viewportFocalY = scrollInfo.focalY !== undefined ? (scrollInfo.focalY - containerRect.top) : (container.clientHeight / 2);
@@ -197,8 +197,22 @@ function PdfCanvasReader({
     // (Mencegah masalah browser memotong nilai scrollTop karena mengira scrollHeight masih pendek)
     void container.offsetHeight;
 
-    container.scrollTop = newAbsY - viewportFocalY;
-    container.scrollLeft = newAbsX - viewportFocalX;
+    const applyScroll = () => {
+      if (container) {
+        container.scrollTop = newAbsY - viewportFocalY;
+        container.scrollLeft = newAbsX - viewportFocalX;
+      }
+    };
+
+    applyScroll();
+    
+    // Fallback: If the browser clamped the scroll position because it hasn't 
+    // fully updated the scrollHeight yet, set it again in the next frame and after paint.
+    requestAnimationFrame(() => {
+      applyScroll();
+      setTimeout(applyScroll, 0);
+    });
+
     pendingScrollRatioRef.current = null;
   }, [zoom, pageBaseWidth]);
 
