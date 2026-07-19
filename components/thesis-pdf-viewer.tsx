@@ -124,7 +124,13 @@ function PdfCanvasReader({
   const [pageBaseWidth, setPageBaseWidth] = useState(820);
   const containerRef = useRef<HTMLDivElement>(null);
   const gestureScaleRef = useRef(1);
-  const pendingScrollRatioRef = useRef<any>(null);
+  const pendingScrollRatioRef = useRef<{
+    pageNumber: number;
+    ratioY: number;
+    ratioX: number;
+    viewportFocalY: number;
+    viewportFocalX: number;
+  } | null>(null);
 
   const zoomPercent = Math.round(zoom * 100);
 
