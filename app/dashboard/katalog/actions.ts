@@ -583,7 +583,7 @@ function isMissingBookVerificationColumn(message: string) {
 }
 
 function isMissingVerificationColumn(message: string) {
-  return message.includes("verification_status") || message.includes("schema cache");
+  return message.includes("verification_status");
 }
 
 async function insertBook(payload: MutationPayload, options?: InsertCatalogOptions) {
@@ -601,11 +601,11 @@ async function insertBook(payload: MutationPayload, options?: InsertCatalogOptio
     return failure(error.message);
   }
 
-  const fallbackPayload = omitPayloadKeys(payload, [
-    "created_by",
-    "input_by",
-    "input_source",
-  ]);
+  let fallbackPayload = { ...payload };
+  if (isMissingInputAuditColumn(error.message)) {
+    fallbackPayload = omitPayloadKeys(fallbackPayload, ["created_by", "input_by", "input_source"]);
+  }
+
   const { data: fallbackData, error: fallbackError } = await createSupabaseAdminClient()
     .from("books")
     .insert(fallbackPayload)
@@ -649,16 +649,20 @@ async function insertThesis(payload: MutationPayload, options?: InsertCatalogOpt
     return failure(error.message);
   }
 
-  const fallbackPayload = omitPayloadKeys(payload, [
-    "created_by",
-    "input_by",
-    "input_source",
-    "verification_status",
-    "student_nim",
-    "pdf_url",
-    "pdf_filename",
-    "pdf_size",
-  ]);
+  let fallbackPayload = { ...payload };
+  if (isMissingInputAuditColumn(error.message)) {
+    fallbackPayload = omitPayloadKeys(fallbackPayload, ["created_by", "input_by", "input_source"]);
+  }
+  if (isMissingVerificationColumn(error.message)) {
+    fallbackPayload = omitPayloadKeys(fallbackPayload, ["verification_status"]);
+  }
+  if (isMissingStudentNimColumn(error.message)) {
+    fallbackPayload = omitPayloadKeys(fallbackPayload, ["student_nim"]);
+  }
+  if (isMissingThesisPdfColumn(error.message)) {
+    fallbackPayload = omitPayloadKeys(fallbackPayload, ["pdf_url", "pdf_filename", "pdf_size"]);
+  }
+
   const { data: fallbackData, error: fallbackError } = await createSupabaseAdminClient()
     .from("theses")
     .insert(fallbackPayload)
@@ -684,14 +688,20 @@ async function updateThesisRow(id: string, payload: MutationPayload) {
 
   if (
     (payloadHasThesisPdf(payload) && isMissingThesisPdfColumn(error.message)) ||
-    isMissingStudentNimColumn(error.message)
+    isMissingStudentNimColumn(error.message) ||
+    isMissingVerificationColumn(error.message)
   ) {
-    const fallbackPayload = omitPayloadKeys(payload, [
-      "student_nim",
-      "pdf_url",
-      "pdf_filename",
-      "pdf_size",
-    ]);
+    let fallbackPayload = { ...payload };
+    if (isMissingThesisPdfColumn(error.message)) {
+      fallbackPayload = omitPayloadKeys(fallbackPayload, ["pdf_url", "pdf_filename", "pdf_size"]);
+    }
+    if (isMissingStudentNimColumn(error.message)) {
+      fallbackPayload = omitPayloadKeys(fallbackPayload, ["student_nim"]);
+    }
+    if (isMissingVerificationColumn(error.message)) {
+      fallbackPayload = omitPayloadKeys(fallbackPayload, ["verification_status"]);
+    }
+
     const { error: fallbackError } = await createSupabaseAdminClient()
       .from("theses")
       .update(fallbackPayload)
@@ -830,7 +840,7 @@ function isMissingThesisPdfColumn(message: string) {
 }
 
 function isMissingStudentNimColumn(message: string) {
-  return message.includes("student_nim") || message.includes("schema cache");
+  return message.includes("student_nim");
 }
 
 function payloadHasThesisPdf(payload: MutationPayload) {
@@ -879,8 +889,7 @@ function isMissingInputAuditColumn(message: string) {
   return (
     message.includes("created_by") ||
     message.includes("input_by") ||
-    message.includes("input_source") ||
-    message.includes("schema cache")
+    message.includes("input_source")
   );
 }
 
