@@ -268,18 +268,14 @@ async function getNewGoogleSheetThesisCandidates() {
     getExistingThesisIdentityRows(),
   ]);
 
-  const existingIdentityKeys = new Set<string>();
-  const existingLegacyNames = new Set<string>();
+  const existingNims = new Set<string>();
 
   existingTheses.forEach((thesis) => {
-    const name = normalizeIdentity(thesis.student_name);
     const nim = normalizeNim(thesis.student_nim);
-    if (!name) return;
-    if (nim) existingIdentityKeys.add(thesisIdentityKey(name, nim));
-    else existingLegacyNames.add(name);
+    if (nim) existingNims.add(nim);
   });
 
-  const seenSheetKeys = new Set<string>();
+  const seenNims = new Set<string>();
   const candidates: GoogleSheetThesisCandidate[] = [];
 
   for (const [index, row] of sheetRows.entries()) {
@@ -291,15 +287,15 @@ async function getNewGoogleSheetThesisCandidates() {
 
     if (!title || !normalizedName || !normalizedNim) continue;
 
-    const key = thesisIdentityKey(normalizedName, normalizedNim);
-    if (existingIdentityKeys.has(key) || existingLegacyNames.has(normalizedName) || seenSheetKeys.has(key)) {
+    if (existingNims.has(normalizedNim) || seenNims.has(normalizedNim)) {
       continue;
     }
 
-    seenSheetKeys.add(key);
+    seenNims.add(normalizedNim);
     const publicPdfUrl = pdfRows[index]?.pdfUrl ?? "";
     if (!publicPdfUrl) continue;
 
+    const key = thesisIdentityKey(normalizedName, normalizedNim);
     candidates.push({
       key,
       title: title.trim(),
