@@ -269,16 +269,10 @@ async function getNewGoogleSheetThesisCandidates() {
   ]);
 
   const existingNims = new Set<string>();
-  const existingLegacyNames = new Set<string>();
 
   existingTheses.forEach((thesis) => {
-    const name = normalizeIdentity(thesis.student_name);
     const nim = normalizeNim(thesis.student_nim);
-    if (nim) {
-      existingNims.add(nim);
-    } else if (name) {
-      existingLegacyNames.add(name);
-    }
+    if (nim) existingNims.add(nim);
   });
 
   const seenNims = new Set<string>();
@@ -294,10 +288,6 @@ async function getNewGoogleSheetThesisCandidates() {
     if (!title || !normalizedName || !normalizedNim) continue;
 
     if (existingNims.has(normalizedNim) || seenNims.has(normalizedNim)) {
-      continue;
-    }
-
-    if (existingLegacyNames.has(normalizedName)) {
       continue;
     }
 
