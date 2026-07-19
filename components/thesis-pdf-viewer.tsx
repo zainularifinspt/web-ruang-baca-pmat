@@ -197,8 +197,9 @@ function PdfCanvasReader({
     // (Mencegah masalah browser memotong nilai scrollTop karena mengira scrollHeight masih pendek)
     void container.offsetHeight;
 
+    let isCancelled = false;
     const applyScroll = () => {
-      if (container) {
+      if (!isCancelled && container) {
         container.scrollTop = newAbsY - viewportFocalY;
         container.scrollLeft = newAbsX - viewportFocalX;
       }
@@ -208,12 +209,24 @@ function PdfCanvasReader({
     
     // Fallback: If the browser clamped the scroll position because it hasn't 
     // fully updated the scrollHeight yet, set it again in the next frame and after paint.
-    requestAnimationFrame(() => {
+    // By clearing the pendingScrollRatioRef inside the timeout, we also prevent race 
+    // conditions if the user rapidly clicks the zoom button multiple times.
+    let timeoutId: NodeJS.Timeout;
+    const frameId = requestAnimationFrame(() => {
       applyScroll();
-      setTimeout(applyScroll, 0);
+      timeoutId = setTimeout(() => {
+        applyScroll();
+        if (!isCancelled) {
+          pendingScrollRatioRef.current = null;
+        }
+      }, 100);
     });
 
-    pendingScrollRatioRef.current = null;
+    return () => {
+      isCancelled = true;
+      cancelAnimationFrame(frameId);
+      clearTimeout(timeoutId);
+    };
   }, [zoom, pageBaseWidth]);
 
   useEffect(() => {
