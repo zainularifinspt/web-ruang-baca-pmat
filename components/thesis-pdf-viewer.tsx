@@ -135,7 +135,7 @@ function PdfCanvasReader({
   const zoomPercent = Math.round(zoom * 100);
 
   const captureScrollRatio = useCallback((focalX?: number, focalY?: number) => {
-    if (pendingScrollRatioRef.current) return;
+    // Guard dihapus agar focal point selalu ter-capture ulang saat zoom cepat
 
     const container = containerRef.current;
     if (!container || container.scrollWidth <= 0 || container.scrollHeight <= 0) return;
@@ -145,6 +145,7 @@ function PdfCanvasReader({
 
     const containerRect = container.getBoundingClientRect();
     const pageRect = pageElement.getBoundingClientRect();
+    if (pageRect.height <= 0 || pageRect.width <= 0) return;
 
     const absCenterY = focalY !== undefined ? focalY : containerRect.top + container.clientHeight / 2;
     const absCenterX = focalX !== undefined ? focalX : containerRect.left + container.clientWidth / 2;
@@ -195,20 +196,27 @@ function PdfCanvasReader({
     let isCancelled = false;
     const applyScroll = () => {
       if (isCancelled || !container) return;
-      const pageRect = pageElement.getBoundingClientRect();
-      const containerRect = container.getBoundingClientRect();
+      
+      // Kalkulasi offset absolut dari elemen halaman terhadap container
+      // Loop ini memastikan posisi selalu 100% akurat walau ada perubahan CSS flex/relative di tengah-tengah DOM
+      let pageTop = 0;
+      let pageLeft = 0;
+      let currentElement: HTMLElement | null = pageElement;
+      
+      while (currentElement && currentElement !== container) {
+        pageTop += currentElement.offsetTop;
+        pageLeft += currentElement.offsetLeft;
+        currentElement = currentElement.offsetParent as HTMLElement;
+      }
 
-      const targetAbsoluteFocalY = pageRect.top + pageRect.height * scrollInfo.ratioY;
-      const targetAbsoluteFocalX = pageRect.left + pageRect.width * scrollInfo.ratioX;
+      const pageHeight = pageElement.offsetHeight;
+      const pageWidth = pageElement.offsetWidth;
 
-      const currentAbsoluteFocalY = containerRect.top + scrollInfo.viewportFocalY;
-      const currentAbsoluteFocalX = containerRect.left + scrollInfo.viewportFocalX;
+      const targetScrollTop = pageTop + (pageHeight * scrollInfo.ratioY) - scrollInfo.viewportFocalY;
+      const targetScrollLeft = pageLeft + (pageWidth * scrollInfo.ratioX) - scrollInfo.viewportFocalX;
 
-      const diffY = targetAbsoluteFocalY - currentAbsoluteFocalY;
-      const diffX = targetAbsoluteFocalX - currentAbsoluteFocalX;
-
-      container.scrollTop += diffY;
-      container.scrollLeft += diffX;
+      container.scrollTop = targetScrollTop;
+      container.scrollLeft = targetScrollLeft;
     };
 
     applyScroll();
@@ -397,7 +405,7 @@ function PdfCanvasReader({
       const direction = event.deltaY < 0 ? 1 : -1;
       const sensitivity = event.deltaMode === WheelEvent.DOM_DELTA_PIXEL ? 0.004 : 0.08;
       const delta = Math.min(0.22, Math.abs(event.deltaY) * sensitivity);
-      updateZoom((currentZoom) => currentZoom + direction * delta);
+      updateZoom((currentZoom) => currentZoom + direction * delta, event.clientX, event.clientY);
     }
 
     function handleGestureStart(event: Event) {
@@ -407,12 +415,12 @@ function PdfCanvasReader({
 
     function handleGestureChange(event: Event) {
       event.preventDefault();
-      const gestureEvent = event as Event & { scale?: number };
+      const gestureEvent = event as Event & { scale?: number; clientX?: number; clientY?: number };
       const nextScale = gestureEvent.scale ?? 1;
       const scaleDelta = nextScale - gestureScaleRef.current;
 
       if (Math.abs(scaleDelta) >= 0.01) {
-        updateZoom((currentZoom) => currentZoom + scaleDelta * 0.35);
+        updateZoom((currentZoom) => currentZoom + scaleDelta * 0.35, gestureEvent.clientX, gestureEvent.clientY);
         gestureScaleRef.current = nextScale;
       }
     }
@@ -472,7 +480,7 @@ function PdfCanvasReader({
       <div
         ref={containerRef}
         aria-label={title}
-        className="pdf-reader-scroll h-full overflow-auto bg-slate-200 px-4 select-none"
+        className="relative pdf-reader-scroll h-full overflow-auto bg-slate-200 px-4 select-none"
         style={{
           overflowAnchor: 'none',
           paddingTop: `calc(1.5rem * ${zoom})`,
@@ -493,14 +501,6 @@ function PdfCanvasReader({
           } else if (key === "0") {
             event.preventDefault();
             resetZoom();
-          }
-        }}
-        onWheel={(event) => {
-          if (event.ctrlKey || event.metaKey) {
-            event.preventDefault();
-            const delta = Math.abs(event.deltaY) > Math.abs(event.deltaX) ? event.deltaY : event.deltaX;
-            // delta bernilai negatif saat pinch in (zoom in) di Mac
-            updateZoom((currentZoom) => currentZoom - delta * 0.01, event.clientX, event.clientY);
           }
         }}
       >
