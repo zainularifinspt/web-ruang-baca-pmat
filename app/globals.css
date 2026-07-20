@@ -64,10 +64,14 @@ html {
   scroll-behavior: smooth;
 }
 
-.pdf-reader-scroll,
 .overflow-y-auto,
 .overflow-auto {
   scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+.pdf-reader-scroll {
+  scroll-behavior: auto !important; /* Wajib auto agar zoom centering (scrollTop assignment) bekerja instan tanpa animasi */
   -webkit-overflow-scrolling: touch;
 }
 
