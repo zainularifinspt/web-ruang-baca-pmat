@@ -140,67 +140,79 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
       </div>
 
       {/* Body Content */}
-      <div className="relative min-h-0 space-y-6 bg-slate-50/50 p-5 sm:p-7 md:overflow-y-auto">
+      <div className="relative min-h-0 space-y-5 bg-slate-50/50 p-5 sm:p-7 md:overflow-y-auto">
         {/* Info Grid */}
-        <div className="grid gap-4 md:grid-cols-4">
-          <div className="md:col-span-3">
+        {isEbook ? (
+          <div className="grid gap-4 sm:grid-cols-2">
             <Info
               icon={<UserRound />}
-              label={isBook ? "Penulis" : "Mahasiswa"}
-              value={isBook ? <AuthorLines author={item.author} /> : item.studentName}
+              label="Penulis"
+              value={<AuthorLines author={item.author} />}
+            />
+            <Info
+              icon={<BookOpen />}
+              label="Kategori / Mata Kuliah"
+              value={item.category || "-"}
             />
           </div>
-          <div className="md:col-span-1">
-            <Info icon={<Calendar />} label="Tahun" value={String(item.year || 2024)} />
+        ) : isBook ? (
+          <div className="grid gap-4 md:grid-cols-4">
+            <div className="md:col-span-3">
+              <Info
+                icon={<UserRound />}
+                label="Penulis"
+                value={<AuthorLines author={item.author} />}
+              />
+            </div>
+            <div className="md:col-span-1">
+              <Info icon={<Calendar />} label="Tahun" value={String(item.year || 2024)} />
+            </div>
+            <div className="md:col-span-2">
+              <Info icon={<MapPin />} label="Lokasi Rak" value={item.rackLocation} />
+            </div>
+            <div className="md:col-span-2">
+              <Info icon={<BookOpen />} label="Kategori" value={item.category} />
+            </div>
           </div>
-          {isBook ? (
-            <>
-              <div className="md:col-span-2">
-                <Info icon={<MapPin />} label="Akses & Lokasi" value={isEbook ? "Google Drive / Online PDF" : item.rackLocation} />
-              </div>
-              <div className="md:col-span-2">
-                <Info icon={<BookOpen />} label="Kategori / Mata Kuliah" value={item.category} />
-              </div>
-            </>
-          ) : null}
-        </div>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-4">
+            <div className="md:col-span-3">
+              <Info
+                icon={<UserRound />}
+                label="Mahasiswa"
+                value={item.studentName}
+              />
+            </div>
+            <div className="md:col-span-1">
+              <Info icon={<Calendar />} label="Tahun" value={String(item.year || 2024)} />
+            </div>
+          </div>
+        )}
 
         {/* Ebook Google Drive Viewer Panel */}
         {isEbook && item.pdfUrl ? (
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-slate-900">
-                <FileText className="size-5 text-orange-600" />
-                <h4 className="text-base sm:text-lg font-bold">Google Drive Viewer</h4>
-              </div>
-              <span className="text-xs font-medium text-slate-500">
-                Baca dokumen langsung atau download file
-              </span>
+          <div className="grid gap-6 lg:grid-cols-12 items-start pt-1">
+            <div className="lg:col-span-3 flex flex-col items-center">
+              <BookCover
+                coverUrl={item.coverUrl}
+                title={item.title}
+                author={item.author}
+                category={item.category}
+                size="lg"
+                className="shadow-xl"
+              />
+              <p className="mt-2 text-center text-[11px] font-semibold text-slate-400">
+                Cover Dokumen
+              </p>
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-12 items-start">
-              <div className="lg:col-span-3 flex flex-col items-center">
-                <BookCover
-                  coverUrl={item.coverUrl}
-                  title={item.title}
-                  author={item.author}
-                  category={item.category}
-                  size="lg"
-                  className="shadow-xl"
-                />
-                <p className="mt-2 text-center text-[11px] font-semibold text-slate-400">
-                  Cover Dokumen
-                </p>
-              </div>
-
-              <div className="lg:col-span-9">
-                <EbookPdfViewer
-                  pdfUrl={item.pdfUrl}
-                  title={item.title}
-                  author={item.author}
-                  category={item.category}
-                />
-              </div>
+            <div className="lg:col-span-9">
+              <EbookPdfViewer
+                pdfUrl={item.pdfUrl}
+                title={item.title}
+                author={item.author}
+                category={item.category}
+              />
             </div>
           </div>
         ) : null}
