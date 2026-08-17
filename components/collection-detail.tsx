@@ -130,10 +130,10 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
       </div>
 
       {/* Body Content */}
-      <div className="relative min-h-0 space-y-4 sm:space-y-5 bg-slate-50/50 p-4 sm:p-7 md:overflow-y-auto">
+      <div className="relative min-h-0 space-y-3.5 sm:space-y-5 bg-slate-50/50 p-3 sm:p-7 md:overflow-y-auto">
         {/* Info Grid */}
         {isEbook ? (
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-2.5 sm:gap-4 grid-cols-1 sm:grid-cols-2">
             <Info
               icon={<UserRound />}
               label="Penulis"
@@ -182,7 +182,7 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
         {/* Ebook Google Drive Viewer Panel */}
         {isEbook && item.pdfUrl ? (
           <div className="grid gap-6 lg:grid-cols-12 items-start pt-1">
-            <div className="lg:col-span-3 flex flex-col items-center">
+            <div className="hidden lg:flex lg:col-span-3 flex-col items-center">
               <BookCover
                 coverUrl={item.coverUrl}
                 title={item.title}
@@ -196,7 +196,7 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
               </p>
             </div>
 
-            <div className="lg:col-span-9">
+            <div className="lg:col-span-9 w-full">
               <EbookPdfViewer
                 pdfUrl={item.pdfUrl}
                 title={item.title}
@@ -280,7 +280,7 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
           </GlassPanel>
         ) : null}
 
-        {item.notes ? (
+        {item.notes && !isEbook ? (
           <div className="rounded-2xl border border-orange-200 bg-orange-50/70 p-3.5 text-sm text-orange-950 shadow-xs backdrop-blur-md">
             <span className="font-semibold">Catatan:</span> {item.notes}
           </div>

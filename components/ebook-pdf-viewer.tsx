@@ -58,7 +58,7 @@ export function EbookPdfViewer({
       )}
     >
       {/* Viewer Body */}
-      <div className="relative w-full bg-slate-950 flex flex-col items-center justify-center overflow-hidden h-[380px] sm:h-[560px] lg:h-[760px] xl:h-[840px] min-h-[320px]">
+      <div className="relative w-full bg-slate-950 flex flex-col items-center justify-center overflow-hidden h-[68vh] sm:h-[75vh] lg:h-[80vh] min-h-[500px] sm:min-h-[640px]">
         {/* Loading Overlay */}
         {isLoading && (
           <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-slate-950 text-white p-6 text-center">
@@ -105,7 +105,7 @@ export function EbookPdfViewer({
         <iframe
           src={previewUrl}
           title={`Google Drive Viewer: ${title}`}
-          className="h-full w-full border-0 bg-white"
+          className="h-full w-full border-0 bg-white min-h-[500px] sm:min-h-[640px]"
           allow="autoplay; fullscreen"
           onLoad={() => {
             setIsLoading(false);
