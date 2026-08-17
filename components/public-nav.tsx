@@ -69,19 +69,19 @@ export function PublicNav({
           : "border-transparent bg-white/80 backdrop-blur-sm",
       )}
     >
-      <div className="mx-auto flex min-h-18 max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
-        <Link href="/" className="group flex min-w-0 max-w-[calc(100%-60px)] items-center gap-3">
-          <div className="flex shrink-0 items-center -space-x-2">
-            <div className="flex size-10 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#047857,#0891b2_55%,#7c3aed)] text-primary-foreground shadow-lg shadow-red-950/15 transition-all duration-300 group-hover:scale-105 sm:size-11">
-              <BookOpen className="size-5" />
+      <div className="mx-auto flex min-h-16 sm:min-h-18 max-w-7xl items-center justify-between gap-3 px-3.5 py-2.5 sm:px-6 sm:py-4">
+        <Link href="/" className="group flex min-w-0 max-w-[calc(100%-54px)] items-center gap-2.5 sm:gap-3">
+          <div className="flex shrink-0 items-center -space-x-1.5 sm:-space-x-2">
+            <div className="flex size-9 sm:size-11 items-center justify-center rounded-xl sm:rounded-2xl bg-[linear-gradient(135deg,#047857,#0891b2_55%,#7c3aed)] text-primary-foreground shadow-md shadow-red-950/15 transition-all duration-300 group-hover:scale-105">
+              <BookOpen className="size-4.5 sm:size-5" />
             </div>
-            <span className="flex size-9 items-center justify-center rounded-full border border-white bg-white shadow-sm ring-1 ring-slate-100 sm:size-10">
-              <Image src="/ulm-logo.png" alt="Logo Universitas Lambung Mangkurat" width={30} height={30} className="size-7 object-contain sm:size-8" priority />
+            <span className="flex size-8 sm:size-10 items-center justify-center rounded-full border border-white bg-white shadow-sm ring-1 ring-slate-100">
+              <Image src="/ulm-logo.png" alt="Logo Universitas Lambung Mangkurat" width={30} height={30} className="size-6 object-contain sm:size-8" priority />
             </span>
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate font-bold leading-none tracking-tight text-slate-950">Ruang Baca PMat</p>
-            <p className="mt-1 truncate text-xs text-slate-500">Jurusan Pendidikan Matematika ULM</p>
+            <p className="truncate text-sm sm:text-base font-bold leading-tight tracking-tight text-slate-950">Ruang Baca PMat</p>
+            <p className="mt-0.5 truncate text-[11px] sm:text-xs text-slate-500 font-medium">Pendidikan Matematika ULM</p>
           </div>
         </Link>
         <NavbarSearch items={searchItems} className="hidden md:block order-3 w-full md:order-none md:w-[min(42vw,28rem)]" />

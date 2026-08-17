@@ -427,7 +427,7 @@ export function CatalogBrowser({
             "Tidak ada koleksi yang cocok dengan filter."
           )}
         </div>
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <div className="flex flex-row gap-2 w-full sm:w-auto sm:items-center">
           <Select
             value={String(pageSize)}
             onValueChange={(value) => {
@@ -435,7 +435,7 @@ export function CatalogBrowser({
               setPage(1);
             }}
           >
-            <SelectTrigger className="h-11 rounded-2xl bg-slate-50 sm:w-36">
+            <SelectTrigger className="h-11 rounded-2xl bg-slate-50 flex-1 sm:w-36">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -452,7 +452,7 @@ export function CatalogBrowser({
               triggerLoading();
             }}
           >
-            <SelectTrigger className="h-11 rounded-2xl bg-slate-50 sm:w-44">
+            <SelectTrigger className="h-11 rounded-2xl bg-slate-50 flex-1 sm:w-44">
               <div className="flex items-center gap-2">
                 <ArrowUpDown className="size-4 text-slate-500" />
                 <SelectValue />
@@ -623,18 +623,19 @@ function CollectionRow({
     <Dialog>
       <div
         className={cn(
-          "grid gap-4 rounded-2xl bg-white p-4 shadow-sm ring-1 transition hover:shadow-md items-center",
+          "flex flex-col gap-3 rounded-2xl bg-white p-3.5 sm:p-4 shadow-sm ring-1 transition hover:shadow-md sm:grid sm:items-center",
           isEbook
             ? "ring-orange-200/80 hover:ring-orange-300"
             : isBook
               ? "ring-slate-200/75 hover:ring-red-200"
               : "ring-slate-200/75 hover:ring-amber-200",
           isBook
-            ? "grid-cols-[minmax(0,1.8fr)_auto_auto] sm:grid-cols-[minmax(0,2fr)_minmax(140px,1fr)_auto]"
-            : "lg:grid-cols-[minmax(0,1.8fr)_7rem_minmax(14rem,1fr)_auto]",
+            ? "sm:grid-cols-[minmax(0,2.5fr)_minmax(120px,1.2fr)_auto]"
+            : "sm:grid-cols-[minmax(0,2.2fr)_5rem_minmax(12rem,1.2fr)_auto]",
         )}
       >
-        <div className="flex min-w-0 items-center gap-3.5 sm:gap-4">
+        {/* Main info row (Cover + details) */}
+        <div className="flex min-w-0 items-start gap-3 sm:items-center sm:gap-4">
           {isBook ? (
             <BookCover
               coverUrl={item.coverUrl}
@@ -642,33 +643,96 @@ function CollectionRow({
               size="md"
             />
           ) : (
-            <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl ring-1 shadow-xs bg-slate-900 text-red-200 ring-slate-900">
+            <span className="flex size-14 sm:size-13 shrink-0 items-center justify-center rounded-2xl ring-1 shadow-xs bg-slate-900 text-red-200 ring-slate-900">
               <Icon className="size-6" />
             </span>
           )}
 
-          <div className="min-w-0 flex-1">
-            <h3 className="line-clamp-2 text-base font-bold leading-snug text-slate-950">
+          <div className="min-w-0 flex-1 flex flex-col gap-1">
+            {/* Mobile-only category and type pill */}
+            <div className="flex sm:hidden flex-wrap items-center gap-1.5 mb-0.5">
+              {isEbook ? (
+                <span className="inline-flex items-center gap-1 rounded-md bg-gradient-to-r from-red-600 to-orange-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-xs">
+                  <BookOpen className="size-2.5" />
+                  E-Book
+                </span>
+              ) : isBook ? (
+                <span className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-700 ring-1 ring-slate-200/70">
+                  <BookMarked className="size-2.5" />
+                  Buku Fisik
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-800 ring-1 ring-amber-200/70">
+                  <GraduationCap className="size-2.5" />
+                  Skripsi
+                </span>
+              )}
+
+              {isBook && item.category ? (
+                <Badge
+                  variant="secondary"
+                  className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-700 ring-1 ring-slate-200/60 truncate max-w-[170px]"
+                >
+                  {item.category}
+                </Badge>
+              ) : null}
+
+              {!isBook && (
+                <Badge
+                  variant="secondary"
+                  className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-700 ring-1 ring-slate-200/60"
+                >
+                  {item.year || 2024}
+                </Badge>
+              )}
+            </div>
+
+            <h3 className="line-clamp-2 text-sm sm:text-base font-bold leading-snug text-slate-950">
               {item.title}
             </h3>
-            <MetaLine icon={UserRound} value={subtitle} className="mt-1 text-xs font-medium text-slate-600" />
+            
+            <MetaLine icon={UserRound} value={subtitle} className="text-xs font-medium text-slate-600" />
+
+            {/* Extra meta info for mobile */}
+            <div className="flex sm:hidden flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-500 pt-0.5">
+              {isEbook ? (
+                <span className="text-orange-700 font-semibold flex items-center gap-1">
+                  <Sparkles className="size-3 text-orange-500" />
+                  Google Drive PDF
+                </span>
+              ) : isBook ? (
+                <span>
+                  Rak: <strong className="font-semibold text-slate-700">{item.rackLocation || "-"}</strong> · Stok: <strong className="font-semibold text-slate-700">{item.available}/{item.stock}</strong>
+                </span>
+              ) : (
+                <span className="line-clamp-1">
+                  Pembimbing: <strong className="font-semibold text-slate-700">{item.supervisor1 || "-"}</strong>
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
+        {/* Desktop-only category / info column */}
         {isBook ? (
-          <div className="flex flex-col items-center justify-center text-center px-2 sm:px-4">
+          <div className="hidden sm:flex flex-col items-center justify-center text-center px-2 sm:px-4">
             <span className="text-xs sm:text-sm font-semibold text-slate-700 line-clamp-2">
               {item.category || "-"}
             </span>
+            {item.rackLocation && (
+              <span className="text-[11px] text-slate-400 mt-0.5">
+                Rak: {item.rackLocation}
+              </span>
+            )}
           </div>
         ) : (
           <>
-            <div className="grid gap-1 text-xs text-slate-600">
+            <div className="hidden sm:grid gap-1 text-xs text-slate-600">
               <p className="font-semibold text-slate-400 uppercase tracking-wider text-[10px]">Tahun</p>
               <MetaLine icon={Calendar} value={String(item.year || 2024)} />
             </div>
 
-            <div className="grid gap-1 text-xs text-slate-600">
+            <div className="hidden sm:grid gap-1 text-xs text-slate-600">
               <p className="font-semibold text-slate-400 uppercase tracking-wider text-[10px]">Pembimbing</p>
               <div className="grid gap-0.5 text-xs text-slate-700">
                 <p className="line-clamp-1 font-medium">{item.supervisor1 || "-"}</p>
@@ -678,27 +742,35 @@ function CollectionRow({
           </>
         )}
 
-        <div className="flex flex-wrap gap-2 justify-end">
+        {/* Action Button */}
+        <div className="flex flex-row items-center gap-2 justify-end pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
           <DialogTrigger asChild>
             <Button
-              variant={isEbook ? "default" : "outline"}
+              variant={isEbook ? "default" : isBook ? "outline" : "default"}
               size="sm"
               className={cn(
-                "rounded-xl gap-1.5 font-bold cursor-pointer h-9 px-4 shrink-0",
+                "rounded-xl gap-1.5 font-bold cursor-pointer h-10 sm:h-9 px-4 shrink-0 flex-1 sm:flex-initial",
                 isEbook
                   ? "bg-gradient-to-r from-red-600 via-yellow-600 to-orange-600 text-white shadow-xs hover:brightness-110 border-0"
-                  : "",
+                  : !isBook
+                    ? "bg-slate-900 text-white hover:bg-slate-800 border-0"
+                    : "border-slate-200 hover:bg-slate-50 text-slate-700",
               )}
             >
               {isEbook ? (
                 <>
-                  <BookOpen className="size-3.5" />
+                  <BookOpen className="size-4 sm:size-3.5" />
                   <span>Baca E-Book</span>
+                </>
+              ) : isBook ? (
+                <>
+                  <Eye className="size-4 sm:size-3.5" />
+                  <span>Detail Buku</span>
                 </>
               ) : (
                 <>
-                  <Eye className="size-3.5" />
-                  <span>Detail</span>
+                  <Eye className="size-4 sm:size-3.5" />
+                  <span>Lihat Skripsi</span>
                 </>
               )}
             </Button>

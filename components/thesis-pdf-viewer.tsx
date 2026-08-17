@@ -376,8 +376,8 @@ function PdfCanvasReader({
 
     const updateReaderMeasurements = () => {
       const nextBaseWidth = Math.max(
-        320,
-        Math.min(MAX_PAGE_BASE_WIDTH, container.clientWidth - 96),
+        280,
+        Math.min(MAX_PAGE_BASE_WIDTH, container.clientWidth - (container.clientWidth < 640 ? 32 : 96)),
       );
 
       setPageBaseWidth(Math.round(nextBaseWidth));
@@ -504,11 +504,11 @@ function PdfCanvasReader({
           }
         }}
       >
-        <div className="sticky top-0 z-10 mx-auto mb-4 flex w-fit items-center gap-2 rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-sm">
-          <div className="flex items-center gap-2 border-r border-slate-200 pr-3 mr-1">
+        <div className="sticky top-0 z-10 mx-auto mb-3 sm:mb-4 flex max-w-full flex-wrap items-center justify-center gap-1.5 sm:gap-2 rounded-2xl border border-slate-200 bg-white/95 p-1.5 sm:p-2 shadow-sm">
+          <div className="flex items-center gap-1.5 border-r border-slate-200 pr-2 sm:pr-3 mr-0.5 sm:mr-1">
             <input
               type="text"
-              className="h-8 w-12 rounded-lg border border-slate-200 text-center text-xs font-semibold text-slate-700 outline-none transition-colors focus:border-red-500 focus:ring-1 focus:ring-red-500"
+              className="h-7 w-10 sm:h-8 sm:w-12 rounded-lg border border-slate-200 text-center text-xs font-semibold text-slate-700 outline-none transition-colors focus:border-red-500 focus:ring-1 focus:ring-red-500"
               value={inputPage}
               onChange={(e) => setInputPage(e.target.value)}
               onKeyDown={(e) => {
@@ -536,7 +536,7 @@ function PdfCanvasReader({
                 }
               }}
             />
-            <span className="text-xs font-medium text-slate-500">
+            <span className="text-[11px] sm:text-xs font-medium text-slate-500">
               / {document.numPages}
             </span>
           </div>
@@ -544,40 +544,40 @@ function PdfCanvasReader({
             type="button"
             variant="outline"
             size="sm"
-            className="size-9 rounded-xl p-0"
+            className="size-7 sm:size-9 rounded-xl p-0"
             onClick={zoomOut}
             disabled={zoom <= MIN_PDF_ZOOM}
             aria-label="Zoom out"
             title="Zoom out (Ctrl/Cmd + -)"
           >
-            <ZoomOut className="size-4" />
+            <ZoomOut className="size-3.5 sm:size-4" />
           </Button>
-          <span className="min-w-14 text-center text-xs font-semibold text-slate-600">
+          <span className="min-w-10 sm:min-w-14 text-center text-[11px] sm:text-xs font-semibold text-slate-600">
             {zoomPercent}%
           </span>
           <Button
             type="button"
             variant="outline"
             size="sm"
-            className="size-9 rounded-xl p-0"
+            className="size-7 sm:size-9 rounded-xl p-0"
             onClick={zoomIn}
             disabled={zoom >= MAX_PDF_ZOOM}
             aria-label="Zoom in"
             title="Zoom in (Ctrl/Cmd + + atau Ctrl/Cmd + scroll)"
           >
-            <ZoomIn className="size-4" />
+            <ZoomIn className="size-3.5 sm:size-4" />
           </Button>
           <Button
             type="button"
             variant="outline"
             size="sm"
-            className="h-9 rounded-xl"
+            className="h-7 sm:h-9 px-2 sm:px-3 text-xs rounded-xl gap-1"
             onClick={() => setRotation((currentRotation) => (currentRotation + 180) % 360)}
             aria-label="Putar halaman"
             title="Putar halaman"
           >
-            <RotateCw className="size-4" />
-            Putar
+            <RotateCw className="size-3.5 sm:size-4" />
+            <span className="hidden sm:inline">Putar</span>
           </Button>
         </div>
         {hiddenPageNumbers.size ? (

@@ -60,65 +60,65 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
   return (
     <DialogContent
       className={cn(
-        "flex flex-col overflow-y-auto overflow-x-hidden rounded-[2.25rem] border border-orange-100/60 bg-gradient-to-b from-orange-50/70 via-white to-slate-50 p-0 shadow-[0_24px_50px_rgba(234,88,12,0.12)] backdrop-blur-2xl md:grid md:grid-rows-[auto_minmax(0,1fr)] md:overflow-hidden [&>button]:right-5 [&>button]:top-5 [&>button]:rounded-full [&>button]:bg-white/90 [&>button]:p-2 [&>button]:shadow-md [&>button]:shadow-slate-900/10 [&>button]:backdrop-blur-xl [&>button]:transition-all [&>button]:hover:scale-105",
+        "flex flex-col overflow-y-auto overflow-x-hidden rounded-[2rem] sm:rounded-[2.25rem] border border-orange-100/60 bg-gradient-to-b from-orange-50/70 via-white to-slate-50 p-0 shadow-[0_24px_50px_rgba(234,88,12,0.12)] backdrop-blur-2xl md:grid md:grid-rows-[auto_minmax(0,1fr)] md:overflow-hidden [&>button]:right-4 sm:[&>button]:right-5 [&>button]:top-4 sm:[&>button]:top-5 [&>button]:rounded-full [&>button]:bg-white/90 [&>button]:p-2 [&>button]:shadow-md [&>button]:shadow-slate-900/10 [&>button]:backdrop-blur-xl [&>button]:transition-all [&>button]:hover:scale-105",
         isEbook
-          ? "w-[96vw] max-w-[1580px] h-[95vh] max-h-[95vh]"
-          : "max-w-5xl sm:w-[calc(100%-2rem)] max-h-[92vh]",
+          ? "w-[96vw] max-w-[1580px] h-[92vh] sm:h-[95vh] max-h-[95vh]"
+          : "w-[95vw] max-w-5xl sm:w-[calc(100%-2rem)] max-h-[92vh]",
       )}
     >
       {/* Header */}
-      <div className="relative shrink-0 overflow-hidden border-b border-orange-100/60 bg-[linear-gradient(135deg,rgba(255,247,237,0.96),rgba(254,242,242,0.8),rgba(255,255,255,0.95))] px-5 pb-6 pt-5 pr-14 sm:px-8 sm:pb-7 sm:pt-6 sm:pr-16">
+      <div className="relative shrink-0 overflow-hidden border-b border-orange-100/60 bg-[linear-gradient(135deg,rgba(255,247,237,0.96),rgba(254,242,242,0.8),rgba(255,255,255,0.95))] px-4 pb-5 pt-4 pr-12 sm:px-8 sm:pb-7 sm:pt-6 sm:pr-16">
         <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-orange-200 to-transparent" />
-        <DialogHeader className="relative space-y-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge className="rounded-full border border-orange-200 bg-white/90 px-3.5 py-1.5 text-xs sm:text-sm font-bold text-orange-950 shadow-xs backdrop-blur-md">
+        <DialogHeader className="relative space-y-2.5 sm:space-y-3">
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+            <Badge className="rounded-full border border-orange-200 bg-white/90 px-3 py-1 sm:px-3.5 sm:py-1.5 text-xs sm:text-sm font-bold text-orange-950 shadow-xs backdrop-blur-md">
               {isEbook ? (
                 <>
-                  <BookOpen className="mr-1.5 size-4 text-orange-600" />
+                  <BookOpen className="mr-1.5 size-3.5 sm:size-4 text-orange-600" />
                   E-Book Digital
                 </>
               ) : isBook ? (
                 <>
-                  <BookOpen className="mr-1.5 size-4 text-red-600" />
+                  <BookOpen className="mr-1.5 size-3.5 sm:size-4 text-red-600" />
                   Buku Fisik
                 </>
               ) : (
                 <>
-                  <GraduationCap className="mr-1.5 size-4 text-slate-800" />
+                  <GraduationCap className="mr-1.5 size-3.5 sm:size-4 text-slate-800" />
                   Skripsi
                 </>
               )}
             </Badge>
 
             {isEbook ? (
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-orange-200 bg-gradient-to-r from-orange-500 to-amber-500 px-3 py-1 text-xs font-bold text-white shadow-sm">
-                <Sparkles className="size-3.5" />
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-orange-200 bg-gradient-to-r from-orange-500 to-amber-500 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[11px] sm:text-xs font-bold text-white shadow-sm">
+                <Sparkles className="size-3 sm:size-3.5" />
                 Google Drive PDF
               </span>
             ) : isBook ? (
               <AvailabilityBadge available={item.available} stock={item.stock} />
             ) : (
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50/80 px-3 py-1 text-xs font-semibold text-rose-800 shadow-sm backdrop-blur-md">
-                <Sparkles className="size-3.5" />
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50/80 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[11px] sm:text-xs font-semibold text-rose-800 shadow-sm backdrop-blur-md">
+                <Sparkles className="size-3 sm:size-3.5" />
                 Repositori Digital
               </span>
             )}
           </div>
 
-          <DialogTitle className="max-w-4xl text-balance text-xl font-extrabold leading-tight tracking-tight text-slate-900 sm:text-2xl md:text-3xl">
+          <DialogTitle className="max-w-4xl text-balance text-lg font-extrabold leading-tight tracking-tight text-slate-900 sm:text-2xl md:text-3xl">
             {item.title}
           </DialogTitle>
 
           {isEbook && downloadUrl ? (
-            <div className="flex flex-wrap items-center gap-2.5 pt-1">
+            <div className="flex flex-wrap items-center gap-2 pt-1">
               <Button
                 asChild
                 size="sm"
-                className="h-9 rounded-xl bg-gradient-to-r from-red-600 via-yellow-600 to-orange-600 px-4 text-xs font-bold text-white shadow-md hover:brightness-110 active:scale-95 border-0 gap-1.5 cursor-pointer"
+                className="h-8 sm:h-9 rounded-xl bg-gradient-to-r from-red-600 via-yellow-600 to-orange-600 px-3.5 sm:px-4 text-xs font-bold text-white shadow-md hover:brightness-110 active:scale-95 border-0 gap-1.5 cursor-pointer"
               >
                 <a href={downloadUrl} target="_blank" rel="noopener noreferrer" download>
-                  <Download className="size-4" />
-                  Download PDF File
+                  <Download className="size-3.5 sm:size-4" />
+                  Download PDF
                 </a>
               </Button>
               {directDriveUrl ? (
@@ -126,11 +126,11 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
                   asChild
                   variant="outline"
                   size="sm"
-                  className="h-9 rounded-xl border-slate-200 bg-white/80 px-3.5 text-xs font-semibold text-slate-700 shadow-xs hover:bg-white hover:text-slate-900 active:scale-95 gap-1.5 cursor-pointer"
+                  className="h-8 sm:h-9 rounded-xl border-slate-200 bg-white/80 px-3 sm:px-3.5 text-xs font-semibold text-slate-700 shadow-xs hover:bg-white hover:text-slate-900 active:scale-95 gap-1.5 cursor-pointer"
                 >
                   <a href={directDriveUrl} target="_blank" rel="noopener noreferrer">
                     <ExternalLink className="size-3.5" />
-                    Buka di Google Drive
+                    Buka di Drive
                   </a>
                 </Button>
               ) : null}
@@ -140,7 +140,7 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
       </div>
 
       {/* Body Content */}
-      <div className="relative min-h-0 space-y-5 bg-slate-50/50 p-5 sm:p-7 md:overflow-y-auto">
+      <div className="relative min-h-0 space-y-4 sm:space-y-5 bg-slate-50/50 p-4 sm:p-7 md:overflow-y-auto">
         {/* Info Grid */}
         {isEbook ? (
           <div className="grid gap-4 sm:grid-cols-2">
@@ -354,15 +354,15 @@ function Info({
   value: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-[4.5rem] gap-3 rounded-[1.25rem] border border-slate-200/70 bg-white/90 p-4 shadow-xs backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 hover:border-orange-200 hover:bg-white hover:shadow-md">
-      <div className="flex size-9 shrink-0 items-center justify-center rounded-2xl bg-orange-50 text-orange-700 shadow-inner shadow-white/70 [&_svg]:size-5">
+    <div className="flex min-h-[3.75rem] sm:min-h-[4.5rem] gap-2.5 sm:gap-3 rounded-2xl sm:rounded-[1.25rem] border border-slate-200/70 bg-white/90 p-3 sm:p-4 shadow-xs backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 hover:border-orange-200 hover:bg-white hover:shadow-md">
+      <div className="flex size-8 sm:size-9 shrink-0 items-center justify-center rounded-xl sm:rounded-2xl bg-orange-50 text-orange-700 shadow-inner shadow-white/70 [&_svg]:size-4 sm:[&_svg]:size-5">
         {icon}
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+        <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-slate-400">
           {label}
         </p>
-        <div className="mt-1 break-words text-sm font-bold leading-snug text-slate-900 sm:text-base">
+        <div className="mt-0.5 sm:mt-1 break-words text-xs sm:text-sm md:text-base font-bold leading-snug text-slate-950">
           {value || "-"}
         </div>
       </div>

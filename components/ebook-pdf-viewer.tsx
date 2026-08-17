@@ -58,7 +58,7 @@ export function EbookPdfViewer({
       )}
     >
       {/* Viewer Body */}
-      <div className="relative w-full bg-slate-950 flex flex-col items-center justify-center overflow-hidden h-[560px] sm:h-[680px] lg:h-[780px] xl:h-[840px] min-h-[500px]">
+      <div className="relative w-full bg-slate-950 flex flex-col items-center justify-center overflow-hidden h-[380px] sm:h-[560px] lg:h-[760px] xl:h-[840px] min-h-[320px]">
         {/* Loading Overlay */}
         {isLoading && (
           <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-slate-950 text-white p-6 text-center">

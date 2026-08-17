@@ -78,7 +78,11 @@ export function CollectionCard({ item }: { item: CollectionItem }) {
                     size="md"
                     className="group-hover:scale-105"
                   />
-                ) : null}
+                ) : (
+                  <span className="flex size-14 shrink-0 items-center justify-center rounded-2xl ring-1 shadow-xs bg-slate-900 text-amber-200 ring-slate-900 group-hover:scale-105 transition-transform">
+                    <GraduationCap className="size-6" />
+                  </span>
+                )}
 
                 <div className="min-w-0 flex-1">
                   <h3 className="line-clamp-2 min-h-11 text-[15px] font-bold leading-snug text-slate-900 group-hover:text-red-700 transition-colors">
@@ -88,7 +92,11 @@ export function CollectionCard({ item }: { item: CollectionItem }) {
                     <p className="mt-1 line-clamp-1 text-xs font-semibold text-slate-500">
                       {item.author || "Pendidikan Matematika"}
                     </p>
-                  ) : null}
+                  ) : (
+                    <p className="mt-1 line-clamp-1 text-xs font-semibold text-slate-500">
+                      {item.studentName || "Mahasiswa"}
+                    </p>
+                  )}
                 </div>
               </div>
 

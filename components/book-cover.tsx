@@ -20,9 +20,9 @@ export function BookCover({
 }: BookCoverProps) {
   const sizeClasses = {
     sm: "w-11 h-15 rounded-lg",
-    md: "w-13 h-19 sm:w-15 sm:h-22 rounded-xl",
-    lg: "w-44 h-64 rounded-2xl",
-    xl: "w-56 h-80 rounded-[1.5rem]",
+    md: "w-14 h-20 sm:w-16 sm:h-23 rounded-xl",
+    lg: "w-36 h-52 sm:w-44 sm:h-64 rounded-2xl",
+    xl: "w-44 h-64 sm:w-56 sm:h-80 rounded-[1.5rem]",
   };
 
   if (coverUrl) {
