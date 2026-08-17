@@ -90,19 +90,9 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
               )}
             </Badge>
 
-            {isEbook ? (
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-orange-200 bg-gradient-to-r from-orange-500 to-amber-500 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[11px] sm:text-xs font-bold text-white shadow-sm">
-                <Sparkles className="size-3 sm:size-3.5" />
-                Google Drive PDF
-              </span>
-            ) : isBook ? (
+            {isBook && !isEbook ? (
               <AvailabilityBadge available={item.available} stock={item.stock} />
-            ) : (
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50/80 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[11px] sm:text-xs font-semibold text-rose-800 shadow-sm backdrop-blur-md">
-                <Sparkles className="size-3 sm:size-3.5" />
-                Repositori Digital
-              </span>
-            )}
+            ) : null}
           </div>
 
           <DialogTitle className="max-w-4xl text-balance text-lg font-extrabold leading-tight tracking-tight text-slate-900 sm:text-2xl md:text-3xl">

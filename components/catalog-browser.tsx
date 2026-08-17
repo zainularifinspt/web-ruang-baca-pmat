@@ -649,29 +649,12 @@ function CollectionRow({
           )}
 
           <div className="min-w-0 flex-1 flex flex-col gap-1">
-            {/* Mobile-only category and type pill */}
+            {/* Mobile-only category and year badge */}
             <div className="flex sm:hidden flex-wrap items-center gap-1.5 mb-0.5">
-              {isEbook ? (
-                <span className="inline-flex items-center gap-1 rounded-md bg-gradient-to-r from-red-600 to-orange-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-xs">
-                  <BookOpen className="size-2.5" />
-                  E-Book
-                </span>
-              ) : isBook ? (
-                <span className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-700 ring-1 ring-slate-200/70">
-                  <BookMarked className="size-2.5" />
-                  Buku Fisik
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-800 ring-1 ring-amber-200/70">
-                  <GraduationCap className="size-2.5" />
-                  Skripsi
-                </span>
-              )}
-
               {isBook && item.category ? (
                 <Badge
                   variant="secondary"
-                  className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-700 ring-1 ring-slate-200/60 truncate max-w-[170px]"
+                  className="rounded-md bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-700 ring-1 ring-slate-200/60 truncate max-w-[200px]"
                 >
                   {item.category}
                 </Badge>
@@ -680,7 +663,7 @@ function CollectionRow({
               {!isBook && (
                 <Badge
                   variant="secondary"
-                  className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-700 ring-1 ring-slate-200/60"
+                  className="rounded-md bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-700 ring-1 ring-slate-200/60"
                 >
                   {item.year || 2024}
                 </Badge>
@@ -694,22 +677,19 @@ function CollectionRow({
             <MetaLine icon={UserRound} value={subtitle} className="text-xs font-medium text-slate-600" />
 
             {/* Extra meta info for mobile */}
-            <div className="flex sm:hidden flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-500 pt-0.5">
-              {isEbook ? (
-                <span className="text-orange-700 font-semibold flex items-center gap-1">
-                  <Sparkles className="size-3 text-orange-500" />
-                  Google Drive PDF
-                </span>
-              ) : isBook ? (
-                <span>
-                  Rak: <strong className="font-semibold text-slate-700">{item.rackLocation || "-"}</strong> · Stok: <strong className="font-semibold text-slate-700">{item.available}/{item.stock}</strong>
-                </span>
-              ) : (
-                <span className="line-clamp-1">
-                  Pembimbing: <strong className="font-semibold text-slate-700">{item.supervisor1 || "-"}</strong>
-                </span>
-              )}
-            </div>
+            {(!isEbook && isBook) || !isBook ? (
+              <div className="flex sm:hidden flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-500 pt-0.5">
+                {isBook ? (
+                  <span>
+                    Rak: <strong className="font-semibold text-slate-700">{item.rackLocation || "-"}</strong> · Stok: <strong className="font-semibold text-slate-700">{item.available}/{item.stock}</strong>
+                  </span>
+                ) : (
+                  <span className="line-clamp-1">
+                    Pembimbing: <strong className="font-semibold text-slate-700">{item.supervisor1 || "-"}</strong>
+                  </span>
+                )}
+              </div>
+            ) : null}
           </div>
         </div>
 
