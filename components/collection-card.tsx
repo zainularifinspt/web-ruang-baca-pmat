@@ -124,9 +124,9 @@ function CompactHeader({ item }: { item: CollectionItem }) {
   const eyebrow = isBook ? item.category : item.topic;
   const label = isEbook ? "E-Book Digital" : isBook ? "Buku" : "Skripsi";
   const pill = isEbook
-    ? "Google Drive"
+    ? "E-Book"
     : isBook
-      ? item.rackLocation
+      ? (item.rackLocation === "Digital / E-Library" ? "Koleksi" : item.rackLocation || "Buku")
       : String(item.year);
 
   return (
@@ -189,18 +189,7 @@ function BookMeta({ item }: { item: Book }) {
   const isEbook = item.isEbook || Boolean(item.pdfUrl);
 
   if (isEbook) {
-    return (
-      <div className="grid grid-cols-2 gap-2 border-t border-slate-100 pt-2 text-xs text-slate-600">
-        <div className="flex items-center gap-1.5 text-orange-700 font-semibold">
-          <FileText className="size-3.5" />
-          <span className="truncate">Google Drive Viewer</span>
-        </div>
-        <div className="flex items-center justify-end gap-1 text-slate-500 font-medium">
-          <Download className="size-3 text-slate-400" />
-          <span>Bisa didownload</span>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   return (
@@ -208,7 +197,9 @@ function BookMeta({ item }: { item: Book }) {
       <MetaLine icon={UserRound} value={item.author} />
       <div className="grid grid-cols-2 gap-2">
         <MetaLine icon={Layers3} value={`Stok ${item.available}/${item.stock}`} />
-        <MetaLine icon={MapPin} value={item.rackLocation} />
+        {item.rackLocation && item.rackLocation !== "Digital / E-Library" ? (
+          <MetaLine icon={MapPin} value={item.rackLocation} />
+        ) : null}
       </div>
     </div>
   );

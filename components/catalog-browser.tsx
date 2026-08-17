@@ -677,17 +677,20 @@ function CollectionRow({
             <MetaLine icon={UserRound} value={subtitle} className="text-xs font-medium text-slate-600" />
 
             {/* Extra meta info for mobile */}
-            {(!isEbook && isBook) || !isBook ? (
+            {!isEbook && isBook ? (
               <div className="flex sm:hidden flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-500 pt-0.5">
-                {isBook ? (
-                  <span>
-                    Rak: <strong className="font-semibold text-slate-700">{item.rackLocation || "-"}</strong> · Stok: <strong className="font-semibold text-slate-700">{item.available}/{item.stock}</strong>
-                  </span>
-                ) : (
-                  <span className="line-clamp-1">
-                    Pembimbing: <strong className="font-semibold text-slate-700">{item.supervisor1 || "-"}</strong>
-                  </span>
-                )}
+                <span>
+                  {item.rackLocation && item.rackLocation !== "Digital / E-Library" ? (
+                    <>Rak: <strong className="font-semibold text-slate-700">{item.rackLocation}</strong> · </>
+                  ) : null}
+                  Stok: <strong className="font-semibold text-slate-700">{item.available}/{item.stock}</strong>
+                </span>
+              </div>
+            ) : !isBook ? (
+              <div className="flex sm:hidden flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-500 pt-0.5">
+                <span className="line-clamp-1">
+                  Pembimbing: <strong className="font-semibold text-slate-700">{item.supervisor1 || "-"}</strong>
+                </span>
               </div>
             ) : null}
           </div>
@@ -699,11 +702,11 @@ function CollectionRow({
             <span className="text-xs sm:text-sm font-semibold text-slate-700 line-clamp-2">
               {item.category || "-"}
             </span>
-            {item.rackLocation && (
+            {!isEbook && item.rackLocation && item.rackLocation !== "Digital / E-Library" ? (
               <span className="text-[11px] text-slate-400 mt-0.5">
                 Rak: {item.rackLocation}
               </span>
-            )}
+            ) : null}
           </div>
         ) : (
           <>
