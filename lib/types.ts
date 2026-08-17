@@ -61,6 +61,9 @@ export type Book = CollectionBase & {
   isbn: string;
   coverUrl?: string;
   status: BookStatus;
+  pdfUrl?: string;
+  isEbook?: boolean;
+  downloadUrl?: string;
 };
 
 export type Thesis = CollectionBase & {

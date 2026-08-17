@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { PublicNav } from "@/components/public-nav";
 import { ThesisPdfViewer } from "@/components/thesis-pdf-viewer";
+import { EbookPdfViewer } from "@/components/ebook-pdf-viewer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -52,9 +53,25 @@ export default async function CollectionDetailPage({
               {!isBook ? <Meta label="Tanggal input" value={formatDate(item.createdAt)} /> : null}
             </div>
             {isBook ? (
-              <div className="grid gap-3 rounded-2xl border bg-muted/35 p-4 sm:grid-cols-2">
-                <Meta label="Kategori" value={item.category} />
-                <Meta label="Stok" value={`${item.available} tersedia dari ${item.stock}`} />
+              <div className="space-y-4">
+                <div className="grid gap-3 rounded-2xl border bg-muted/35 p-4 sm:grid-cols-2">
+                  <Meta label="Kategori / Mata Kuliah" value={item.category} />
+                  <Meta
+                    label={item.pdfUrl ? "Akses File" : "Stok"}
+                    value={item.pdfUrl ? "Google Drive (Bisa didownload)" : `${item.available} tersedia dari ${item.stock}`}
+                  />
+                </div>
+                {item.pdfUrl ? (
+                  <div className="pt-2">
+                    <p className="font-semibold text-slate-900 mb-3">Google Drive PDF Viewer</p>
+                    <EbookPdfViewer
+                      pdfUrl={item.pdfUrl}
+                      title={item.title}
+                      author={item.author}
+                      category={item.category}
+                    />
+                  </div>
+                ) : null}
               </div>
             ) : (
               <div className="space-y-3 rounded-2xl border bg-muted/35 p-4">

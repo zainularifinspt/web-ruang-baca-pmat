@@ -7,15 +7,17 @@ import {
   ArrowRight,
   ArrowUpDown,
   BookMarked,
+  BookOpen,
   Calendar,
   Eye,
   GraduationCap,
-  MapPin,
   Search,
   SlidersHorizontal,
+  Sparkles,
   UserRound,
   X,
 } from "lucide-react";
+import { BookCover } from "@/components/book-cover";
 import { CollectionDetailContent } from "@/components/collection-detail";
 import { EmptyState } from "@/components/empty-state";
 import { AvailabilityBadge } from "@/components/status-badge";
@@ -181,8 +183,8 @@ export function CatalogBrowser({
       const matchesSubject =
         subjectFilter === "all" ||
         (item.type === "book"
-          ? item.category === subjectFilter || item.keywords.includes(subjectFilter)
-          : item.topic === subjectFilter || item.keywords.includes(subjectFilter));
+          ? item.category === subjectFilter || item.keywords.includes(subjectFilter.toLowerCase())
+          : item.topic === subjectFilter || item.keywords.includes(subjectFilter.toLowerCase()));
       const matchesLocationAdvisor =
         locationAdvisorFilter === "all" ||
         (item.type === "book"
@@ -201,6 +203,16 @@ export function CatalogBrowser({
     return sortCollections(result, sort);
   }, [baseItems, bookAvailability, locationAdvisorFilter, normalizedQuery, sort, subjectFilter, yearFilter]);
 
+  const subjectOptions = useMemo(
+    () =>
+      unique(
+        baseItems
+          .map((item) => (item.type === "book" ? item.category : item.topic))
+          .filter(Boolean),
+      ),
+    [baseItems],
+  );
+
   const yearOptions = useMemo(() => unique(baseItems.map((item) => String(item.year))), [baseItems]);
   const locationAdvisorOptions = useMemo(
     () =>
@@ -217,11 +229,27 @@ export function CatalogBrowser({
     [baseItems, collectionType],
   );
 
-  const activeChips = [
-    chip("Jenis", collectionTypeLabel(collectionType), () => setCollectionType("all"), collectionType),
-    chip("Tahun", yearFilter, () => setYearFilter("all")),
-    chip("Pembimbing", locationAdvisorFilter, () => setLocationAdvisorFilter("all")),
-  ];
+  const activeChips = useMemo(() => {
+    if (collectionType === "books") {
+      return [
+        chip("Jenis", collectionTypeLabel(collectionType), () => setCollectionType("all"), collectionType),
+        chip("Mata Kuliah", subjectFilter, () => setSubjectFilter("all")),
+      ];
+    }
+    if (collectionType === "theses") {
+      return [
+        chip("Jenis", collectionTypeLabel(collectionType), () => setCollectionType("all"), collectionType),
+        chip("Tahun", yearFilter, () => setYearFilter("all")),
+        chip("Pembimbing", locationAdvisorFilter, () => setLocationAdvisorFilter("all")),
+      ];
+    }
+    return [
+      chip("Jenis", collectionTypeLabel(collectionType), () => setCollectionType("all"), collectionType),
+      chip("Mata Kuliah / Topik", subjectFilter, () => setSubjectFilter("all")),
+      chip("Tahun", yearFilter, () => setYearFilter("all")),
+      chip("Pembimbing", locationAdvisorFilter, () => setLocationAdvisorFilter("all")),
+    ];
+  }, [collectionType, locationAdvisorFilter, subjectFilter, yearFilter]);
 
   const resetCurrentFilters = () => {
     triggerLoading();
@@ -266,7 +294,7 @@ export function CatalogBrowser({
             onChange={(event) => {
               setQuery(event.target.value);
             }}
-            placeholder="Cari judul atau penulis"
+            placeholder="Cari judul, penulis, topik, atau mata kuliah..."
             className="h-12 rounded-2xl border-slate-200 bg-slate-50 pl-12 pr-12 text-base shadow-inner shadow-slate-900/3 sm:h-14"
           />
           {hasQuery ? (
@@ -291,44 +319,100 @@ export function CatalogBrowser({
           <SlidersHorizontal className="size-4 text-primary" />
           Filter koleksi
         </div>
-        <div className="grid gap-3 lg:grid-cols-3">
+
+        {/* Filter Bar: Khusus Buku hanya Jenis & Mata Kuliah */}
+        <div
+          className={cn(
+            "grid gap-3",
+            collectionType === "books" ? "sm:grid-cols-2" : "lg:grid-cols-3",
+          )}
+        >
           <CollectionTypeFilter
             value={collectionType}
             showAll={showAllTab || initialTab === "all"}
             onValueChange={(value) => {
               setCollectionType(value);
-              if (value === "theses") {
-                setSubjectFilter("all");
-                setLocationAdvisorFilter("all");
-              }
+              setSubjectFilter("all");
+              setYearFilter("all");
+              setLocationAdvisorFilter("all");
               if (value !== "books") setBookAvailability("all");
               setPage(1);
               triggerLoading();
             }}
           />
-          <FilterSelect
-            label="Tahun"
-            value={yearFilter}
-            onValueChange={(value) => {
-              setYearFilter(value);
-              setPage(1);
-              triggerLoading();
-            }}
-            options={yearOptions.map(toOption)}
-            placeholder="Semua tahun"
-          />
-          <FilterSelect
-            label="Pembimbing"
-            value={locationAdvisorFilter}
-            onValueChange={(value) => {
-              setLocationAdvisorFilter(value);
-              setPage(1);
-              triggerLoading();
-            }}
-            options={locationAdvisorOptions.map(toOption)}
-            placeholder="Semua pembimbing"
-          />
+
+          {/* Khusus Buku / E-Book: Filter Mata Kuliah */}
+          {collectionType === "books" ? (
+            <FilterSelect
+              label="Mata Kuliah"
+              value={subjectFilter}
+              onValueChange={(value) => {
+                setSubjectFilter(value);
+                setPage(1);
+                triggerLoading();
+              }}
+              options={subjectOptions.map(toOption)}
+              placeholder="Semua mata kuliah"
+            />
+          ) : null}
+
+          {/* Khusus Skripsi: Filter Tahun & Pembimbing */}
+          {collectionType === "theses" ? (
+            <>
+              <FilterSelect
+                label="Tahun"
+                value={yearFilter}
+                onValueChange={(value) => {
+                  setYearFilter(value);
+                  setPage(1);
+                  triggerLoading();
+                }}
+                options={yearOptions.map(toOption)}
+                placeholder="Semua tahun"
+              />
+              <FilterSelect
+                label="Pembimbing"
+                value={locationAdvisorFilter}
+                onValueChange={(value) => {
+                  setLocationAdvisorFilter(value);
+                  setPage(1);
+                  triggerLoading();
+                }}
+                options={locationAdvisorOptions.map(toOption)}
+                placeholder="Semua pembimbing"
+              />
+            </>
+          ) : null}
+
+          {/* Jika Semua Koleksi: Tampilkan Filter Kategori, Tahun, & Pembimbing */}
+          {collectionType === "all" ? (
+            <>
+              <FilterSelect
+                label="Kategori / Topik"
+                value={subjectFilter}
+                onValueChange={(value) => {
+                  setSubjectFilter(value);
+                  setPage(1);
+                  triggerLoading();
+                }}
+                options={subjectOptions.map(toOption)}
+                placeholder="Semua kategori / topik"
+              />
+              <FilterSelect
+                label="Tahun"
+                value={yearFilter}
+                onValueChange={(value) => {
+                  setYearFilter(value);
+                  setPage(1);
+                  triggerLoading();
+                }}
+                options={yearOptions.map(toOption)}
+                placeholder="Semua tahun"
+              />
+            </>
+          ) : null}
         </div>
+
         <FilterChips chips={activeChips} onReset={resetCurrentFilters} />
       </div>
 
@@ -344,10 +428,13 @@ export function CatalogBrowser({
           )}
         </div>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          <Select value={String(pageSize)} onValueChange={(value) => {
-            setPageSize(Number(value) as PageSize);
-            setPage(1);
-          }}>
+          <Select
+            value={String(pageSize)}
+            onValueChange={(value) => {
+              setPageSize(Number(value) as PageSize);
+              setPage(1);
+            }}
+          >
             <SelectTrigger className="h-11 rounded-2xl bg-slate-50 sm:w-36">
               <SelectValue />
             </SelectTrigger>
@@ -418,7 +505,7 @@ function CollectionTypeFilter({
       placeholder="Semua koleksi"
       options={[
         ...(showAll ? [{ label: "Semua koleksi", value: "all" }] : []),
-        // { label: "Buku", value: "books" }, // Disabled temporarily since there are no books
+        { label: "E-Book & Buku", value: "books" },
         { label: "Skripsi", value: "theses" },
       ]}
     />
@@ -479,13 +566,13 @@ function FilterChips({
           key={`${item.label}-${item.value}`}
           type="button"
           onClick={item.clear}
-          className="inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1.5 text-xs font-medium text-red-800 ring-1 ring-red-100"
+          className="inline-flex items-center gap-2 rounded-full bg-orange-50 px-3 py-1.5 text-xs font-bold text-orange-900 ring-1 ring-orange-200"
         >
           {item.label}: {item.value}
           <X className="size-3" />
         </button>
       ))}
-      <Button variant="ghost" size="sm" className="h-8 rounded-full" onClick={onReset}>
+      <Button variant="ghost" size="sm" className="h-8 rounded-full text-xs" onClick={onReset}>
         Reset filter
       </Button>
     </div>
@@ -504,12 +591,7 @@ function CollectionRows({
   description: string;
 }) {
   if (!items.length) {
-    return (
-      <EmptyState
-        title={empty}
-        description={description}
-      />
-    );
+    return <EmptyState title={empty} description={description} />;
   }
 
   return (
@@ -533,77 +615,92 @@ function CollectionRow({
   actions?: ReactNode;
 }) {
   const isBook = item.type === "book";
-  const Icon = isBook ? BookMarked : GraduationCap;
+  const isEbook = isBook && (item.isEbook || Boolean(item.pdfUrl));
+  const Icon = isEbook ? BookOpen : isBook ? BookMarked : GraduationCap;
   const subtitle = isBook ? item.author : item.studentName;
 
   return (
     <Dialog>
       <div
         className={cn(
-          "grid gap-4 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200/75 transition hover:shadow-md hover:ring-red-200 lg:items-center",
+          "grid gap-4 rounded-2xl bg-white p-4 shadow-sm ring-1 transition hover:shadow-md items-center",
+          isEbook
+            ? "ring-orange-200/80 hover:ring-orange-300"
+            : isBook
+              ? "ring-slate-200/75 hover:ring-red-200"
+              : "ring-slate-200/75 hover:ring-amber-200",
           isBook
-            ? "lg:grid-cols-[minmax(0,1.6fr)_minmax(10rem,0.8fr)_7rem_minmax(10rem,0.8fr)_auto]"
+            ? "grid-cols-[minmax(0,1.8fr)_auto_auto] sm:grid-cols-[minmax(0,2fr)_minmax(140px,1fr)_auto]"
             : "lg:grid-cols-[minmax(0,1.8fr)_7rem_minmax(14rem,1fr)_auto]",
         )}
       >
-        <div className="flex min-w-0 items-start gap-3">
-          <span
-            className={cn(
-              "flex size-11 shrink-0 items-center justify-center rounded-2xl ring-1",
-              isBook
-                ? "bg-red-700 text-white ring-red-700"
-                : "bg-slate-900 text-red-200 ring-slate-900",
-            )}
-          >
-            <Icon className="size-5" />
-          </span>
-          <div className="min-w-0">
-            {isBook ? (
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge variant="secondary" className="rounded-full">
-                  Buku
-                </Badge>
-                <span className="line-clamp-1 text-xs font-semibold text-slate-500">
-                  {item.category || "-"}
-                </span>
-              </div>
-            ) : null}
-            <h3 className={cn("line-clamp-2 text-base font-semibold leading-snug text-slate-950", isBook ? "mt-2" : "mt-0.5")}>
+        <div className="flex min-w-0 items-center gap-3.5 sm:gap-4">
+          {isBook ? (
+            <BookCover
+              coverUrl={item.coverUrl}
+              title={item.title}
+              size="md"
+            />
+          ) : (
+            <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl ring-1 shadow-xs bg-slate-900 text-red-200 ring-slate-900">
+              <Icon className="size-6" />
+            </span>
+          )}
+
+          <div className="min-w-0 flex-1">
+            <h3 className="line-clamp-2 text-base font-bold leading-snug text-slate-950">
               {item.title}
             </h3>
-            <MetaLine icon={UserRound} value={subtitle} className="mt-2" />
+            <MetaLine icon={UserRound} value={subtitle} className="mt-1 text-xs font-medium text-slate-600" />
           </div>
         </div>
 
         {isBook ? (
-          <div className="grid gap-1.5 text-sm text-slate-600">
-            <p className="text-xs font-medium text-slate-500">Lokasi</p>
-            <MetaLine icon={MapPin} value={item.rackLocation} />
+          <div className="flex flex-col items-center justify-center text-center px-2 sm:px-4">
+            <span className="text-xs sm:text-sm font-semibold text-slate-700 line-clamp-2">
+              {item.category || "-"}
+            </span>
           </div>
-        ) : null}
-
-        <div className="grid gap-1.5 text-sm text-slate-600">
-          <p className="text-xs font-medium text-slate-500">Tahun</p>
-          <MetaLine icon={Calendar} value={String(item.year)} />
-        </div>
-
-        <div className="grid gap-1.5 text-sm text-slate-600">
-          <p className="text-xs font-medium text-slate-500">{isBook ? "Ketersediaan" : "Pembimbing"}</p>
-          {isBook ? (
-            <AvailabilityBadge available={item.available} stock={item.stock} />
-          ) : (
-            <div className="grid gap-1 text-sm text-slate-700">
-              <p className="line-clamp-1">{item.supervisor1 || "-"}</p>
-              <p className="line-clamp-1">{item.supervisor2 || "-"}</p>
+        ) : (
+          <>
+            <div className="grid gap-1 text-xs text-slate-600">
+              <p className="font-semibold text-slate-400 uppercase tracking-wider text-[10px]">Tahun</p>
+              <MetaLine icon={Calendar} value={String(item.year || 2024)} />
             </div>
-          )}
-        </div>
 
-        <div className="flex flex-wrap gap-2 lg:justify-end">
+            <div className="grid gap-1 text-xs text-slate-600">
+              <p className="font-semibold text-slate-400 uppercase tracking-wider text-[10px]">Pembimbing</p>
+              <div className="grid gap-0.5 text-xs text-slate-700">
+                <p className="line-clamp-1 font-medium">{item.supervisor1 || "-"}</p>
+                <p className="line-clamp-1 text-slate-500">{item.supervisor2 || "-"}</p>
+              </div>
+            </div>
+          </>
+        )}
+
+        <div className="flex flex-wrap gap-2 justify-end">
           <DialogTrigger asChild>
-            <Button variant="outline" size="sm" className="rounded-xl">
-              <Eye className="size-4" />
-              Detail
+            <Button
+              variant={isEbook ? "default" : "outline"}
+              size="sm"
+              className={cn(
+                "rounded-xl gap-1.5 font-bold cursor-pointer h-9 px-4 shrink-0",
+                isEbook
+                  ? "bg-gradient-to-r from-red-600 via-yellow-600 to-orange-600 text-white shadow-xs hover:brightness-110 border-0"
+                  : "",
+              )}
+            >
+              {isEbook ? (
+                <>
+                  <BookOpen className="size-3.5" />
+                  <span>Baca E-Book</span>
+                </>
+              ) : (
+                <>
+                  <Eye className="size-3.5" />
+                  <span>Detail</span>
+                </>
+              )}
             </Button>
           </DialogTrigger>
           {actions}
@@ -620,11 +717,10 @@ function CatalogSkeleton() {
       {Array.from({ length: 10 }).map((_, index) => (
         <div
           key={index}
-          className="h-28 animate-pulse rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200/70"
+          className="h-24 animate-pulse rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200/70"
         >
           <div className="h-4 w-4/5 rounded bg-slate-100" />
           <div className="mt-3 h-4 w-3/5 rounded bg-slate-100" />
-          <div className="mt-5 h-3 rounded bg-slate-100" />
         </div>
       ))}
     </div>
@@ -685,7 +781,7 @@ function getAvailabilityValue(item: Book) {
 function collectionTypeLabel(value: CatalogTab) {
   const labels: Record<CatalogTab, string> = {
     all: "Semua koleksi",
-    books: "Buku",
+    books: "E-Book & Buku",
     theses: "Skripsi",
   };
   return labels[value];

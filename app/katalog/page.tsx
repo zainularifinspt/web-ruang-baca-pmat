@@ -4,7 +4,8 @@ import { PublicNav } from "@/components/public-nav";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { fetchPublicCatalogData } from "@/lib/public-cache";
 
-export const revalidate = 300;
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function CatalogPage() {
   const { books, theses, error } = await fetchPublicCatalogData();
@@ -35,11 +36,11 @@ function CatalogHero() {
           <Sparkles className="size-3.5" />
           Perpustakaan digital
         </div>
-        <h1 className="mt-4 text-3xl font-bold tracking-normal sm:text-4xl">
-          Katalog Buku dan Repositori Skripsi
+        <h1 className="mt-4 text-3xl font-extrabold tracking-tight sm:text-4xl">
+          Katalog Buku, E-Book, dan Repositori Skripsi
         </h1>
         <p className="mt-3 max-w-3xl leading-7 text-red-50">
-          Cari referensi akademik, cek ketersediaan buku, dan telusuri skripsi kakak tingkat berdasarkan topik, tahun, serta pembimbing.
+          Cari referensi akademik, baca dan download e-book perkuliahan digital via Google Drive, serta telusuri repositori skripsi mahasiswa Pendidikan Matematika.
         </p>
       </div>
     </section>

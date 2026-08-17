@@ -8,6 +8,7 @@ import type {
   VerificationStatus,
 } from "@/lib/types";
 import { resolveThesisPdfUrl } from "@/lib/thesis-pdf";
+import { fetchEbooksFromApi } from "@/lib/ebooks";
 
 type UnknownRow = Record<string, unknown>;
 
@@ -171,7 +172,7 @@ export async function fetchCatalogData(options: CatalogFetchOptions = {}): Promi
     offset: options.offset,
     select: publicOnly ? undefined : "*",
   };
-  const [booksResult, thesesResult] = await Promise.all([
+  const [booksResult, thesesResult, { ebooks }] = await Promise.all([
     fetchTableRows("books", {
       ...tableOptions,
       select: publicOnly ? publicBookFields : "*",
@@ -184,6 +185,7 @@ export async function fetchCatalogData(options: CatalogFetchOptions = {}): Promi
           : publicThesisFields
         : "*",
     }),
+    fetchEbooksFromApi(),
   ]);
   const bookVerificationOverrides = await getBookVerificationOverrides();
   const thesisVerificationOverrides = await getThesisVerificationOverrides();
@@ -197,7 +199,7 @@ export async function fetchCatalogData(options: CatalogFetchOptions = {}): Promi
     : {};
 
   const errors = [booksResult.error, thesesResult.error].filter(Boolean);
-  const books = booksResult.rows.map((row) =>
+  const dbBooks = booksResult.rows.map((row) =>
     mapBookRow(
       row,
       bookVerificationOverrides[textValue(row, ["id"])],
@@ -205,6 +207,8 @@ export async function fetchCatalogData(options: CatalogFetchOptions = {}): Promi
       createdByName(row, profileNamesById),
     ),
   );
+  const allBooks = [...(ebooks || []), ...dbBooks];
+
   const theses = thesesResult.rows.map((row) =>
     mapThesisRow(
       row,
@@ -216,18 +220,30 @@ export async function fetchCatalogData(options: CatalogFetchOptions = {}): Promi
   );
 
   return {
-    books: sortByNewest(publicOnly ? books.filter(isApproved) : books),
+    books: sortByNewest(publicOnly ? allBooks.filter(isApproved) : allBooks),
     theses: sortByNewest(publicOnly ? theses.filter(isApproved) : theses),
     error: errors.length ? errors.join(" ") : undefined,
   };
 }
 
 export async function fetchCollectionById(type: string, id: string, options: CatalogFetchOptions = {}) {
+  if (type === "buku" || type === "books") {
+    const { ebooks } = await fetchEbooksFromApi();
+    const ebook = ebooks.find((item) => item.id === id);
+    if (ebook) return ebook;
+  }
+
   const table = type === "buku" ? "books" : type === "skripsi" ? "theses" : null;
   if (!table) return null;
 
   const { row } = await fetchTableRowById(table, id);
-  if (!row) return null;
+  if (!row) {
+    if (table === "books") {
+      const { ebooks } = await fetchEbooksFromApi();
+      return ebooks.find((item) => item.id === id) ?? null;
+    }
+    return null;
+  }
 
   const rows = [row];
   const bookVerificationOverrides =
@@ -267,7 +283,19 @@ export async function fetchCollectionById(type: string, id: string, options: Cat
 }
 
 export async function fetchBookById(id: string, options: CatalogFetchOptions = {}) {
+  if (id.startsWith("ebk-")) {
+    const { ebooks } = await fetchEbooksFromApi();
+    const ebook = ebooks.find((item) => item.id === id) ?? null;
+    return { book: ebook, error: ebook ? undefined : "E-Book tidak ditemukan." };
+  }
+
   const { row, error } = await fetchTableRowById("books", id);
+  if (!row) {
+    const { ebooks } = await fetchEbooksFromApi();
+    const ebook = ebooks.find((item) => item.id === id) ?? null;
+    if (ebook) return { book: ebook, error: undefined };
+  }
+
   const bookVerificationOverrides = await getBookVerificationOverrides();
   const inputOverrides = await getCatalogInputOverrides();
   const profileNamesById = await getProfileNamesForRows(row ? [row] : []);

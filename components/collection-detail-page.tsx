@@ -12,6 +12,7 @@ import {
 import { PublicNav } from "@/components/public-nav";
 import { AvailabilityBadge } from "@/components/status-badge";
 import { ThesisPdfViewer } from "@/components/thesis-pdf-viewer";
+import { EbookPdfViewer } from "@/components/ebook-pdf-viewer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -201,20 +202,42 @@ function LargeCover({ item }: { item: DetailItem }) {
 }
 
 function BookDetail({ item }: { item: Book }) {
+  const isEbook = item.isEbook || Boolean(item.pdfUrl);
+
   return (
-    <div>
-      <p className="text-lg font-semibold text-slate-950">Informasi buku</p>
-      <div className="mt-5 grid gap-3 sm:grid-cols-2">
-        <Meta label="Kategori" value={item.category || "-"} />
-        <Meta label="Stok" value={`${item.available} tersedia dari ${item.stock}`} />
-      </div>
-      <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-        <p className="text-sm font-semibold text-slate-950">Deskripsi</p>
-        <p className="mt-2 text-sm leading-6 text-slate-600">
-          Buku ini tersedia sebagai referensi ruang baca. Gunakan kode koleksi dan lokasi rak untuk
-          menemukan eksemplar fisik.
+    <div className="space-y-5">
+      <div>
+        <p className="text-lg font-semibold text-slate-950">
+          {isEbook ? "Informasi E-Book Digital" : "Informasi Buku"}
         </p>
+        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+          <Meta label="Kategori / Mata Kuliah" value={item.category || "-"} />
+          <Meta
+            label={isEbook ? "Akses File" : "Stok"}
+            value={isEbook ? "Google Drive (Bisa didownload)" : `${item.available} tersedia dari ${item.stock}`}
+          />
+        </div>
       </div>
+
+      {isEbook && item.pdfUrl ? (
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-6">
+          <p className="text-sm font-semibold text-slate-950 mb-3">Google Drive PDF Viewer</p>
+          <EbookPdfViewer
+            pdfUrl={item.pdfUrl}
+            title={item.title}
+            author={item.author}
+            category={item.category}
+          />
+        </div>
+      ) : (
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <p className="text-sm font-semibold text-slate-950">Deskripsi</p>
+          <p className="mt-2 text-sm leading-6 text-slate-600">
+            Buku ini tersedia sebagai referensi ruang baca. Gunakan kode koleksi dan lokasi rak untuk
+            menemukan eksemplar fisik.
+          </p>
+        </div>
+      )}
     </div>
   );
 }

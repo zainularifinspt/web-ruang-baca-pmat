@@ -10,3 +10,7 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 .DS_Store
+check-*.js
+delete-*.js
+*.tsbuildinfo
+Data Error/
