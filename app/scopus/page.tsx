@@ -32,6 +32,7 @@ export default async function ScopusPage() {
       <main className="relative overflow-hidden">
         {/* Hero Section */}
         <section className="relative overflow-hidden bg-gradient-to-b from-[#fc5c4c] via-[#fa793d] to-[#fafbfe] pt-8 pb-12 sm:pt-14 sm:pb-16 text-center">
+          <div className="mx-auto max-w-5xl px-4 sm:px-6">
             <div className="flex justify-center mb-3">
               <Badge className="rounded-full border-white/30 bg-white/20 px-4 py-1.5 text-xs font-bold text-white shadow-xs border">
                 <Globe2 className="size-3.5 mr-1.5" />
