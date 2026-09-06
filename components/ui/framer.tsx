@@ -51,8 +51,11 @@ const scaleInVariants: Variants = {
   },
 };
 
-interface AnimationWrapperProps extends HTMLMotionProps<"div"> {
-  children: ReactNode;
+export interface AnimationWrapperProps extends Partial<HTMLMotionProps<"div">> {
+  children?: ReactNode;
+  className?: string;
+  whileHover?: any;
+  whileTap?: any;
 }
 
 /**
