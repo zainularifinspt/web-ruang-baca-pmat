@@ -9,7 +9,6 @@ import {
   GraduationCap,
   Library,
   Newspaper,
-  Sparkles,
 } from "lucide-react";
 import { PRODI_JOURNALS, JournalInfo } from "@/lib/journals-data";
 import { Button } from "@/components/ui/button";
@@ -119,18 +118,9 @@ function JournalCard({ journal }: { journal: JournalInfo }) {
               : "bg-gradient-to-br from-sky-50/50 via-blue-50/25 to-white border-sky-200/50 shadow-xs"
           }`}
         >
-          <div className="flex items-center gap-2 mb-2.5">
-            <span
-              className={`flex size-6 items-center justify-center rounded-lg ${
-                isEduMat ? "bg-orange-500/15 text-orange-600" : "bg-sky-500/15 text-sky-600"
-              }`}
-            >
-              <Sparkles className="size-3.5" />
-            </span>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              Profil & Ruang Lingkup
-            </span>
-          </div>
+          <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">
+            Profil & Ruang Lingkup
+          </p>
 
           <p className="text-xs sm:text-sm leading-relaxed text-slate-700 font-medium">
             {isEduMat ? (
