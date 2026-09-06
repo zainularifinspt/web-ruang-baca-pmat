@@ -2,11 +2,14 @@
 
 import {
   Award,
-  BookMarked,
   Calendar,
+  CheckCircle2,
   ExternalLink,
+  Globe,
+  GraduationCap,
   Library,
   Newspaper,
+  Sparkles,
 } from "lucide-react";
 import { PRODI_JOURNALS, JournalInfo } from "@/lib/journals-data";
 import { Button } from "@/components/ui/button";
@@ -86,54 +89,76 @@ function JournalCard({ journal }: { journal: JournalInfo }) {
           </span>
         </div>
 
-        {/* Title & Subtitle */}
-        <div className="mb-4">
+        {/* Title */}
+        <div className="mb-3">
           <h3 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 group-hover:text-orange-600 transition-colors duration-200">
             {journal.title}
           </h3>
-          <p className="mt-1 text-xs sm:text-sm font-semibold text-slate-500">
-            {journal.subtitle}
-          </p>
         </div>
 
-        {/* Meta Grid: ISSN, Frequency, Editor in Chief, DOI */}
-        <div className="mb-5 grid grid-cols-1 sm:grid-cols-2 gap-2.5 rounded-2xl bg-slate-50/80 p-3.5 text-xs text-slate-600 ring-1 ring-slate-100">
-          <div className="flex items-center gap-2">
-            <BookMarked className="size-4 shrink-0 text-orange-500" />
-            <div>
-              <span className="block text-[10px] font-bold text-slate-400 uppercase">ISSN / Identitas</span>
-              <span className="font-semibold text-slate-800">
-                {journal.pIssn ? `P: ${journal.pIssn} | E: ${journal.eIssn}` : journal.eIssn}
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Calendar className="size-4 shrink-0 text-amber-500" />
-            <div>
-              <span className="block text-[10px] font-bold text-slate-400 uppercase">Frekuensi Terbit</span>
-              <span className="font-semibold text-slate-800">{journal.frequency}</span>
-            </div>
+        {/* Meta Chips: Frekuensi Terbit & Editor in Chief */}
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          <div className="inline-flex items-center gap-1.5 rounded-xl bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 ring-1 ring-slate-200/60">
+            <Calendar className={`size-3.5 ${isEduMat ? "text-orange-500" : "text-sky-500"}`} />
+            <span>Terbit: <strong className="text-slate-900">{journal.frequency}</strong></span>
           </div>
 
           {journal.editorInChief ? (
-            <div className="sm:col-span-2 flex flex-wrap items-center justify-between gap-1 border-t border-slate-200/60 pt-2 text-[11px] text-slate-600">
-              <span>
-                <strong className="text-slate-700">Editor in Chief:</strong> {journal.editorInChief}
-              </span>
-              {journal.doi ? (
-                <span className="font-semibold text-orange-600">
-                  DOI Prefix: {journal.doi}
-                </span>
-              ) : null}
+            <div className="inline-flex items-center gap-1.5 rounded-xl bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-650 ring-1 ring-slate-200/60">
+              <span className="text-slate-400">Editor in Chief:</span>
+              <strong className="font-semibold text-slate-800">{journal.editorInChief}</strong>
             </div>
           ) : null}
         </div>
 
-        {/* Description */}
-        <p className="mb-6 text-xs sm:text-sm leading-relaxed text-slate-600 font-medium">
-          {journal.description}
-        </p>
+        {/* Description Feature Box */}
+        <div
+          className={`mb-6 rounded-2xl border p-4 sm:p-5 transition-all duration-200 ${
+            isEduMat
+              ? "bg-gradient-to-br from-orange-50/50 via-amber-50/25 to-white border-orange-200/50 shadow-xs"
+              : "bg-gradient-to-br from-sky-50/50 via-blue-50/25 to-white border-sky-200/50 shadow-xs"
+          }`}
+        >
+          <div className="flex items-center gap-2 mb-2.5">
+            <span
+              className={`flex size-6 items-center justify-center rounded-lg ${
+                isEduMat ? "bg-orange-500/15 text-orange-600" : "bg-sky-500/15 text-sky-600"
+              }`}
+            >
+              <Sparkles className="size-3.5" />
+            </span>
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+              Profil & Ruang Lingkup
+            </span>
+          </div>
+
+          <p className="text-xs sm:text-sm leading-relaxed text-slate-700 font-medium">
+            {isEduMat ? (
+              <>
+                Jurnal ilmiah berkala yang diterbitkan sejak <strong className="text-slate-950 font-semibold">tahun 2013</strong> oleh <strong className="text-slate-950 font-semibold">Program Studi Pendidikan Matematika FKIP ULM</strong>. Memuat artikel hasil penelitian dan kajian orisinal dosen, peneliti, guru, serta mahasiswa dalam lingkup inovasi pembelajaran matematika.
+              </>
+            ) : (
+              <>
+                Jurnal ilmiah berkala yang didirikan sejak <strong className="text-slate-950 font-semibold">tahun 2018</strong> oleh <strong className="text-slate-950 font-semibold">Program Studi Pendidikan Matematika FKIP ULM</strong>. Didedikasikan khusus sebagai wadah diseminasi artikel ilmiah hasil riset skripsi mahasiswa S1 bersama dosen pembimbing.
+              </>
+            )}
+          </p>
+
+          <div className="mt-3.5 pt-3 border-t border-slate-200/50 flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1 rounded-md bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-slate-650 shadow-2xs border border-slate-200/40">
+              <Globe className="size-3 text-emerald-600" />
+              Open Access (OJS)
+            </span>
+            <span className="inline-flex items-center gap-1 rounded-md bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-slate-650 shadow-2xs border border-slate-200/40">
+              <CheckCircle2 className="size-3 text-blue-600" />
+              Peer-Reviewed
+            </span>
+            <span className="inline-flex items-center gap-1 rounded-md bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-slate-650 shadow-2xs border border-slate-200/40">
+              <GraduationCap className={`size-3 ${isEduMat ? "text-orange-600" : "text-sky-600"}`} />
+              {isEduMat ? "Riset Dosen & Peneliti" : "Diseminasi Skripsi S1"}
+            </span>
+          </div>
+        </div>
 
         {/* Action Button */}
         <div className="mt-auto pt-2">
