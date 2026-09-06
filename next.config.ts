@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
+    formats: ["image/avif", "image/webp"],
     remotePatterns: [
       {
         protocol: "https",
@@ -20,6 +21,11 @@ const nextConfig: NextConfig = {
         hostname: "**.google.com",
       },
     ],
+  },
+  compress: true,
+  poweredByHeader: false,
+  experimental: {
+    optimizePackageImports: ["lucide-react", "framer-motion"],
   },
   turbopack: {
     root: process.cwd(),

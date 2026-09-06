@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   BookOpen,
+  Globe2,
   GraduationCap,
   Info,
   LogIn,
@@ -87,6 +88,7 @@ export function PublicNav({
         <NavbarSearch items={searchItems} className="hidden md:block order-3 w-full md:order-none md:w-[min(42vw,28rem)]" />
         <nav className="hidden items-center gap-3 md:flex">
           <NavLink href="/katalog" icon={Search} label="Katalog" />
+          <NavLink href="/scopus" icon={Globe2} label="Scopus" />
           <NavLink href="/presensi" icon={ScanLine} label="Presensi" />
           <NavLink href="/tentang" icon={Info} label="Tentang" />
           <div className="mx-1 h-6 w-px bg-slate-200/50" />
@@ -294,6 +296,16 @@ function MobileNav() {
                   <Search className="size-4" />
                 </div>
                 Katalog & Pencarian
+              </Link>
+              <Link
+                href="/scopus"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+              >
+                <div className="flex size-8 items-center justify-center rounded-full bg-orange-100 text-orange-600">
+                  <Globe2 className="size-4" />
+                </div>
+                Pencarian Scopus
               </Link>
               <Link
                 href="/presensi"

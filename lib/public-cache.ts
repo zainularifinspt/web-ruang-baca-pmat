@@ -32,6 +32,29 @@ export async function fetchPublicCatalogData() {
   });
 }
 
+export const fetchPublicVisitorRows = unstable_cache(
+  async () => {
+    if (!hasValidSupabaseConfig()) return [];
+    try {
+      const supabase = createSupabaseAdminClient();
+      const { data, error } = await supabase
+        .from("attendance")
+        .select("id, visited_at")
+        .order("visited_at", { ascending: false })
+        .limit(100);
+      if (error) return [];
+      return (data ?? []) as Array<{ id: string; visited_at: string }>;
+    } catch {
+      return [];
+    }
+  },
+  ["public-visitor-rows-v1"],
+  {
+    revalidate: PUBLIC_REVALIDATE_SECONDS,
+    tags: ["public-attendance", "public-landing"],
+  },
+);
+
 export const fetchPublicSearchItems = unstable_cache(
   async () => {
     const { books, theses, error } = await fetchCatalogData({
@@ -66,8 +89,13 @@ export const fetchPublicLandingStats = unstable_cache(
 
     const today = getMakassarDateKey();
     const supabase = createSupabaseAdminClient();
-    const [catalogData, staffResult, visitResult] = await Promise.all([
-      fetchPublicCatalogData(),
+    const [bookResult, thesisResult, staffResult, visitResult] = await Promise.all([
+      supabase
+        .from("books")
+        .select("id", { count: "exact", head: true }),
+      supabase
+        .from("theses")
+        .select("id", { count: "exact", head: true }),
       supabase
         .from("profiles")
         .select("id", { count: "exact", head: true })
@@ -79,13 +107,13 @@ export const fetchPublicLandingStats = unstable_cache(
     ]);
 
     return {
-      bookCount: catalogData.books?.length ?? 0,
-      thesisCount: catalogData.theses?.length ?? 0,
+      bookCount: bookResult.error ? 0 : bookResult.count ?? 0,
+      thesisCount: thesisResult.error ? 0 : thesisResult.count ?? 0,
       staffCount: staffResult.error ? 0 : staffResult.count ?? 0,
       todayWebsiteVisits: visitResult.error ? 0 : visitResult.count ?? 0,
     };
   },
-  ["public-landing-stats-v1"],
+  ["public-landing-stats-v2"],
   {
     revalidate: PUBLIC_REVALIDATE_SECONDS,
     tags: ["public-catalog", "public-landing"],

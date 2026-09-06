@@ -19,11 +19,15 @@ type ChartCoordinate = ChartPoint & {
   y: number;
 };
 
-export function RealtimeVisitorChart() {
+export function RealtimeVisitorChart({
+  initialRows = [],
+}: {
+  initialRows?: AttendanceRow[];
+}) {
   const sectionRef = useRef<HTMLDivElement | null>(null);
-  const [rows, setRows] = useState<AttendanceRow[]>([]);
-  const [isVisible, setIsVisible] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [rows, setRows] = useState<AttendanceRow[]>(initialRows);
+  const [isVisible, setIsVisible] = useState(initialRows.length > 0);
+  const [isLoading, setIsLoading] = useState(initialRows.length === 0);
   const [error, setError] = useState<string | null>(null);
 
   const loadRows = useCallback(async () => {

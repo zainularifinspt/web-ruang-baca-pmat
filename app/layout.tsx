@@ -128,7 +128,7 @@ export default function RootLayout({
       <head>
         <Script
           id="browser-compat-polyfills"
-          strategy="beforeInteractive"
+          strategy="afterInteractive"
           dangerouslySetInnerHTML={{ __html: browserCompatPolyfills }}
         />
       </head>

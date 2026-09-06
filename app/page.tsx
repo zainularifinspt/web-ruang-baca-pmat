@@ -5,6 +5,7 @@ import {
   BookOpen,
   Building2,
   Clock3,
+  Globe2,
   GraduationCap,
   LibraryBig,
   Mail,
@@ -12,6 +13,7 @@ import {
   ScanLine,
   Users,
 } from "lucide-react";
+import { JournalShowcase } from "@/components/journal-showcase";
 import { LandingSearchForm } from "@/components/landing-search-form";
 import { PublicNav } from "@/components/public-nav";
 import { RealtimeVisitorChart } from "@/components/realtime-visitor-chart";
@@ -21,14 +23,16 @@ import { FadeIn, FadeInStagger, ScaleIn } from "@/components/ui/framer";
 import {
   fetchPublicLandingStats,
   fetchPublicSearchItems,
+  fetchPublicVisitorRows,
 } from "@/lib/public-cache";
 
 export const revalidate = 300;
 
 export default async function HomePage() {
-  const [{ items: searchItems }, stats] = await Promise.all([
+  const [{ items: searchItems }, stats, visitorRows] = await Promise.all([
     fetchPublicSearchItems(),
     fetchPublicLandingStats(),
+    fetchPublicVisitorRows(),
   ]);
 
   return (
@@ -66,26 +70,26 @@ export default async function HomePage() {
           </section>
         </FadeInStagger>
 
-        <FadeInStagger className="relative mx-auto max-w-5xl px-4 pb-6 sm:px-6">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+        <FadeInStagger className="relative mx-auto max-w-6xl px-4 pb-6 sm:px-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {/* Katalog Buku & E-Book Button */}
             <ScaleIn 
               whileHover={{ y: -6, scale: 1.015, transition: { type: "spring", stiffness: 400, damping: 25 } }}
               whileTap={{ scale: 0.985 }}
               className="w-full h-full"
             >
-              <Link href="/katalog?tab=books" className="glass-panel glass-panel-hover p-6 sm:p-8 flex flex-col items-center justify-center text-center group relative overflow-hidden h-full">
+              <Link href="/katalog?tab=books" className="glass-panel glass-panel-hover p-6 sm:p-7 flex flex-col items-center justify-center text-center group relative overflow-hidden h-full">
                 <div className="absolute top-3.5 right-3.5 sm:top-4 sm:right-4">
                   <span className="rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-2.5 py-1 text-[10px] font-bold text-white shadow-xs">
                     Tersedia E-Book
                   </span>
                 </div>
-                <div className="size-14 sm:size-16 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-orange-50 via-amber-50 to-red-50 flex items-center justify-center text-orange-600 mb-4 sm:mb-5 shadow-inner ring-1 ring-white group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-500">
-                   <BookOpen className="size-7 sm:size-8" />
+                <div className="size-13 sm:size-15 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-orange-50 via-amber-50 to-red-50 flex items-center justify-center text-orange-600 mb-4 shadow-inner ring-1 ring-white group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-500">
+                   <BookOpen className="size-6 sm:size-7" />
                 </div>
-                <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">Katalog Buku & E-Book</h3>
-                <p className="mt-1.5 sm:mt-2 text-xs sm:text-sm text-slate-500 font-medium px-2 sm:px-4">
-                  Akses buku teks, modul perkuliahan, dan e-book digital Pendidikan Matematika online.
+                <h3 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900">Katalog Buku & E-Book</h3>
+                <p className="mt-1.5 text-xs text-slate-500 font-medium px-2">
+                  Akses buku teks, modul perkuliahan, dan e-book digital online.
                 </p>
               </Link>
             </ScaleIn>
@@ -96,18 +100,40 @@ export default async function HomePage() {
               whileTap={{ scale: 0.985 }}
               className="w-full h-full"
             >
-              <Link href="/katalog?tab=theses" className="glass-panel glass-panel-hover p-6 sm:p-8 flex flex-col items-center justify-center text-center group relative overflow-hidden h-full">
+              <Link href="/katalog?tab=theses" className="glass-panel glass-panel-hover p-6 sm:p-7 flex flex-col items-center justify-center text-center group relative overflow-hidden h-full">
                 <div className="absolute top-3.5 right-3.5 sm:top-4 sm:right-4">
                   <span className="rounded-full bg-yellow-100 px-2.5 py-1 text-[10px] font-bold text-yellow-700 ring-1 ring-yellow-200/50">
                     Tersedia
                   </span>
                 </div>
-                <div className="size-14 sm:size-16 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-yellow-50 to-orange-50 flex items-center justify-center text-orange-600 mb-4 sm:mb-5 shadow-inner ring-1 ring-white group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-500">
-                   <GraduationCap className="size-7 sm:size-8" />
+                <div className="size-13 sm:size-15 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-yellow-50 to-orange-50 flex items-center justify-center text-orange-600 mb-4 shadow-inner ring-1 ring-white group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-500">
+                   <GraduationCap className="size-6 sm:size-7" />
                 </div>
-                <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">Katalog Skripsi</h3>
-                <p className="mt-1.5 sm:mt-2 text-xs sm:text-sm text-slate-500 font-medium px-2 sm:px-4">
+                <h3 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900">Katalog Skripsi</h3>
+                <p className="mt-1.5 text-xs text-slate-500 font-medium px-2">
                   Jelajahi dan temukan koleksi skripsi dan tugas akhir mahasiswa.
+                </p>
+              </Link>
+            </ScaleIn>
+
+            {/* Pencarian Scopus Button */}
+            <ScaleIn 
+              whileHover={{ y: -6, scale: 1.015, transition: { type: "spring", stiffness: 400, damping: 25 } }}
+              whileTap={{ scale: 0.985 }}
+              className="w-full h-full"
+            >
+              <Link href="/scopus" className="glass-panel glass-panel-hover p-6 sm:p-7 flex flex-col items-center justify-center text-center group relative overflow-hidden h-full">
+                <div className="absolute top-3.5 right-3.5 sm:top-4 sm:right-4">
+                  <span className="rounded-full bg-gradient-to-r from-red-500 to-rose-600 px-2.5 py-1 text-[10px] font-bold text-white shadow-xs">
+                    Scopus API
+                  </span>
+                </div>
+                <div className="size-13 sm:size-15 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-red-50 via-orange-50 to-amber-50 flex items-center justify-center text-red-600 mb-4 shadow-inner ring-1 ring-white group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
+                   <Globe2 className="size-6 sm:size-7" />
+                </div>
+                <h3 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900">Pencarian Scopus</h3>
+                <p className="mt-1.5 text-xs text-slate-500 font-medium px-2">
+                  Eksplorasi publikasi jurnal internasional terindeks Scopus.
                 </p>
               </Link>
             </ScaleIn>
@@ -118,17 +144,17 @@ export default async function HomePage() {
               whileTap={{ scale: 0.985 }}
               className="w-full h-full"
             >
-              <Link href="/presensi" className="glass-panel glass-panel-hover p-6 sm:p-8 flex flex-col items-center justify-center text-center group relative overflow-hidden h-full">
+              <Link href="/presensi" className="glass-panel glass-panel-hover p-6 sm:p-7 flex flex-col items-center justify-center text-center group relative overflow-hidden h-full">
                 <div className="absolute top-3.5 right-3.5 sm:top-4 sm:right-4">
                   <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-[10px] font-bold text-emerald-700 ring-1 ring-emerald-200/50">
                     Terbuka
                   </span>
                 </div>
-                <div className="size-14 sm:size-16 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-emerald-50 to-teal-50 flex items-center justify-center text-emerald-600 mb-4 sm:mb-5 shadow-inner ring-1 ring-white group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
-                   <ScanLine className="size-7 sm:size-8" />
+                <div className="size-13 sm:size-15 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-emerald-50 to-teal-50 flex items-center justify-center text-emerald-600 mb-4 shadow-inner ring-1 ring-white group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
+                   <ScanLine className="size-6 sm:size-7" />
                 </div>
-                <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">Presensi Harian</h3>
-                <p className="mt-1.5 sm:mt-2 text-xs sm:text-sm text-slate-500 font-medium px-2 sm:px-4">
+                <h3 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900">Presensi Harian</h3>
+                <p className="mt-1.5 text-xs text-slate-500 font-medium px-2">
                   Catat kehadiran Anda saat mengunjungi ruang baca.
                 </p>
               </Link>
@@ -137,8 +163,11 @@ export default async function HomePage() {
         </FadeInStagger>
 
         <FadeIn className="relative mx-auto max-w-6xl px-4 py-6 sm:px-6">
-          <RealtimeVisitorChart />
+          <RealtimeVisitorChart initialRows={visitorRows} />
         </FadeIn>
+
+        {/* Showcase Jurnal Prodi Pendidikan Matematika */}
+        <JournalShowcase />
 
         <FadeInStagger className="relative mx-auto grid max-w-6xl gap-5 px-4 pb-20 pt-4 sm:grid-cols-2 sm:px-6 lg:grid-cols-4">
           <StatTile icon={BookOpen} label="Total Buku" value={stats.bookCount} description="Koleksi buku tersedia" />
@@ -263,6 +292,7 @@ function Footer() {
           links={[
             ["Katalog", "/katalog"],
             ["Cari Skripsi", "/katalog?tab=theses"],
+            ["Pencarian Scopus", "/scopus"],
             ["Presensi", "/presensi"],
             ["Login Admin", "/login?redirectTo=/dashboard"],
           ]}
