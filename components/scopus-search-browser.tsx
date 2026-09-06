@@ -39,6 +39,10 @@ export function ScopusSearchBrowser() {
   const [data, setData] = useState<ScopusSearchResponse | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [hasSearched, setHasSearched] = useState(false);
+
+  const hasActiveFilters =
+    year !== "all" || language !== "all" || docType !== "all" || openAccessOnly;
 
   function fetchResults(searchQuery: string, sortMode: string, pageNum: number) {
     const params = new URLSearchParams();
@@ -51,6 +55,8 @@ export function ScopusSearchBrowser() {
     params.set("sort", sortMode);
     params.set("page", pageNum.toString());
     params.set("pageSize", "10");
+
+    setHasSearched(true);
 
     startTransition(async () => {
       try {
@@ -65,12 +71,19 @@ export function ScopusSearchBrowser() {
   }
 
   useEffect(() => {
-    fetchResults(query, sort, page);
+    // Only re-fetch if user has already searched or selected an active filter
+    if (hasSearched || hasActiveFilters) {
+      fetchResults(query, sort, page);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sort, page, year, language, docType, openAccessOnly]);
 
   function handleSearchSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!query.trim() && !hasActiveFilters) {
+      toast.info("Silakan masukkan kata kunci pencarian terlebih dahulu");
+      return;
+    }
     setPage(1);
     fetchResults(query, sort, 1);
   }
@@ -82,6 +95,10 @@ export function ScopusSearchBrowser() {
     setOpenAccessOnly(false);
     setSort("relevance");
     setPage(1);
+    if (!query.trim()) {
+      setHasSearched(false);
+      setData(null);
+    }
   }
 
   function handleCopyCitation(article: ScopusArticle) {
@@ -91,9 +108,6 @@ export function ScopusSearchBrowser() {
     toast.success("Kutipan format APA berhasil disalin ke clipboard!");
     setTimeout(() => setCopiedId(null), 2500);
   }
-
-  const hasActiveFilters =
-    year !== "all" || language !== "all" || docType !== "all" || openAccessOnly;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
@@ -115,7 +129,12 @@ export function ScopusSearchBrowser() {
                 onClick={() => {
                   setQuery("");
                   setPage(1);
-                  fetchResults("", sort, 1);
+                  if (!hasActiveFilters) {
+                    setHasSearched(false);
+                    setData(null);
+                  } else {
+                    fetchResults("", sort, 1);
+                  }
                 }}
                 className="absolute right-3.5 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
                 aria-label="Hapus pencarian"
@@ -255,35 +274,85 @@ export function ScopusSearchBrowser() {
       </div>
 
       {/* Meta Filter Bar (Result Count & Sort) */}
-      <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1">
-        <div className="text-xs sm:text-sm font-semibold text-slate-600 flex items-center gap-2">
-          <Globe2 className="size-4 text-orange-600" />
-          <span>
-            {isPending
-              ? "Sedang mencari artikel Scopus..."
-              : `Ditemukan ${data?.totalResults?.toLocaleString("id-ID") ?? 0} publikasi internasional`}
-          </span>
-        </div>
+      {hasSearched ? (
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1">
+          <div className="text-xs sm:text-sm font-semibold text-slate-600 flex items-center gap-2">
+            <Globe2 className="size-4 text-orange-600" />
+            <span>
+              {isPending
+                ? "Sedang mencari artikel Scopus..."
+                : `Ditemukan ${data?.totalResults?.toLocaleString("id-ID") ?? 0} publikasi internasional`}
+            </span>
+          </div>
 
-        <div className="flex items-center gap-2 text-xs font-semibold text-slate-600 self-end sm:self-auto">
-          <span>Urutkan:</span>
-          <select
-            value={sort}
-            onChange={(e) => {
-              setSort(e.target.value as "relevance" | "newest" | "citations");
-              setPage(1);
-            }}
-            className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-800 outline-none focus:border-orange-500"
-          >
-            <option value="relevance">Paling Relevan</option>
-            <option value="newest">Terbitan Terbaru</option>
-            <option value="citations">Sitasi Terbanyak</option>
-          </select>
+          <div className="flex items-center gap-2 text-xs font-semibold text-slate-600 self-end sm:self-auto">
+            <span>Urutkan:</span>
+            <select
+              value={sort}
+              onChange={(e) => {
+                setSort(e.target.value as "relevance" | "newest" | "citations");
+                setPage(1);
+              }}
+              className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-800 outline-none focus:border-orange-500"
+            >
+              <option value="relevance">Paling Relevan</option>
+              <option value="newest">Terbitan Terbaru</option>
+              <option value="citations">Sitasi Terbanyak</option>
+            </select>
+          </div>
         </div>
-      </div>
+      ) : null}
 
-      {/* Articles List */}
-      {isPending && !data ? (
+      {/* Content Area: Initial Hero or Articles List */}
+      {!hasSearched ? (
+        <div className="rounded-[2.25rem] border border-dashed border-orange-200/80 bg-gradient-to-b from-white/90 via-orange-50/25 to-amber-50/15 p-8 sm:p-14 text-center shadow-sm">
+          <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-2xl bg-orange-100/80 text-orange-600 ring-4 ring-orange-500/10">
+            <Search className="size-8" />
+          </div>
+          <h3 className="text-lg sm:text-xl font-extrabold text-slate-800">
+            Mulai Pencarian Literatur Scopus
+          </h3>
+          <p className="mx-auto mt-2 max-w-lg text-xs sm:text-sm text-slate-600 leading-relaxed">
+            Ketik kata kunci judul artikel, topik, atau nama peneliti di kolom pencarian di atas, lalu tekan tombol <strong>Cari Scopus</strong> atau tekan Enter.
+          </p>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-2 text-xs text-slate-500">
+            <span className="font-semibold text-slate-700">Contoh kata kunci:</span>
+            <button
+              type="button"
+              onClick={() => {
+                setQuery("ethnomathematics");
+                setPage(1);
+                fetchResults("ethnomathematics", sort, 1);
+              }}
+              className="rounded-full bg-white px-3 py-1 font-semibold text-orange-700 ring-1 ring-orange-200 hover:bg-orange-50 shadow-2xs cursor-pointer transition-colors"
+            >
+              ethnomathematics
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setQuery("realistic mathematics education");
+                setPage(1);
+                fetchResults("realistic mathematics education", sort, 1);
+              }}
+              className="rounded-full bg-white px-3 py-1 font-semibold text-orange-700 ring-1 ring-orange-200 hover:bg-orange-50 shadow-2xs cursor-pointer transition-colors"
+            >
+              realistic mathematics education
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setQuery("Lambung Mangkurat");
+                setPage(1);
+                fetchResults("Lambung Mangkurat", sort, 1);
+              }}
+              className="rounded-full bg-white px-3 py-1 font-semibold text-orange-700 ring-1 ring-orange-200 hover:bg-orange-50 shadow-2xs cursor-pointer transition-colors"
+            >
+              Lambung Mangkurat
+            </button>
+          </div>
+        </div>
+      ) : isPending && !data ? (
         <div className="grid gap-4">
           {[1, 2, 3].map((n) => (
             <div
