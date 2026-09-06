@@ -42,6 +42,41 @@ export type ScopusSearchResponse = {
   message?: string;
 };
 
+const SCOPUS_STOP_WORDS = new Set([
+  "and",
+  "or",
+  "not",
+  "the",
+  "in",
+  "of",
+  "to",
+  "a",
+  "an",
+  "is",
+  "for",
+  "on",
+  "with",
+  "by",
+  "as",
+  "at",
+  "from",
+  "into",
+  "through",
+  "about",
+  "between",
+  "after",
+  "before",
+  "its",
+  "it",
+  "dan",
+  "di",
+  "ke",
+  "dari",
+  "yang",
+  "pada",
+  "untuk",
+]);
+
 /**
  * Normalizes user query into Scopus API search syntax with advanced filters
  */
@@ -72,7 +107,8 @@ export function formatScopusQuery(options: {
         baseQuery = 'TITLE-ABS-KEY("ethnomathematics" OR "ethno-mathematics")';
         break;
       case "hots":
-        baseQuery = 'TITLE-ABS-KEY("mathematical problem solving" OR "higher order thinking" OR "HOTS") AND "mathematics"';
+        baseQuery =
+          'TITLE-ABS-KEY("mathematical problem solving" OR "higher order thinking" OR "HOTS") AND "mathematics"';
         break;
       default:
         baseQuery = 'TITLE-ABS-KEY("mathematics education")';
@@ -80,37 +116,46 @@ export function formatScopusQuery(options: {
   } else if (!trimmed) {
     baseQuery = 'TITLE-ABS-KEY("mathematics education")';
   } else {
-    // If the query already contains Scopus field operators, pass directly
-    const hasScopusSyntax =
+    // 1. Check if the query is or contains a DOI (e.g., 10.37251/jetlc.v3i2.2425)
+    const doiMatch = trimmed.match(/\b(10\.\d{4,9}\/[-._;()/:A-Za-z0-9]+)\b/);
+    if (doiMatch) {
+      baseQuery = `DOI("${doiMatch[1]}")`;
+    } else if (
       trimmed.includes("TITLE-ABS-KEY(") ||
       trimmed.includes("AUTH(") ||
       trimmed.includes("AFFIL(") ||
       trimmed.includes("EXACTSRCTITLE(") ||
       trimmed.includes("DOI(") ||
-      trimmed.includes("KEY(");
-
-    if (hasScopusSyntax) {
+      trimmed.includes("KEY(")
+    ) {
+      // Direct Scopus query syntax
       baseQuery = trimmed;
     } else if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
       baseQuery = `TITLE-ABS-KEY(${trimmed})`;
     } else {
-      // Clean and split words, joining meaningful terms with AND for robust Scopus search
-      const words = trimmed
-        .replace(/["'(),]/g, " ")
+      // Clean and split words, removing punctuation like quotes, commas, colons, brackets, dots
+      const cleanText = trimmed.replace(/["'(),:;[\]\.]/g, " ");
+      const words = cleanText
         .split(/\s+/)
         .map((w) => w.trim())
         .filter(Boolean);
 
-      if (words.length > 1) {
-        const meaningfulWords = words.filter(
-          (w) =>
-            !["in", "of", "the", "at", "on", "to", "for", "a", "an", "is"].includes(
-              w.toLowerCase(),
-            ),
-        );
-        const terms = meaningfulWords.length > 0 ? meaningfulWords : words;
-        baseQuery = `TITLE-ABS-KEY(${terms.join(" AND ")})`;
-      } else if (words.length === 1) {
+      // Filter out stop words and single-character fragments (such as truncated words)
+      const meaningfulWords = words.filter(
+        (w) => !SCOPUS_STOP_WORDS.has(w.toLowerCase()) && w.length >= 2,
+      );
+
+      if (meaningfulWords.length > 5) {
+        // If it's a full article title or long sentence:
+        // Use clean phrase match OR top significant keywords to guarantee matching
+        const phraseSnippet = words.slice(0, 8).join(" ");
+        const keyTerms = meaningfulWords.slice(0, 6).join(" AND ");
+        baseQuery = `(TITLE("${phraseSnippet}") OR TITLE-ABS-KEY(${keyTerms}))`;
+      } else if (meaningfulWords.length > 1) {
+        baseQuery = `TITLE-ABS-KEY(${meaningfulWords.join(" AND ")})`;
+      } else if (meaningfulWords.length === 1) {
+        baseQuery = `TITLE-ABS-KEY(${meaningfulWords[0]})`;
+      } else if (words.length > 0) {
         baseQuery = `TITLE-ABS-KEY(${words[0]})`;
       } else {
         baseQuery = 'TITLE-ABS-KEY("mathematics education")';
@@ -375,6 +420,27 @@ export function generateCitation(
  */
 const MOCK_SCOPUS_ARTICLES: ScopusArticle[] = [
   {
+    id: "scopus-jetlc-2425",
+    eid: "2-s2.0-85215902101",
+    title:
+      "Leveraging Educational Technology to Connect Mathematics, Digital Design, and Entrepreneurship in CLC Students' Souvenir Production",
+    authors: "Fajriah, N., Kusumawati, E., Arifin, M. Z., & Soraya, S.",
+    journal: "Journal of Educational Technology and Learning Creativity",
+    coverDate: "2025-01-15",
+    year: "2025",
+    volume: "3",
+    issue: "2",
+    pages: "2425",
+    doi: "10.37251/jetlc.v3i2.2425",
+    doiUrl: "https://doi.org/10.37251/jetlc.v3i2.2425",
+    scopusUrl: "https://www.scopus.com",
+    citedByCount: 0,
+    affiliations: ["Department of Mathematics Education, Lambung Mangkurat University, Banjarmasin, Indonesia", "Universitas Lambung Mangkurat"],
+    aggregationType: "Journal",
+    subtypeDescription: "Article",
+    openAccess: true,
+  },
+  {
     id: "scopus-mock-1",
     eid: "2-s2.0-85149302111",
     title:
@@ -588,13 +654,27 @@ function getMockScopusResponse(
   }
 
   if (q) {
-    filtered = filtered.filter(
-      (art) =>
-        art.title.toLowerCase().includes(q) ||
-        art.authors.toLowerCase().includes(q) ||
-        art.journal.toLowerCase().includes(q) ||
-        art.affiliations.some((aff) => aff.toLowerCase().includes(q)),
-    );
+    const qClean = q.replace(/["'(),:;[\]]/g, " ").trim().toLowerCase();
+    const qTokens = qClean
+      .split(/\s+/)
+      .filter((w) => !SCOPUS_STOP_WORDS.has(w) && w.length >= 2);
+
+    filtered = filtered.filter((art) => {
+      const artText =
+        `${art.title} ${art.authors} ${art.journal} ${art.doi ?? ""} ${art.affiliations.join(" ")}`.toLowerCase();
+
+      // Direct substring match
+      if (artText.includes(q) || artText.includes(qClean)) return true;
+
+      // Token match: if at least 2 tokens match or more than 40% of tokens match
+      if (qTokens.length > 0) {
+        const matchesCount = qTokens.filter((token) => artText.includes(token)).length;
+        if (qTokens.length === 1) return matchesCount === 1;
+        return matchesCount >= Math.min(2, qTokens.length) || matchesCount / qTokens.length >= 0.4;
+      }
+
+      return false;
+    });
   }
 
   // Sorting
