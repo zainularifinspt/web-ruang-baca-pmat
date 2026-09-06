@@ -1,20 +1,14 @@
 "use client";
 
-import Link from "next/link";
 import {
   Award,
   BookMarked,
   Calendar,
-  ChevronRight,
   ExternalLink,
-  FileCheck2,
   Library,
   Newspaper,
-  Send,
-  Sparkles,
 } from "lucide-react";
 import { PRODI_JOURNALS, JournalInfo } from "@/lib/journals-data";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FadeIn, FadeInStagger, ScaleIn } from "@/components/ui/framer";
 
@@ -137,90 +131,26 @@ function JournalCard({ journal }: { journal: JournalInfo }) {
         </div>
 
         {/* Description */}
-        <p className="mb-5 text-xs sm:text-sm leading-relaxed text-slate-600 font-medium line-clamp-3">
+        <p className="mb-6 text-xs sm:text-sm leading-relaxed text-slate-600 font-medium">
           {journal.description}
         </p>
 
-        {/* Focus & Scope Pills */}
-        <div className="mb-6 flex-1">
-          <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">
-            Fokus & Ruang Lingkup:
-          </p>
-          <div className="flex flex-wrap gap-1.5">
-            {journal.scope.slice(0, 4).map((item) => (
-              <span
-                key={item}
-                className="rounded-lg bg-slate-100/80 px-2.5 py-1 text-[11px] font-medium text-slate-650 hover:bg-slate-200/70 transition-colors"
-              >
-                {item}
-              </span>
-            ))}
-            {journal.scope.length > 4 ? (
-              <span className="rounded-lg bg-orange-50 px-2 py-1 text-[11px] font-semibold text-orange-700">
-                +{journal.scope.length - 4} lainnya
-              </span>
-            ) : null}
-          </div>
-        </div>
-
-        {/* Indexing Badges */}
-        <div className="mb-6 border-t border-slate-100 pt-4">
-          <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-            Terindeks Pada:
-          </p>
-          <div className="flex flex-wrap items-center gap-1.5">
-            {journal.indexing.map((idx) => (
-              <span
-                key={idx}
-                className="rounded-md border border-slate-200/60 bg-white px-2 py-0.5 text-[10px] font-semibold text-slate-600 shadow-2xs"
-              >
-                {idx}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="mt-auto flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 pt-2">
+        {/* Action Button */}
+        <div className="mt-auto pt-2">
           <Button
             asChild
-            className={`flex-1 rounded-xl text-xs font-bold text-white shadow-sm transition-all duration-200 border-0 ${
+            className={`w-full rounded-xl py-2.5 text-xs sm:text-sm font-bold text-white shadow-sm transition-all duration-200 border-0 ${
               isEduMat
-                ? "bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700"
-                : "bg-gradient-to-r from-sky-600 to-blue-700 hover:from-sky-700 hover:to-blue-800"
+                ? "bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 shadow-orange-500/20 hover:shadow-md hover:shadow-orange-500/30"
+                : "bg-gradient-to-r from-sky-600 to-blue-700 hover:from-sky-700 hover:to-blue-800 shadow-blue-500/20 hover:shadow-md hover:shadow-blue-500/30"
             }`}
           >
             <a href={journal.url} target="_blank" rel="noopener noreferrer">
-              <Library className="size-4 mr-1.5" />
-              Kunjungi Portal OJS
-              <ExternalLink className="size-3 ml-1.5 opacity-80" />
+              <Library className="size-4 mr-2" />
+              Kunjungi Halaman Jurnal
+              <ExternalLink className="size-3.5 ml-2 opacity-85" />
             </a>
           </Button>
-
-          <Button
-            asChild
-            variant="outline"
-            className="rounded-xl border-slate-200 bg-white/90 text-xs font-bold text-slate-700 hover:bg-slate-50 hover:text-slate-900"
-          >
-            <a href={journal.submissionUrl} target="_blank" rel="noopener noreferrer">
-              <Send className="size-3.5 mr-1 text-orange-600" />
-              Kirim Naskah
-            </a>
-          </Button>
-
-          {journal.currentIssueUrl ? (
-            <Button
-              asChild
-              variant="ghost"
-              size="sm"
-              className="rounded-xl text-xs font-semibold text-slate-500 hover:text-slate-900 hover:bg-slate-100"
-            >
-              <a href={journal.currentIssueUrl} target="_blank" rel="noopener noreferrer">
-                <FileCheck2 className="size-3.5 mr-1" />
-                Edisi Terkini
-              </a>
-            </Button>
-          ) : null}
         </div>
       </div>
     </ScaleIn>
