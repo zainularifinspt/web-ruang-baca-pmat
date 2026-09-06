@@ -2,48 +2,30 @@
 
 import { useEffect, useState, useTransition } from "react";
 import {
-  AlertCircle,
   BookOpen,
   Check,
-  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Copy,
   ExternalLink,
-  Filter,
   Globe2,
-  KeyRound,
-  Languages,
-  Layers,
   Library,
   Loader2,
   RotateCcw,
   Search,
   SlidersHorizontal,
-  Sparkles,
   Star,
-  Unlock,
   Users,
   X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FadeIn, FadeInStagger, ScaleIn } from "@/components/ui/framer";
+import { FadeIn, FadeInStagger } from "@/components/ui/framer";
 import { generateCitation, ScopusArticle, ScopusSearchResponse } from "@/lib/scopus";
-
-const PRESET_TOPICS = [
-  { id: "all", label: "Semua Riset", preset: "" },
-  { id: "pmat", label: "Pendidikan Matematika", preset: "pmat" },
-  { id: "ulm", label: "Publikasi ULM", preset: "ulm" },
-  { id: "rme", label: "RME / PMRI", preset: "rme" },
-  { id: "ethnomath", label: "Etnomatematika", preset: "ethnomath" },
-  { id: "hots", label: "HOTS & Problem Solving", preset: "hots" },
-];
 
 export function ScopusSearchBrowser() {
   const [query, setQuery] = useState("");
-  const [activePreset, setActivePreset] = useState("all");
   const [sort, setSort] = useState<"relevance" | "newest" | "citations">("relevance");
   const [page, setPage] = useState(1);
 
@@ -54,65 +36,17 @@ export function ScopusSearchBrowser() {
   const [openAccessOnly, setOpenAccessOnly] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
 
-  // Custom User API Key State
-  const [userApiKey, setUserApiKey] = useState("");
-  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
-  const [savedApiKey, setSavedApiKey] = useState("");
-
   const [data, setData] = useState<ScopusSearchResponse | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  // Load saved API key from localStorage
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem("scopus_user_api_key");
-      if (stored) {
-        setSavedApiKey(stored);
-        setUserApiKey(stored);
-      }
-    } catch {
-      // ignore
-    }
-  }, []);
-
-  function handleSaveApiKey(e: React.FormEvent) {
-    e.preventDefault();
-    const cleanKey = userApiKey.trim();
-    setSavedApiKey(cleanKey);
-    try {
-      if (cleanKey) {
-        localStorage.setItem("scopus_user_api_key", cleanKey);
-        toast.success("Scopus API Key berhasil disimpan untuk sesi ini!");
-      } else {
-        localStorage.removeItem("scopus_user_api_key");
-        toast.info("Scopus API Key dihapus. Kembali ke konfigurasi default.");
-      }
-    } catch {
-      // ignore
-    }
-    setShowApiKeyModal(false);
-    setPage(1);
-    fetchResults(query, activePreset, sort, 1, cleanKey);
-  }
-
-  function fetchResults(
-    searchQuery: string,
-    presetId: string,
-    sortMode: string,
-    pageNum: number,
-    customKey?: string,
-  ) {
-    const selectedPreset = PRESET_TOPICS.find((t) => t.id === presetId)?.preset ?? "";
+  function fetchResults(searchQuery: string, sortMode: string, pageNum: number) {
     const params = new URLSearchParams();
     if (searchQuery.trim()) params.set("q", searchQuery.trim());
-    if (selectedPreset) params.set("preset", selectedPreset);
     if (year !== "all") params.set("year", year);
     if (language !== "all") params.set("language", language);
     if (docType !== "all") params.set("docType", docType);
     if (openAccessOnly) params.set("openAccess", "true");
-    const activeKey = customKey !== undefined ? customKey : savedApiKey;
-    if (activeKey) params.set("apiKey", activeKey);
 
     params.set("sort", sortMode);
     params.set("page", pageNum.toString());
@@ -124,26 +58,21 @@ export function ScopusSearchBrowser() {
         if (!response.ok) throw new Error("Gagal memuat artikel Scopus");
         const json: ScopusSearchResponse = await response.json();
         setData(json);
-      } catch (err) {
+      } catch {
         toast.error("Gagal memuat data dari Scopus API");
       }
     });
   }
 
   useEffect(() => {
-    fetchResults(query, activePreset, sort, page);
+    fetchResults(query, sort, page);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activePreset, sort, page, year, language, docType, openAccessOnly]);
+  }, [sort, page, year, language, docType, openAccessOnly]);
 
   function handleSearchSubmit(e: React.FormEvent) {
     e.preventDefault();
     setPage(1);
-    fetchResults(query, activePreset, sort, 1);
-  }
-
-  function handlePresetClick(presetId: string) {
-    setActivePreset(presetId);
-    setPage(1);
+    fetchResults(query, sort, 1);
   }
 
   function handleResetFilters() {
@@ -186,7 +115,7 @@ export function ScopusSearchBrowser() {
                 onClick={() => {
                   setQuery("");
                   setPage(1);
-                  fetchResults("", activePreset, sort, 1);
+                  fetchResults("", sort, 1);
                 }}
                 className="absolute right-3.5 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
                 aria-label="Hapus pencarian"
@@ -210,68 +139,39 @@ export function ScopusSearchBrowser() {
           </Button>
         </form>
 
-        {/* Preset Topics & Filter Toggle */}
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100">
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="text-xs font-bold text-slate-400 mr-1 flex items-center gap-1">
-              <Sparkles className="size-3.5 text-orange-500" />
-              Topik:
-            </span>
-            {PRESET_TOPICS.map((topic) => {
-              const isActive = activePreset === topic.id;
-              return (
-                <button
-                  key={topic.id}
-                  type="button"
-                  onClick={() => handlePresetClick(topic.id)}
-                  className={`rounded-full px-3 py-1 text-xs font-bold transition-all ${
-                    isActive
-                      ? "bg-orange-600 text-white shadow-xs"
-                      : "bg-slate-100 text-slate-600 hover:bg-slate-200/80 hover:text-slate-900"
-                  }`}
-                >
-                  {topic.label}
-                </button>
-              );
-            })}
-          </div>
+        {/* Filter Toggle Bar */}
+        <div className="mt-3 flex items-center justify-between gap-2 pt-2">
+          <button
+            type="button"
+            onClick={() => setShowFilters(!showFilters)}
+            className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold transition-colors ${
+              hasActiveFilters || showFilters
+                ? "bg-orange-100 text-orange-800 ring-1 ring-orange-300"
+                : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+            }`}
+          >
+            <SlidersHorizontal className="size-3.5" />
+            <span>Filter Spesifik (Tahun, Bahasa, Tipe)</span>
+            {hasActiveFilters ? (
+              <span className="size-2 rounded-full bg-orange-600" />
+            ) : null}
+          </button>
 
-          <div className="flex items-center gap-2">
+          {hasActiveFilters ? (
             <button
               type="button"
-              onClick={() => setShowFilters(!showFilters)}
-              className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1 text-xs font-bold transition-colors ${
-                hasActiveFilters || showFilters
-                  ? "bg-orange-100 text-orange-800 ring-1 ring-orange-300"
-                  : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-              }`}
+              onClick={handleResetFilters}
+              className="flex items-center gap-1 text-xs font-bold text-red-600 hover:text-red-700"
             >
-              <SlidersHorizontal className="size-3.5" />
-              <span>Filter Spesifik</span>
-              {hasActiveFilters ? (
-                <span className="size-2 rounded-full bg-orange-600" />
-              ) : null}
+              <RotateCcw className="size-3" />
+              <span>Reset Filter</span>
             </button>
-
-            <button
-              type="button"
-              onClick={() => setShowApiKeyModal(true)}
-              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold transition-colors ${
-                savedApiKey
-                  ? "bg-emerald-100 text-emerald-800 ring-1 ring-emerald-300"
-                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-              }`}
-              title="Atur API Key Scopus"
-            >
-              <KeyRound className="size-3.5" />
-              <span>{savedApiKey ? "Key Aktif" : "API Key"}</span>
-            </button>
-          </div>
+          ) : null}
         </div>
 
         {/* Expandable Advanced Filters Box */}
         {showFilters ? (
-          <div className="mt-4 rounded-2xl bg-slate-50/90 p-4 border border-slate-200/70 text-xs animate-in fade-in-50 duration-200">
+          <div className="mt-3 rounded-2xl bg-slate-50/90 p-4 border border-slate-200/70 text-xs animate-in fade-in-50 duration-200">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3.5">
               {/* Filter Tahun */}
               <div>
@@ -333,123 +233,26 @@ export function ScopusSearchBrowser() {
                 </select>
               </div>
 
-              {/* Filter Open Access & Reset */}
-              <div className="flex flex-col justify-between">
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Akses Dokumen:</label>
-                  <label className="flex items-center gap-2 cursor-pointer pt-1">
-                    <input
-                      type="checkbox"
-                      checked={openAccessOnly}
-                      onChange={(e) => {
-                        setOpenAccessOnly(e.target.checked);
-                        setPage(1);
-                      }}
-                      className="size-4 rounded accent-orange-600 cursor-pointer"
-                    />
-                    <span className="font-semibold text-slate-700">Hanya Open Access</span>
-                  </label>
-                </div>
-
-                {hasActiveFilters ? (
-                  <button
-                    type="button"
-                    onClick={handleResetFilters}
-                    className="mt-2 flex items-center gap-1 text-xs font-bold text-red-600 hover:text-red-700 self-start"
-                  >
-                    <RotateCcw className="size-3" />
-                    <span>Reset Filter</span>
-                  </button>
-                ) : null}
+              {/* Filter Open Access */}
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Akses Dokumen:</label>
+                <label className="flex items-center gap-2 cursor-pointer pt-2">
+                  <input
+                    type="checkbox"
+                    checked={openAccessOnly}
+                    onChange={(e) => {
+                      setOpenAccessOnly(e.target.checked);
+                      setPage(1);
+                    }}
+                    className="size-4 rounded accent-orange-600 cursor-pointer"
+                  />
+                  <span className="font-semibold text-slate-700">Hanya Open Access</span>
+                </label>
               </div>
             </div>
           </div>
         ) : null}
       </div>
-
-      {/* Modal API Key Pengguna */}
-      {showApiKeyModal ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-md rounded-[2rem] border border-white/60 bg-white p-6 shadow-2xl animate-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2 text-slate-900 font-extrabold text-base">
-                <KeyRound className="size-5 text-orange-600" />
-                <span>Pengaturan Scopus API Key</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowApiKeyModal(false)}
-                className="rounded-full p-1 text-slate-400 hover:bg-slate-100"
-              >
-                <X className="size-5" />
-              </button>
-            </div>
-
-            <p className="text-xs text-slate-600 leading-relaxed mb-4">
-              Masukkan API Key resmi Elsevier Anda untuk pencarian Scopus *live real-time*. Kunci
-              disimpan dengan aman di browser lokal Anda.
-            </p>
-
-            <form onSubmit={handleSaveApiKey} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Elsevier Scopus API Key:
-                </label>
-                <input
-                  type="text"
-                  value={userApiKey}
-                  onChange={(e) => setUserApiKey(e.target.value)}
-                  placeholder="Contoh: 7f8a9b1c2d3e4f5a6b7c8d9e0f1a2b3c"
-                  className="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-mono text-slate-900 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setShowApiKeyModal(false)}
-                  className="rounded-xl text-xs font-semibold"
-                >
-                  Batal
-                </Button>
-                <Button
-                  type="submit"
-                  className="rounded-xl bg-orange-600 px-5 text-xs font-bold text-white hover:bg-orange-700 border-0"
-                >
-                  Simpan & Terapkan
-                </Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      ) : null}
-
-      {/* API Notice Banner */}
-      {data?.isDemo && !savedApiKey ? (
-        <div className="mb-6 rounded-2xl border border-amber-200/80 bg-gradient-to-r from-amber-50 to-orange-50/50 p-4 text-xs sm:text-sm text-amber-900 shadow-2xs">
-          <div className="flex items-start gap-3">
-            <div className="mt-0.5 rounded-lg bg-amber-200/60 p-1 text-amber-800 shrink-0">
-              <KeyRound className="size-4" />
-            </div>
-            <div className="flex-1 leading-relaxed">
-              <span className="font-bold">Mode Simulasi Terkurasi:</span>{" "}
-              {data.message ?? "Scopus API Key belum dikonfigurasi di file .env.local."}
-              <p className="mt-1 text-xs text-amber-800/80">
-                Karena Anda sudah memiliki API Key, Anda dapat langsung mengklik tombol{" "}
-                <button
-                  type="button"
-                  onClick={() => setShowApiKeyModal(true)}
-                  className="font-bold underline hover:text-amber-950"
-                >
-                  Atur API Key di sini
-                </button>{" "}
-                atau menambahkannya ke file <code className="rounded bg-amber-100 px-1 font-bold">.env.local</code>.
-              </p>
-            </div>
-          </div>
-        </div>
-      ) : null}
 
       {/* Meta Filter Bar (Result Count & Sort) */}
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1">
@@ -460,11 +263,6 @@ export function ScopusSearchBrowser() {
               ? "Sedang mencari artikel Scopus..."
               : `Ditemukan ${data?.totalResults?.toLocaleString("id-ID") ?? 0} publikasi internasional`}
           </span>
-          {savedApiKey ? (
-            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">
-              Live Scopus API
-            </span>
-          ) : null}
         </div>
 
         <div className="flex items-center gap-2 text-xs font-semibold text-slate-600 self-end sm:self-auto">

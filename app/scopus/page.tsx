@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import {
-  ArrowLeft,
   BookOpen,
   Building2,
   Clock3,
@@ -33,15 +32,6 @@ export default async function ScopusPage() {
       <main className="relative overflow-hidden">
         {/* Hero Section */}
         <section className="relative overflow-hidden bg-gradient-to-b from-[#fc5c4c] via-[#fa793d] to-[#fafbfe] pt-8 pb-12 sm:pt-14 sm:pb-16 text-center">
-          <div className="mx-auto max-w-5xl px-4 sm:px-6">
-            <Link
-              href="/"
-              className="inline-flex items-center gap-1.5 rounded-full border border-white/40 bg-white/20 px-3.5 py-1 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-white/30 mb-5"
-            >
-              <ArrowLeft className="size-3.5" />
-              Kembali ke Beranda
-            </Link>
-
             <div className="flex justify-center mb-3">
               <Badge className="rounded-full border-white/30 bg-white/20 px-4 py-1.5 text-xs font-bold text-white shadow-xs border">
                 <Globe2 className="size-3.5 mr-1.5" />

@@ -91,10 +91,30 @@ export function formatScopusQuery(options: {
 
     if (hasScopusSyntax) {
       baseQuery = trimmed;
-    } else if (options.preset === "ulm") {
-      baseQuery = `AFFIL("Universitas Lambung Mangkurat") AND TITLE-ABS-KEY("${trimmed}")`;
+    } else if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
+      baseQuery = `TITLE-ABS-KEY(${trimmed})`;
     } else {
-      baseQuery = `TITLE-ABS-KEY("${trimmed}")`;
+      // Clean and split words, joining meaningful terms with AND for robust Scopus search
+      const words = trimmed
+        .replace(/["'(),]/g, " ")
+        .split(/\s+/)
+        .map((w) => w.trim())
+        .filter(Boolean);
+
+      if (words.length > 1) {
+        const meaningfulWords = words.filter(
+          (w) =>
+            !["in", "of", "the", "at", "on", "to", "for", "a", "an", "is"].includes(
+              w.toLowerCase(),
+            ),
+        );
+        const terms = meaningfulWords.length > 0 ? meaningfulWords : words;
+        baseQuery = `TITLE-ABS-KEY(${terms.join(" AND ")})`;
+      } else if (words.length === 1) {
+        baseQuery = `TITLE-ABS-KEY(${words[0]})`;
+      } else {
+        baseQuery = 'TITLE-ABS-KEY("mathematics education")';
+      }
     }
   }
 
