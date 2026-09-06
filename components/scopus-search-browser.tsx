@@ -3,10 +3,8 @@
 import { useEffect, useState, useTransition } from "react";
 import {
   BookOpen,
-  Check,
   ChevronLeft,
   ChevronRight,
-  Copy,
   ExternalLink,
   Globe2,
   Library,
@@ -21,7 +19,7 @@ import {
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { generateCitation, ScopusArticle, ScopusSearchResponse } from "@/lib/scopus";
+import { ScopusArticle, ScopusSearchResponse } from "@/lib/scopus";
 
 export function ScopusSearchBrowser() {
   const [query, setQuery] = useState("");
@@ -36,7 +34,6 @@ export function ScopusSearchBrowser() {
   const [showFilters, setShowFilters] = useState(false);
 
   const [data, setData] = useState<ScopusSearchResponse | null>(null);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [hasSearched, setHasSearched] = useState(false);
 
@@ -98,14 +95,6 @@ export function ScopusSearchBrowser() {
       setHasSearched(false);
       setData(null);
     }
-  }
-
-  function handleCopyCitation(article: ScopusArticle) {
-    const citation = generateCitation(article, "apa");
-    navigator.clipboard.writeText(citation);
-    setCopiedId(article.id);
-    toast.success("Kutipan format APA berhasil disalin ke clipboard!");
-    setTimeout(() => setCopiedId(null), 2500);
   }
 
   return (
@@ -363,12 +352,7 @@ export function ScopusSearchBrowser() {
       ) : data?.articles && data.articles.length > 0 ? (
         <div className="grid gap-4 sm:gap-5">
           {data.articles.map((article) => (
-            <ArticleCard
-              key={article.id}
-              article={article}
-              isCopied={copiedId === article.id}
-              onCopy={() => handleCopyCitation(article)}
-            />
+            <ArticleCard key={article.id} article={article} />
           ))}
         </div>
       ) : (
@@ -417,13 +401,11 @@ export function ScopusSearchBrowser() {
 
 function ArticleCard({
   article,
-  isCopied,
-  onCopy,
 }: {
   article: ScopusArticle;
-  isCopied: boolean;
-  onCopy: () => void;
 }) {
+  const articleUrl = article.doiUrl || article.scopusUrl;
+
   return (
     <div className="group relative flex flex-col justify-between rounded-[1.75rem] border border-white/70 bg-white/85 p-5 sm:p-6 shadow-xs ring-1 ring-slate-200/40 transition-all duration-200 hover:bg-white hover:shadow-lg hover:shadow-orange-950/5">
         <div>
@@ -453,9 +435,9 @@ function ArticleCard({
 
           {/* Title */}
           <h3 className="text-base sm:text-lg font-extrabold text-slate-900 group-hover:text-orange-600 transition-colors leading-snug">
-            {article.doiUrl ? (
+            {articleUrl ? (
               <a
-                href={article.doiUrl}
+                href={articleUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:underline flex items-start gap-1"
@@ -469,9 +451,9 @@ function ArticleCard({
 
           {/* Authors & Journal */}
           <div className="mt-2 text-xs text-slate-600 space-y-1">
-            <p className="flex items-center gap-1.5 font-medium">
+            <p className="flex items-center gap-1.5 font-medium" title={article.authors}>
               <Users className="size-3.5 text-slate-400 shrink-0" />
-              <span className="line-clamp-1">{article.authors}</span>
+              <span className="line-clamp-2">{article.authors}</span>
             </p>
             <p className="flex items-center gap-1.5 font-semibold text-slate-700">
               <BookOpen className="size-3.5 text-orange-500 shrink-0" />
@@ -506,55 +488,21 @@ function ArticleCard({
             <span>{article.citedByCount} Sitasi Scopus</span>
           </div>
 
-          {/* Action Links */}
-          <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={onCopy}
-              className="h-8 rounded-lg border-slate-200 bg-white text-xs font-bold text-slate-700 hover:bg-slate-50"
-            >
-              {isCopied ? (
-                <>
-                  <Check className="size-3 mr-1 text-emerald-600" />
-                  <span>Tersalin!</span>
-                </>
-              ) : (
-                <>
-                  <Copy className="size-3 mr-1 text-slate-500" />
-                  <span>Salin APA</span>
-                </>
-              )}
-            </Button>
-
-            {article.doiUrl ? (
+          {/* Action Link: Buka Artikel */}
+          {articleUrl ? (
+            <div className="flex items-center gap-2">
               <Button
                 asChild
                 size="sm"
-                className="h-8 rounded-lg bg-orange-600 px-3 text-xs font-bold text-white hover:bg-orange-700 border-0"
+                className="h-8 rounded-lg bg-orange-600 px-3.5 text-xs font-bold text-white hover:bg-orange-700 border-0 shadow-xs"
               >
-                <a href={article.doiUrl} target="_blank" rel="noopener noreferrer">
-                  <span>Buka DOI</span>
-                  <ExternalLink className="size-3 ml-1" />
+                <a href={articleUrl} target="_blank" rel="noopener noreferrer">
+                  <span>Buka Artikel</span>
+                  <ExternalLink className="size-3 ml-1.5" />
                 </a>
               </Button>
-            ) : null}
-
-            {article.scopusUrl ? (
-              <Button
-                asChild
-                variant="ghost"
-                size="sm"
-                className="h-8 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900"
-              >
-                <a href={article.scopusUrl} target="_blank" rel="noopener noreferrer">
-                  <span>Scopus</span>
-                  <ExternalLink className="size-3 ml-1" />
-                </a>
-              </Button>
-            ) : null}
-          </div>
+            </div>
+          ) : null}
         </div>
       </div>
   );

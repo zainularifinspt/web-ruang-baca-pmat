@@ -291,9 +291,11 @@ export async function searchScopusArticles(
     const totalResults = Number(searchResults["opensearch:totalResults"] ?? rawEntries.length);
     const totalPages = Math.ceil(totalResults / pageSize);
 
-    const articles: ScopusArticle[] = rawEntries
+    const parsedArticles: ScopusArticle[] = rawEntries
       .filter((entry) => !entry.error)
       .map((entry) => parseScopusEntry(entry));
+
+    const articles = await enrichArticlesWithFullAuthors(parsedArticles);
 
     return {
       articles,
@@ -312,11 +314,125 @@ export async function searchScopusArticles(
 }
 
 /**
+ * In-memory cache for Crossref author enrichments to avoid duplicate calls
+ */
+const crossrefAuthorCache = new Map<string, string>();
+
+interface CrossrefAuthor {
+  given?: string;
+  family?: string;
+  name?: string;
+}
+
+function formatCrossrefAuthor(author: CrossrefAuthor): string {
+  if (author.name) return author.name.trim();
+  const f = (author.family || "").trim();
+  const g = (author.given || "").trim();
+  if (!g || g === "-") return f;
+  if (!f) return g;
+
+  const initials = g
+    .split(/[\s.-]+/)
+    .filter(Boolean)
+    .map((part) => part[0].toUpperCase() + ".")
+    .join(" ");
+
+  return `${f}, ${initials || g}`;
+}
+
+export function formatCrossrefAuthorList(authors: CrossrefAuthor[]): string {
+  if (!authors || authors.length === 0) return "";
+  const formatted = authors.map(formatCrossrefAuthor).filter(Boolean);
+
+  if (formatted.length === 0) return "";
+  if (formatted.length === 1) return formatted[0];
+  if (formatted.length === 2) return `${formatted[0]}, & ${formatted[1]}`;
+  return `${formatted.slice(0, -1).join(", ")}, & ${formatted[formatted.length - 1]}`;
+}
+
+/**
+ * Fetches full author list from Crossref using DOI
+ */
+async function fetchFullAuthorsFromCrossref(doi: string): Promise<string | null> {
+  const cleanDoi = doi.trim();
+  if (!cleanDoi) return null;
+
+  if (crossrefAuthorCache.has(cleanDoi)) {
+    return crossrefAuthorCache.get(cleanDoi) || null;
+  }
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000);
+
+    const res = await fetch(`https://api.crossref.org/works/${encodeURIComponent(cleanDoi)}`, {
+      headers: {
+        Accept: "application/json",
+        "User-Agent": "RuangBacaPMAT/1.0 (mailto:admin@ulm.ac.id)",
+      },
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!res.ok) return null;
+
+    const data = await res.json();
+    const rawAuthors = data.message?.author as CrossrefAuthor[] | undefined;
+    if (rawAuthors && Array.isArray(rawAuthors) && rawAuthors.length > 0) {
+      const formatted = formatCrossrefAuthorList(rawAuthors);
+      if (formatted) {
+        crossrefAuthorCache.set(cleanDoi, formatted);
+        return formatted;
+      }
+    }
+  } catch {
+    // Gracefully handle timeout / network issues
+  }
+
+  return null;
+}
+
+/**
+ * Enriches Scopus search results with complete author names via Crossref DOI
+ */
+export async function enrichArticlesWithFullAuthors(
+  articles: ScopusArticle[],
+): Promise<ScopusArticle[]> {
+  const promises = articles.map(async (article) => {
+    if (!article.doi) return article;
+
+    const fullAuthors = await fetchFullAuthorsFromCrossref(article.doi);
+    if (fullAuthors) {
+      return {
+        ...article,
+        authors: fullAuthors,
+      };
+    }
+
+    return article;
+  });
+
+  return Promise.all(promises);
+}
+
+/**
  * Parses raw Scopus API entry into clean ScopusArticle
  */
 function parseScopusEntry(entry: Record<string, unknown>): ScopusArticle {
   const title = String(entry["dc:title"] ?? "Tanpa Judul").replace(/\.$/, "");
-  const authors = String(entry["dc:creator"] ?? "Peneliti Scopus");
+
+  let authors = "Peneliti Scopus";
+  if (Array.isArray(entry.author) && entry.author.length > 0) {
+    const list = (entry.author as Record<string, string>[])
+      .map((a) => a.authname || `${a.surname || ""}, ${a["given-name"] || a.initials || ""}`.trim())
+      .filter(Boolean);
+    if (list.length === 1) authors = list[0];
+    else if (list.length === 2) authors = `${list[0]}, & ${list[1]}`;
+    else if (list.length > 2) authors = `${list.slice(0, -1).join(", ")}, & ${list[list.length - 1]}`;
+  } else if (entry["dc:creator"]) {
+    authors = String(entry["dc:creator"]);
+  }
   const journal = String(entry["prism:publicationName"] ?? "Jurnal Terindeks Scopus");
   const coverDate = String(entry["prism:coverDate"] ?? "");
   const year = coverDate ? coverDate.substring(0, 4) : String(entry["prism:coverDisplayDate"] ?? "2024");

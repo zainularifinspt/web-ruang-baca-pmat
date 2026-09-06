@@ -6,12 +6,12 @@ import {
   BookOpen,
   Building2,
   Clock3,
+  ExternalLink,
   FileText,
   Globe2,
   LibraryBig,
   Mail,
   MapPin,
-  Quote,
   SlidersHorizontal,
   Sparkles,
 } from "lucide-react";
@@ -106,11 +106,11 @@ export default async function ScopusPage() {
 
                 <div className="flex items-center gap-2.5 sm:gap-3 rounded-2xl border border-white/35 bg-white/20 p-3 sm:p-3.5 text-left backdrop-blur-md shadow-xs transition-all hover:bg-white/25">
                   <div className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-xl bg-sky-400/30 text-sky-100 ring-1 ring-white/40 shadow-inner">
-                    <Quote className="size-4 sm:size-5" />
+                    <ExternalLink className="size-4 sm:size-5" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs sm:text-sm font-extrabold text-white leading-tight truncate">Sitasi APA 7th</p>
-                    <p className="text-[10px] sm:text-xs text-white/85 font-medium truncate">Salin 1-Klik Otomatis</p>
+                    <p className="text-xs sm:text-sm font-extrabold text-white leading-tight truncate">Buka Artikel</p>
+                    <p className="text-[10px] sm:text-xs text-white/85 font-medium truncate">Tautan Resmi DOI</p>
                   </div>
                 </div>
 
