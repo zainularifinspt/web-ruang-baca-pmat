@@ -22,31 +22,36 @@ export function JournalShowcase() {
   return (
     <section className="relative mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
       {/* Header Title */}
-      <div className="flex flex-col items-center justify-between gap-4 text-center sm:flex-row sm:text-left mb-8">
-        <div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-orange-200/60 bg-orange-50/80 px-3.5 py-1 text-xs font-bold text-orange-800 shadow-xs mb-2">
-            <Newspaper className="size-3.5 text-orange-600" />
-            <span>Publikasi Ilmiah Program Studi</span>
+      <FadeIn>
+        <div className="flex flex-col items-center justify-between gap-4 text-center sm:flex-row sm:text-left mb-8">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/20 px-3.5 py-1 text-xs font-semibold text-white shadow-xs backdrop-blur-md mb-3 transition-colors hover:bg-white/25">
+              <Newspaper className="size-3.5 text-yellow-200" />
+              <span>Publikasi Ilmiah Program Studi</span>
+            </div>
+            <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-white drop-shadow-xs">
+              Jurnal Ilmiah{" "}
+              <span className="bg-gradient-to-r from-yellow-200 via-yellow-100 to-white bg-clip-text text-transparent">
+                Pendidikan Matematika
+              </span>
+            </h2>
+            <p className="mt-2 text-xs sm:text-base font-medium text-white/90 max-w-2xl leading-relaxed">
+              Jurnal ilmiah resmi dan wadah publikasi karya akademik dosen, peneliti, dan mahasiswa
+              Jurusan Pendidikan Matematika FKIP Universitas Lambung Mangkurat.
+            </p>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-950">
-            Jurnal Pendidikan Matematika
-          </h2>
-          <p className="mt-1.5 text-xs sm:text-sm font-medium text-slate-500 max-w-2xl">
-            Jurnal ilmiah resmi dan wadah publikasi karya akademik dosen, peneliti, dan mahasiswa
-            Jurusan Pendidikan Matematika FKIP Universitas Lambung Mangkurat.
-          </p>
-        </div>
 
-        <div className="flex items-center gap-2 shrink-0">
-          <Badge
-            variant="outline"
-            className="rounded-full border-amber-300/80 bg-amber-50 px-3.5 py-1 text-xs font-bold text-amber-900 shadow-xs"
-          >
-            <Award className="mr-1.5 size-3.5 text-amber-600" />
-            Keduanya Terakreditasi SINTA 3
-          </Badge>
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/20 backdrop-blur-md px-4 py-1.5 text-xs font-bold text-white shadow-sm ring-1 ring-white/10 transition-colors hover:bg-white/25">
+              <Award className="size-4 text-yellow-300" />
+              <span>
+                Keduanya Terakreditasi{" "}
+                <span className="text-yellow-200 font-extrabold">SINTA 3</span>
+              </span>
+            </div>
+          </div>
         </div>
-      </div>
+      </FadeIn>
 
       {/* Journal Cards Grid */}
       <FadeInStagger className="grid grid-cols-1 gap-6 lg:grid-cols-2">
