@@ -2,17 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import {
-  Award,
   BookOpen,
   Building2,
   Clock3,
-  ExternalLink,
-  FileText,
   Globe2,
   LibraryBig,
   Mail,
   MapPin,
-  SlidersHorizontal,
   Sparkles,
 } from "lucide-react";
 import { PublicNav } from "@/components/public-nav";
@@ -79,51 +75,6 @@ export default async function ScopusPage() {
                 Eksplorasi publikasi jurnal internasional bereputasi tinggi (Q1–Q4), sitasi global, dan referensi mutakhir
                 di bidang Pendidikan Matematika dan kajian riset Universitas Lambung Mangkurat.
               </p>
-            </FadeIn>
-
-            {/* Feature Highlights Grid */}
-            <FadeIn className="mt-8 sm:mt-10">
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5 max-w-4xl mx-auto">
-                <div className="flex items-center gap-2.5 sm:gap-3 rounded-2xl border border-white/35 bg-white/20 p-3 sm:p-3.5 text-left backdrop-blur-md shadow-xs transition-all hover:bg-white/25">
-                  <div className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-xl bg-amber-400/30 text-yellow-100 ring-1 ring-white/40 shadow-inner">
-                    <Award className="size-4 sm:size-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs sm:text-sm font-extrabold text-white leading-tight truncate">Jurnal Q1 – Q4</p>
-                    <p className="text-[10px] sm:text-xs text-white/85 font-medium truncate">Bereputasi Global</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2.5 sm:gap-3 rounded-2xl border border-white/35 bg-white/20 p-3 sm:p-3.5 text-left backdrop-blur-md shadow-xs transition-all hover:bg-white/25">
-                  <div className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-xl bg-rose-400/30 text-rose-100 ring-1 ring-white/40 shadow-inner">
-                    <FileText className="size-4 sm:size-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs sm:text-sm font-extrabold text-white leading-tight truncate">75Jt+ Publikasi</p>
-                    <p className="text-[10px] sm:text-xs text-white/85 font-medium truncate">Artikel & Prosiding</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2.5 sm:gap-3 rounded-2xl border border-white/35 bg-white/20 p-3 sm:p-3.5 text-left backdrop-blur-md shadow-xs transition-all hover:bg-white/25">
-                  <div className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-xl bg-sky-400/30 text-sky-100 ring-1 ring-white/40 shadow-inner">
-                    <ExternalLink className="size-4 sm:size-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs sm:text-sm font-extrabold text-white leading-tight truncate">Buka Artikel</p>
-                    <p className="text-[10px] sm:text-xs text-white/85 font-medium truncate">Tautan Resmi DOI</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2.5 sm:gap-3 rounded-2xl border border-white/35 bg-white/20 p-3 sm:p-3.5 text-left backdrop-blur-md shadow-xs transition-all hover:bg-white/25">
-                  <div className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-xl bg-emerald-400/30 text-emerald-100 ring-1 ring-white/40 shadow-inner">
-                    <SlidersHorizontal className="size-4 sm:size-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs sm:text-sm font-extrabold text-white leading-tight truncate">Filter Presisi</p>
-                    <p className="text-[10px] sm:text-xs text-white/85 font-medium truncate">Tahun & Open Access</p>
-                  </div>
-                </div>
-              </div>
             </FadeIn>
           </FadeInStagger>
         </section>

@@ -491,16 +491,17 @@ function ArticleCard({
           {/* Action Link: Buka Artikel */}
           {articleUrl ? (
             <div className="flex items-center gap-2">
-              <Button
-                asChild
-                size="sm"
-                className="h-8 rounded-lg bg-orange-600 px-3.5 text-xs font-bold text-white hover:bg-orange-700 border-0 shadow-xs"
+              <a
+                href={articleUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group/btn inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-orange-600 via-orange-500 to-amber-600 px-4 sm:px-5 py-2 text-xs sm:text-sm font-extrabold !text-white shadow-md shadow-orange-600/25 transition-all duration-200 hover:-translate-y-0.5 hover:from-orange-700 hover:via-orange-600 hover:to-amber-700 hover:shadow-lg hover:shadow-orange-600/40 active:translate-y-0 ring-2 ring-orange-500/20 hover:ring-orange-500/40 no-underline"
               >
-                <a href={articleUrl} target="_blank" rel="noopener noreferrer">
-                  <span>Buka Artikel</span>
-                  <ExternalLink className="size-3 ml-1.5" />
-                </a>
-              </Button>
+                <span className="!text-white font-black tracking-tight drop-shadow-xs">
+                  Buka Artikel
+                </span>
+                <ExternalLink className="size-3.5 !text-white stroke-[2.5] transition-transform duration-200 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5" />
+              </a>
             </div>
           ) : null}
         </div>
