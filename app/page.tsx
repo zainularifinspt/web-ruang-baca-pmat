@@ -162,12 +162,13 @@ export default async function HomePage() {
           </div>
         </FadeInStagger>
 
+        {/* Showcase Jurnal Prodi Pendidikan Matematika */}
+        <JournalShowcase />
+
+        {/* Grafik Pengunjung */}
         <FadeIn className="relative mx-auto max-w-6xl px-4 py-6 sm:px-6">
           <RealtimeVisitorChart initialRows={visitorRows} />
         </FadeIn>
-
-        {/* Showcase Jurnal Prodi Pendidikan Matematika */}
-        <JournalShowcase />
 
         <FadeInStagger className="relative mx-auto grid max-w-6xl gap-5 px-4 pb-20 pt-4 sm:grid-cols-2 sm:px-6 lg:grid-cols-4">
           <StatTile icon={BookOpen} label="Total Buku" value={stats.bookCount} description="Koleksi buku tersedia" />

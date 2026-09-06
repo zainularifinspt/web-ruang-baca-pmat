@@ -40,10 +40,10 @@ export function JournalShowcase() {
         <div className="flex items-center gap-2 shrink-0">
           <Badge
             variant="outline"
-            className="rounded-full border-amber-300/80 bg-amber-50 px-3 py-1 text-xs font-bold text-amber-900 shadow-xs"
+            className="rounded-full border-amber-300/80 bg-amber-50 px-3.5 py-1 text-xs font-bold text-amber-900 shadow-xs"
           >
             <Award className="mr-1.5 size-3.5 text-amber-600" />
-            Terakreditasi SINTA 3
+            Keduanya Terakreditasi SINTA 3
           </Badge>
         </div>
       </div>
@@ -78,13 +78,7 @@ function JournalCard({ journal }: { journal: JournalInfo }) {
 
         {/* Top Header: Badge and Tag */}
         <div className="flex items-center justify-between gap-3 mb-4">
-          <span
-            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-extrabold shadow-xs ${
-              isEduMat
-                ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white"
-                : "bg-gradient-to-r from-sky-500 to-blue-600 text-white"
-            }`}
-          >
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 px-3 py-1 text-xs font-extrabold text-white shadow-xs">
             <Award className="size-3.5" />
             {journal.accreditationBadge}
           </span>
@@ -103,7 +97,7 @@ function JournalCard({ journal }: { journal: JournalInfo }) {
           </p>
         </div>
 
-        {/* Meta Grid: ISSN, Frequency, Publisher */}
+        {/* Meta Grid: ISSN, Frequency, Editor in Chief, DOI */}
         <div className="mb-5 grid grid-cols-1 sm:grid-cols-2 gap-2.5 rounded-2xl bg-slate-50/80 p-3.5 text-xs text-slate-600 ring-1 ring-slate-100">
           <div className="flex items-center gap-2">
             <BookMarked className="size-4 shrink-0 text-orange-500" />
@@ -122,6 +116,19 @@ function JournalCard({ journal }: { journal: JournalInfo }) {
               <span className="font-semibold text-slate-800">{journal.frequency}</span>
             </div>
           </div>
+
+          {journal.editorInChief ? (
+            <div className="sm:col-span-2 flex flex-wrap items-center justify-between gap-1 border-t border-slate-200/60 pt-2 text-[11px] text-slate-600">
+              <span>
+                <strong className="text-slate-700">Editor in Chief:</strong> {journal.editorInChief}
+              </span>
+              {journal.doi ? (
+                <span className="font-semibold text-orange-600">
+                  DOI Prefix: {journal.doi}
+                </span>
+              ) : null}
+            </div>
+          ) : null}
         </div>
 
         {/* Description */}
