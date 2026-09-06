@@ -21,7 +21,6 @@ import {
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FadeIn, FadeInStagger } from "@/components/ui/framer";
 import { generateCitation, ScopusArticle, ScopusSearchResponse } from "@/lib/scopus";
 
 export function ScopusSearchBrowser() {
@@ -352,17 +351,17 @@ export function ScopusSearchBrowser() {
             </button>
           </div>
         </div>
-      ) : isPending && !data ? (
+      ) : isPending ? (
         <div className="grid gap-4">
-          {[1, 2, 3].map((n) => (
+          {[1, 2, 3, 4].map((n) => (
             <div
               key={n}
-              className="h-44 animate-pulse rounded-[1.75rem] border border-slate-100 bg-white/60 p-6"
+              className="h-44 animate-pulse rounded-[1.75rem] border border-slate-100 bg-white/70 p-6"
             />
           ))}
         </div>
       ) : data?.articles && data.articles.length > 0 ? (
-        <FadeInStagger className="grid gap-4 sm:gap-5">
+        <div className="grid gap-4 sm:gap-5">
           {data.articles.map((article) => (
             <ArticleCard
               key={article.id}
@@ -371,7 +370,7 @@ export function ScopusSearchBrowser() {
               onCopy={() => handleCopyCitation(article)}
             />
           ))}
-        </FadeInStagger>
+        </div>
       ) : (
         <div className="rounded-[2rem] border border-dashed border-slate-200 bg-white/60 p-12 text-center">
           <Library className="mx-auto size-12 text-slate-300 mb-3" />
@@ -426,8 +425,7 @@ function ArticleCard({
   onCopy: () => void;
 }) {
   return (
-    <FadeIn>
-      <div className="group relative flex flex-col justify-between rounded-[1.75rem] border border-white/70 bg-white/85 p-5 sm:p-6 shadow-xs ring-1 ring-slate-200/40 transition-all duration-200 hover:bg-white hover:shadow-lg hover:shadow-orange-950/5">
+    <div className="group relative flex flex-col justify-between rounded-[1.75rem] border border-white/70 bg-white/85 p-5 sm:p-6 shadow-xs ring-1 ring-slate-200/40 transition-all duration-200 hover:bg-white hover:shadow-lg hover:shadow-orange-950/5">
         <div>
           {/* Top Badges */}
           <div className="mb-2.5 flex flex-wrap items-center gap-2">
@@ -559,6 +557,5 @@ function ArticleCard({
           </div>
         </div>
       </div>
-    </FadeIn>
   );
 }

@@ -156,7 +156,7 @@ export function formatScopusQuery(options: {
 /**
  * Maps sort parameter to Scopus API sort value
  */
-function mapSortOption(sort?: "relevance" | "newest" | "citations"): string {
+function mapSortOption(sort?: "relevance" | "newest" | "citations"): string | undefined {
   switch (sort) {
     case "newest":
       return "-coverDate";
@@ -164,7 +164,7 @@ function mapSortOption(sort?: "relevance" | "newest" | "citations"): string {
       return "-citedby-count";
     case "relevance":
     default:
-      return "relevance";
+      return undefined;
   }
 }
 
@@ -200,7 +200,9 @@ export async function searchScopusArticles(
     searchUrl.searchParams.set("query", formattedQuery);
     searchUrl.searchParams.set("count", pageSize.toString());
     searchUrl.searchParams.set("start", start.toString());
-    searchUrl.searchParams.set("sort", scopusSort);
+    if (scopusSort) {
+      searchUrl.searchParams.set("sort", scopusSort);
+    }
     searchUrl.searchParams.set("view", "STANDARD");
 
     const headers: Record<string, string> = {
@@ -277,26 +279,32 @@ function parseScopusEntry(entry: Record<string, unknown>): ScopusArticle {
   const doiUrl = doi ? `https://doi.org/${doi}` : undefined;
   const eid = String(entry.eid ?? entry["dc:identifier"] ?? Math.random().toString());
 
-  // Extract scopus web link
+  // Extract scopus web link (handles array or single object)
   let scopusUrl: string | undefined;
-  if (Array.isArray(entry.link)) {
-    const scopusLinkObj = (entry.link as Record<string, string>[]).find(
-      (l) => l["@ref"] === "scopus",
-    );
-    if (scopusLinkObj && scopusLinkObj["@href"]) {
-      scopusUrl = scopusLinkObj["@href"];
-    }
+  const rawLinks = Array.isArray(entry.link)
+    ? entry.link
+    : entry.link && typeof entry.link === "object"
+    ? [entry.link]
+    : [];
+  const scopusLinkObj = (rawLinks as Record<string, string>[]).find(
+    (l) => l && l["@ref"] === "scopus",
+  );
+  if (scopusLinkObj && scopusLinkObj["@href"]) {
+    scopusUrl = scopusLinkObj["@href"];
   }
 
-  // Affiliation extraction
+  // Affiliation extraction (handles array or single object)
   const affiliations: string[] = [];
-  if (Array.isArray(entry.affiliation)) {
-    (entry.affiliation as Record<string, string>[]).forEach((aff) => {
-      if (aff.affilname && !affiliations.includes(aff.affilname)) {
-        affiliations.push(aff.affilname);
-      }
-    });
-  }
+  const rawAffils = Array.isArray(entry.affiliation)
+    ? entry.affiliation
+    : entry.affiliation && typeof entry.affiliation === "object"
+    ? [entry.affiliation]
+    : [];
+  (rawAffils as Record<string, string>[]).forEach((aff) => {
+    if (aff && aff.affilname && !affiliations.includes(aff.affilname)) {
+      affiliations.push(aff.affilname);
+    }
+  });
 
   const citedByCount = Number(entry["citedby-count"] ?? 0);
   const aggregationType = String(entry["prism:aggregationType"] ?? "Journal");
