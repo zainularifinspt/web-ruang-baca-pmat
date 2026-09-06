@@ -13,6 +13,7 @@ import {
 import { PRODI_JOURNALS, JournalInfo } from "@/lib/journals-data";
 import { Button } from "@/components/ui/button";
 import { FadeIn, FadeInStagger, ScaleIn } from "@/components/ui/framer";
+import { track } from "@vercel/analytics";
 
 export function JournalShowcase() {
   return (
@@ -160,7 +161,14 @@ function JournalCard({ journal }: { journal: JournalInfo }) {
                 : "bg-gradient-to-r from-sky-600 to-blue-700 hover:from-sky-700 hover:to-blue-800 shadow-blue-500/20 hover:shadow-md hover:shadow-blue-500/30"
             }`}
           >
-            <a href={journal.url} target="_blank" rel="noopener noreferrer">
+            <a
+              href={journal.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => {
+                track("visit_journal", { journal: journal.title, id: journal.id });
+              }}
+            >
               <Library className="size-4 mr-2" />
               Kunjungi Halaman Jurnal
               <ExternalLink className="size-3.5 ml-2 opacity-85" />
