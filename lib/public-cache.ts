@@ -5,6 +5,7 @@ import { buildCatalogSearchItems } from "@/lib/catalog-search";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
 import { hasValidSupabaseConfig } from "@/lib/supabase-config";
 import { fetchCatalogData } from "@/lib/supabase";
+import { fetchEbooksFromApi } from "@/lib/ebooks";
 
 export const PUBLIC_REVALIDATE_SECONDS = 300;
 export const PUBLIC_CATALOG_LIMIT = 500;
@@ -79,8 +80,9 @@ export const fetchPublicSearchItems = unstable_cache(
 export const fetchPublicLandingStats = unstable_cache(
   async () => {
     if (!hasValidSupabaseConfig()) {
+      const { ebooks } = await fetchEbooksFromApi().catch(() => ({ ebooks: [] }));
       return {
-        bookCount: 0,
+        bookCount: ebooks?.length ?? 0,
         thesisCount: 0,
         staffCount: 0,
         todayWebsiteVisits: 0,
@@ -89,7 +91,7 @@ export const fetchPublicLandingStats = unstable_cache(
 
     const today = getMakassarDateKey();
     const supabase = createSupabaseAdminClient();
-    const [bookResult, thesisResult, staffResult, visitResult] = await Promise.all([
+    const [bookResult, thesisResult, staffResult, visitResult, { ebooks }] = await Promise.all([
       supabase
         .from("books")
         .select("id", { count: "exact", head: true }),
@@ -104,16 +106,20 @@ export const fetchPublicLandingStats = unstable_cache(
         .from("website_visits")
         .select("id", { count: "exact", head: true })
         .eq("visit_date", today),
+      fetchEbooksFromApi().catch(() => ({ ebooks: [] })),
     ]);
 
+    const dbBookCount = bookResult.error ? 0 : bookResult.count ?? 0;
+    const ebookCount = Array.isArray(ebooks) ? ebooks.length : 0;
+
     return {
-      bookCount: bookResult.error ? 0 : bookResult.count ?? 0,
+      bookCount: dbBookCount + ebookCount,
       thesisCount: thesisResult.error ? 0 : thesisResult.count ?? 0,
       staffCount: staffResult.error ? 0 : staffResult.count ?? 0,
       todayWebsiteVisits: visitResult.error ? 0 : visitResult.count ?? 0,
     };
   },
-  ["public-landing-stats-v2"],
+  ["public-landing-stats-v3"],
   {
     revalidate: PUBLIC_REVALIDATE_SECONDS,
     tags: ["public-catalog", "public-landing"],
