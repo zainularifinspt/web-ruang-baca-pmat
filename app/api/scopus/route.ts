@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
       | "newest"
       | "citations";
     const page = parseInt(searchParams.get("page") ?? "1", 10);
-    const pageSize = parseInt(searchParams.get("pageSize") ?? "10", 10);
+    const pageSize = parseInt(searchParams.get("pageSize") ?? "25", 10);
     const preset = searchParams.get("preset") ?? undefined;
     const year = searchParams.get("year") ?? undefined;
     const language = searchParams.get("language") ?? undefined;
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
       query,
       sort,
       page: isNaN(page) ? 1 : page,
-      pageSize: isNaN(pageSize) ? 10 : pageSize,
+      pageSize: isNaN(pageSize) ? 25 : pageSize,
       preset: preset || undefined,
       year: year || undefined,
       language: language || undefined,
@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
         articles: [],
         totalResults: 0,
         page: 1,
-        pageSize: 10,
+        pageSize: 25,
         totalPages: 0,
         isDemo: true,
         error: error instanceof Error ? error.message : "Gagal memproses pencarian Scopus.",

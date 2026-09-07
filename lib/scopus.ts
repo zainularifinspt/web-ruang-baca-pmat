@@ -223,7 +223,7 @@ export async function searchScopusArticles(
   const instToken = process.env.SCOPUS_INST_TOKEN?.trim();
 
   const page = Math.max(1, options.page ?? 1);
-  const pageSize = Math.min(25, Math.max(5, options.pageSize ?? 12));
+  const pageSize = Math.min(25, Math.max(5, options.pageSize ?? 25));
   const start = (page - 1) * pageSize;
   const formattedQuery = formatScopusQuery({
     rawQuery: options.query,
@@ -725,7 +725,7 @@ const MOCK_SCOPUS_ARTICLES: ScopusArticle[] = [
 function getMockScopusResponse(
   options: ScopusSearchOptions,
   page = 1,
-  pageSize = 12,
+  pageSize = 25,
 ): ScopusSearchResponse {
   let filtered = [...MOCK_SCOPUS_ARTICLES];
   const q = options.query.trim().toLowerCase();

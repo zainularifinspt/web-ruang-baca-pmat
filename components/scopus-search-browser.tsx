@@ -50,7 +50,7 @@ export function ScopusSearchBrowser() {
 
     params.set("sort", sortMode);
     params.set("page", pageNum.toString());
-    params.set("pageSize", "10");
+    params.set("pageSize", "25");
 
     setHasSearched(true);
 
