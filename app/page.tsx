@@ -120,7 +120,7 @@ export default async function HomePage() {
               <Link href="/scopus" className="glass-panel glass-panel-hover p-6 sm:p-7 flex flex-col items-center justify-center text-center group relative overflow-hidden h-full">
                 <div className="absolute top-3.5 right-3.5 sm:top-4 sm:right-4">
                   <span className="rounded-full bg-gradient-to-r from-red-500 to-rose-600 px-2.5 py-1 text-[10px] font-bold text-white shadow-xs">
-                    Scopus API
+                    Scopus
                   </span>
                 </div>
                 <div className="size-13 sm:size-15 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-red-50 via-orange-50 to-amber-50 flex items-center justify-center text-red-600 mb-4 shadow-inner ring-1 ring-white group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
