@@ -14,7 +14,6 @@ import {
   Users,
 } from "lucide-react";
 import { JournalShowcase } from "@/components/journal-showcase";
-import { LandingSearchForm } from "@/components/landing-search-form";
 import { PublicNav } from "@/components/public-nav";
 import { RealtimeVisitorChart } from "@/components/realtime-visitor-chart";
 import { WebsiteVisitorStat } from "@/components/website-visitor-stat";
@@ -42,7 +41,7 @@ export default async function HomePage() {
         <MathBackdrop />
 
         <FadeInStagger>
-          <section className="relative mx-auto max-w-6xl px-4 pb-10 pt-10 text-center sm:px-6 sm:pb-16 sm:pt-20 lg:pb-20 lg:pt-28">
+          <section className="relative mx-auto max-w-6xl px-4 pb-6 pt-10 text-center sm:px-6 sm:pb-10 sm:pt-20 lg:pb-14 lg:pt-28">
             <FadeIn>
               <Badge className="rounded-full border-white/30 bg-white/20 px-3.5 py-1 sm:px-4.5 sm:py-1.5 text-white shadow-sm transition-colors duration-200 hover:bg-white/30 font-semibold border text-xs">
                 <Image src="/ulm-logo.png" alt="Logo Universitas Lambung Mangkurat" width={22} height={22} className="mr-1.5 sm:mr-2 size-4 sm:size-4.5 object-contain" priority />
@@ -62,10 +61,6 @@ export default async function HomePage() {
                 Portal referensi akademik Jurusan Pendidikan Matematika Universitas Lambung Mangkurat
                 untuk menemukan buku, skripsi, lokasi koleksi, dan informasi ruang baca dengan cepat.
               </p>
-            </FadeIn>
-
-            <FadeIn className="mt-8 sm:mt-10">
-              <LandingSearchForm />
             </FadeIn>
           </section>
         </FadeInStagger>
