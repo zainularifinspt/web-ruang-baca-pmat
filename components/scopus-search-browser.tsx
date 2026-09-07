@@ -109,7 +109,7 @@ export function ScopusSearchBrowser() {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Cari judul artikel, topik, nama penulis di Scopus (contoh: ethnomathematics, geometry, ULM)..."
+              placeholder="Cari judul artikel, topik, atau keyword di Scopus (contoh: ethnomathematics, geometry, RME)..."
               className="h-12 sm:h-14 w-full rounded-full border border-slate-200/80 bg-white pl-12 pr-10 text-xs sm:text-base font-semibold text-slate-800 shadow-inner outline-none transition-all placeholder:font-normal placeholder:text-slate-400 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10"
             />
             {query ? (
@@ -304,7 +304,7 @@ export function ScopusSearchBrowser() {
             Mulai Pencarian Literatur Scopus
           </h3>
           <p className="mx-auto mt-2 max-w-lg text-xs sm:text-sm text-slate-600 leading-relaxed">
-            Ketik kata kunci judul artikel, topik, atau nama peneliti di kolom pencarian di atas, lalu tekan tombol <strong>Cari Scopus</strong> atau tekan Enter.
+            Ketik kata kunci judul artikel, topik, atau keyword riset di kolom pencarian di atas, lalu tekan tombol <strong>Cari Scopus</strong> atau tekan Enter.
           </p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-2 text-xs text-slate-500">
             <span className="font-semibold text-slate-700">Contoh kata kunci:</span>
