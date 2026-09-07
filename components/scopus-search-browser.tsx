@@ -5,6 +5,7 @@ import {
   BookOpen,
   ChevronLeft,
   ChevronRight,
+  Download,
   ExternalLink,
   Globe2,
   Library,
@@ -95,6 +96,75 @@ export function ScopusSearchBrowser() {
       setHasSearched(false);
       setData(null);
     }
+  }
+
+  function handleExportCSV() {
+    if (!data?.articles || data.articles.length === 0) {
+      toast.info("Tidak ada data artikel yang dapat diekspor");
+      return;
+    }
+
+    const headers = [
+      "No",
+      "Judul Artikel",
+      "Penulis",
+      "Nama Jurnal",
+      "Tahun",
+      "Tanggal Terbit",
+      "Volume",
+      "Isu",
+      "Halaman",
+      "Jumlah Sitasi",
+      "Tipe Akses",
+      "Tipe Dokumen",
+      "Afiliasi",
+      "DOI",
+      "Tautan DOI",
+      "Tautan Scopus",
+    ];
+
+    function escapeCSV(val: string | number | null | undefined): string {
+      if (val === null || val === undefined) return '""';
+      const str = String(val).replace(/"/g, '""');
+      return `"${str}"`;
+    }
+
+    const rows = data.articles.map((art, idx) => [
+      idx + 1,
+      escapeCSV(art.title),
+      escapeCSV(art.authors),
+      escapeCSV(art.journal),
+      escapeCSV(art.year),
+      escapeCSV(art.coverDate),
+      escapeCSV(art.volume ?? "-"),
+      escapeCSV(art.issue ?? "-"),
+      escapeCSV(art.pages ?? "-"),
+      art.citedByCount,
+      escapeCSV(art.openAccess ? "Open Access" : "Non-OA"),
+      escapeCSV(art.subtypeDescription || art.aggregationType || "-"),
+      escapeCSV(art.affiliations?.length ? art.affiliations.join("; ") : "-"),
+      escapeCSV(art.doi ?? "-"),
+      escapeCSV(art.doiUrl ?? (art.doi ? `https://doi.org/${art.doi}` : "-")),
+      escapeCSV(art.scopusUrl ?? "-"),
+    ]);
+
+    const csvContent =
+      "\uFEFF" +
+      [headers.map((h) => `"${h}"`).join(","), ...rows.map((r) => r.join(","))].join("\r\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const sanitizedQuery = query.trim() ? query.trim().replace(/[^a-zA-Z0-9]/g, "_") : "semua";
+    const dateStr = new Date().toISOString().split("T")[0];
+    link.href = url;
+    link.setAttribute("download", `scopus_${sanitizedQuery}_hlm${page}_${dateStr}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    toast.success(`Berhasil mengunduh ${data.articles.length} artikel ke format CSV`);
   }
 
   return (
@@ -273,20 +343,35 @@ export function ScopusSearchBrowser() {
             </span>
           </div>
 
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-600 self-end sm:self-auto">
-            <span>Urutkan:</span>
-            <select
-              value={sort}
-              onChange={(e) => {
-                setSort(e.target.value as "relevance" | "newest" | "citations");
-                setPage(1);
-              }}
-              className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-800 outline-none focus:border-orange-500"
+          <div className="flex flex-wrap items-center gap-2.5 self-end sm:self-auto">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleExportCSV}
+              disabled={isPending || !data?.articles?.length}
+              className="rounded-xl border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 shadow-2xs hover:bg-slate-50 hover:text-slate-900 hover:border-orange-300 transition-all cursor-pointer disabled:opacity-50"
+              title="Unduh data artikel halaman ini ke format CSV (Excel)"
             >
-              <option value="relevance">Paling Relevan</option>
-              <option value="newest">Terbitan Terbaru</option>
-              <option value="citations">Sitasi Terbanyak</option>
-            </select>
+              <Download className="size-3.5 mr-1.5 text-orange-600" />
+              Export CSV
+            </Button>
+
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600">
+              <span>Urutkan:</span>
+              <select
+                value={sort}
+                onChange={(e) => {
+                  setSort(e.target.value as "relevance" | "newest" | "citations");
+                  setPage(1);
+                }}
+                className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-800 outline-none focus:border-orange-500"
+              >
+                <option value="relevance">Paling Relevan</option>
+                <option value="newest">Terbitan Terbaru</option>
+                <option value="citations">Sitasi Terbanyak</option>
+              </select>
+            </div>
           </div>
         </div>
       ) : null}
