@@ -24,14 +24,21 @@ export const PRIVATE_NO_STORE_HEADERS = {
   "Cache-Control": "private, no-store, max-age=0",
 };
 
-export async function fetchPublicCatalogData() {
-  return fetchCatalogData({
-    visibility: "public",
-    limit: PUBLIC_CATALOG_LIMIT,
-    includePdfMetadata: true,
-    includeInputMetadata: false,
-  });
-}
+export const fetchPublicCatalogData = unstable_cache(
+  async () => {
+    return fetchCatalogData({
+      visibility: "public",
+      limit: PUBLIC_CATALOG_LIMIT,
+      includePdfMetadata: true,
+      includeInputMetadata: false,
+    });
+  },
+  ["public-catalog-data-v2"],
+  {
+    revalidate: PUBLIC_REVALIDATE_SECONDS,
+    tags: ["public-catalog"],
+  },
+);
 
 export const fetchPublicVisitorRows = unstable_cache(
   async () => {

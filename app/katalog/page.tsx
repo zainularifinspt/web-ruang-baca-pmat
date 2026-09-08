@@ -4,8 +4,7 @@ import { PublicNav } from "@/components/public-nav";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { fetchPublicCatalogData } from "@/lib/public-cache";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export const revalidate = 300;
 
 export default async function CatalogPage() {
   const { books, theses, error } = await fetchPublicCatalogData();

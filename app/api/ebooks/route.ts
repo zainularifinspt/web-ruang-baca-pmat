@@ -1,17 +1,18 @@
 import { NextResponse } from "next/server";
 import { fetchEbooksFromApi } from "@/lib/ebooks";
-import { PRIVATE_NO_STORE_HEADERS } from "@/lib/public-cache";
+import { PUBLIC_CACHE_HEADERS } from "@/lib/public-cache";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export const revalidate = 300;
 
-export async function GET() {
-  const { ebooks, error } = await fetchEbooksFromApi();
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const forceFresh = searchParams.get("fresh") === "true";
+  const { ebooks, error } = await fetchEbooksFromApi({ forceFresh });
 
   if (error && (!ebooks || ebooks.length === 0)) {
     return NextResponse.json(
       { success: false, ebooks: [], error },
-      { status: 500, headers: PRIVATE_NO_STORE_HEADERS },
+      { status: 500, headers: PUBLIC_CACHE_HEADERS },
     );
   }
 
@@ -22,6 +23,6 @@ export async function GET() {
       ebooks,
       error,
     },
-    { headers: PRIVATE_NO_STORE_HEADERS },
+    { headers: PUBLIC_CACHE_HEADERS },
   );
 }

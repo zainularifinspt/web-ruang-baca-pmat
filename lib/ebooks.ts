@@ -16,10 +16,37 @@ type EbookApiResponse = {
   data?: RawEbookItem[];
 };
 
-export async function fetchEbooksFromApi(): Promise<{
+export interface EbookFetchOptions {
+  forceFresh?: boolean;
+}
+
+// In-memory cache to guarantee instant (<1ms) responses on the server
+let inMemoryEbooksCache: {
+  data: { ebooks: Book[]; error?: string };
+  cachedAt: number;
+} | null = null;
+
+const EBOOK_CACHE_TTL_MS = 5 * 60 * 1000; // 5 menit
+
+export function clearEbooksMemoryCache() {
+  inMemoryEbooksCache = null;
+}
+
+export async function fetchEbooksFromApi(options?: EbookFetchOptions): Promise<{
   ebooks: Book[];
   error?: string;
 }> {
+  const forceFresh = options?.forceFresh ?? false;
+
+  // Layani langsung dari memori jika cache masih valid dan tidak dipaksa refresh
+  if (
+    !forceFresh &&
+    inMemoryEbooksCache &&
+    Date.now() - inMemoryEbooksCache.cachedAt < EBOOK_CACHE_TTL_MS
+  ) {
+    return inMemoryEbooksCache.data;
+  }
+
   const apiUrl =
     process.env.EBOOK_API_URL ||
     process.env.NEXT_PUBLIC_EBOOK_API_URL ||
@@ -29,14 +56,22 @@ export async function fetchEbooksFromApi(): Promise<{
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 12000);
 
-    const fetchUrl = `${apiUrl}${apiUrl.includes("?") ? "&" : "?"}_t=${Date.now()}`;
+    const fetchUrl = forceFresh
+      ? `${apiUrl}${apiUrl.includes("?") ? "&" : "?"}_t=${Date.now()}`
+      : apiUrl;
+
     const response = await fetch(fetchUrl, {
       signal: controller.signal,
-      cache: "no-store",
+      ...(forceFresh
+        ? { cache: "no-store" as const }
+        : {
+            next: {
+              revalidate: 300,
+              tags: ["public-catalog", "ebooks-api"],
+            },
+          }),
       headers: {
         Accept: "application/json",
-        "Cache-Control": "no-cache, no-store, must-revalidate",
-        Pragma: "no-cache",
       },
     });
 
@@ -62,13 +97,21 @@ export async function fetchEbooksFromApi(): Promise<{
     }
 
     if (!rawItems.length) {
-      return { ebooks: getFallbackEbooks(), error: undefined };
+      const fallbackResult = { ebooks: getFallbackEbooks(), error: undefined };
+      inMemoryEbooksCache = { data: fallbackResult, cachedAt: Date.now() };
+      return fallbackResult;
     }
 
     const ebooks = rawItems.map((item, index) => mapRawEbookToBook(item, index));
-    return { ebooks, error: undefined };
+    const result = { ebooks, error: undefined };
+    inMemoryEbooksCache = { data: result, cachedAt: Date.now() };
+    return result;
   } catch (error) {
-    console.error("[ebooks] Gagal memuat e-book dari API, menggunakan fallback dataset:", error);
+    console.error("[ebooks] Gagal memuat e-book dari API:", error);
+    // Jika sebelumnya sudah ada cache di memori, tetap gunakan agar tidak hilang
+    if (inMemoryEbooksCache?.data?.ebooks?.length) {
+      return inMemoryEbooksCache.data;
+    }
     return {
       ebooks: getFallbackEbooks(),
       error: error instanceof Error ? error.message : "Gagal memuat API E-Book",
