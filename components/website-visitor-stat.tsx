@@ -39,15 +39,15 @@ export function WebsiteVisitorStat({ initialCount }: WebsiteVisitorStatProps) {
       whileHover={{ y: -4, scale: 1.01, transition: { type: "spring", stiffness: 450, damping: 25 } }}
       className="group flex items-center gap-4 apple-bento-card p-5 transition-all duration-300 w-full"
     >
-      <span className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500/10 via-yellow-500/5 to-transparent text-amber-700 shadow-sm ring-1 ring-amber-100/50 transition-all duration-300 group-hover:scale-105">
-        <TrendingUp className="size-6" />
+      <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500/10 via-amber-500/15 to-amber-500/5 text-amber-700 border border-amber-200/60 shadow-2xs transition-transform duration-300 group-hover:scale-105">
+        <TrendingUp className="size-5" />
       </span>
       <span className="min-w-0 text-left">
-        <span className="block text-3xl font-extrabold tracking-tight text-slate-900">
+        <span className="block text-2xl font-bold tracking-tight text-slate-900 tabular-nums">
           {count.toLocaleString("id-ID")}
         </span>
-        <span className="mt-0.5 block text-sm font-bold text-slate-800">Total Pengunjung</span>
-        <span className="mt-0.5 block text-xs font-medium text-slate-400">
+        <span className="block text-xs font-semibold text-slate-700">Total Pengunjung</span>
+        <span className="mt-0.5 block text-xs text-slate-500">
           Total pengunjung website hari ini
         </span>
       </span>
