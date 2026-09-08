@@ -9,6 +9,7 @@ import {
   Flame,
   Clock,
   Sparkles,
+  BarChart3,
 } from "lucide-react";
 import { getSupabaseClient } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
@@ -42,6 +43,7 @@ export function RealtimeVisitorChart({
   const [isLoading, setIsLoading] = useState(initialRows.length === 0);
   const [error, setError] = useState<string | null>(null);
   const [timeRange, setTimeRange] = useState<7 | 14>(7);
+  const [chartStyle, setChartStyle] = useState<"bar" | "line">("bar");
 
   const loadRows = useCallback(async () => {
     try {
@@ -186,19 +188,51 @@ export function RealtimeVisitorChart({
             Grafik Kunjungan Harian
           </h2>
           <p className="mt-1 text-xs sm:text-sm text-slate-600 font-normal">
-            Pencatatan kehadiran pengunjung ruang baca per hari secara realtime.
+            Pencatatan kehadiran digital per hari secara realtime dari sistem presensi Ruang Baca.
           </p>
         </div>
 
         {/* Right Status Controls */}
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
           {/* Realtime Live Pulse */}
           <div className="flex items-center gap-2 rounded-full border border-emerald-300/80 bg-emerald-50/90 px-3 py-1 text-xs font-bold text-emerald-800 shadow-2xs">
             <span className="relative flex size-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex size-2 rounded-full bg-emerald-600" />
             </span>
-            <span>Live Sync</span>
+            <span className="hidden xs:inline">Live Sync</span>
+          </div>
+
+          {/* Visualization Style Toggle (Batang vs Kurva) */}
+          <div className="inline-flex rounded-xl border border-slate-200/80 bg-slate-100/90 p-1 text-xs font-semibold shadow-2xs">
+            <button
+              type="button"
+              onClick={() => setChartStyle("bar")}
+              className={cn(
+                "flex items-center gap-1.5 rounded-lg px-2.5 sm:px-3 py-1 transition-all cursor-pointer",
+                chartStyle === "bar"
+                  ? "bg-white text-slate-900 font-bold shadow-2xs"
+                  : "text-slate-600 hover:text-slate-900"
+              )}
+              title="Tampilan Diagram Batang Modern"
+            >
+              <BarChart3 className="size-3.5 text-rose-600" />
+              <span>Batang</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setChartStyle("line")}
+              className={cn(
+                "flex items-center gap-1.5 rounded-lg px-2.5 sm:px-3 py-1 transition-all cursor-pointer",
+                chartStyle === "line"
+                  ? "bg-white text-slate-900 font-bold shadow-2xs"
+                  : "text-slate-600 hover:text-slate-900"
+              )}
+              title="Tampilan Kurva Area Halus"
+            >
+              <TrendingUp className="size-3.5 text-rose-600" />
+              <span>Kurva</span>
+            </button>
           </div>
 
           {/* Time Range Selector */}
@@ -207,7 +241,7 @@ export function RealtimeVisitorChart({
               type="button"
               onClick={() => setTimeRange(7)}
               className={cn(
-                "rounded-lg px-3 py-1 transition-all cursor-pointer",
+                "rounded-lg px-2.5 sm:px-3 py-1 transition-all cursor-pointer",
                 timeRange === 7
                   ? "bg-white text-slate-900 font-bold shadow-2xs"
                   : "text-slate-600 hover:text-slate-900"
@@ -219,7 +253,7 @@ export function RealtimeVisitorChart({
               type="button"
               onClick={() => setTimeRange(14)}
               className={cn(
-                "rounded-lg px-3 py-1 transition-all cursor-pointer",
+                "rounded-lg px-2.5 sm:px-3 py-1 transition-all cursor-pointer",
                 timeRange === 14
                   ? "bg-white text-slate-900 font-bold shadow-2xs"
                   : "text-slate-600 hover:text-slate-900"
@@ -339,7 +373,14 @@ export function RealtimeVisitorChart({
 
           {/* Expansive Full-Width Interactive Chart */}
           <div className="relative z-10 mt-6 sm:mt-8">
-            <VisitorLine points={points} totalVisitors={totalVisitors} />
+            <VisitorVisualization
+              points={points}
+              totalVisitors={totalVisitors}
+              averageVisitors={averageVisitors}
+              peakPoint={peakPoint}
+              chartStyle={chartStyle}
+              timeRange={timeRange}
+            />
           </div>
         </>
       )}
@@ -347,19 +388,27 @@ export function RealtimeVisitorChart({
   );
 }
 
-function VisitorLine({
+function VisitorVisualization({
   points,
   totalVisitors,
+  averageVisitors,
+  peakPoint,
+  chartStyle,
+  timeRange,
 }: {
   points: ChartPoint[];
   totalVisitors: number;
+  averageVisitors: string;
+  peakPoint: ChartPoint;
+  chartStyle: "bar" | "line";
+  timeRange: number;
 }) {
   const width = 1000;
   const height = 360;
   const paddingLeft = 54;
-  const paddingRight = 36;
-  const paddingTop = 46;
-  const paddingBottom = 46;
+  const paddingRight = 40;
+  const paddingTop = 44;
+  const paddingBottom = 48;
   const chartWidth = width - paddingLeft - paddingRight;
   const chartHeight = height - paddingTop - paddingBottom;
 
@@ -368,7 +417,7 @@ function VisitorLine({
 
   const maxValue = Math.max(0, ...points.map((p) => p.value));
 
-  // Determine elegant mathematical scale intervals
+  // Clean mathematical scale intervals
   let tickStep = 2;
   if (maxValue <= 4) tickStep = 1;
   else if (maxValue <= 8) tickStep = 2;
@@ -377,17 +426,28 @@ function VisitorLine({
   else if (maxValue <= 50) tickStep = 10;
   else tickStep = Math.ceil(maxValue / 4 / 5) * 5;
 
-  const scaleMax = Math.max(tickStep * 4, Math.ceil((maxValue * 1.15) / tickStep) * tickStep);
+  const scaleMax = Math.max(tickStep * 4, Math.ceil((maxValue * 1.18) / tickStep) * tickStep);
   const tickCount = 4;
   const ticks = Array.from({ length: tickCount + 1 }, (_, i) =>
     Math.round((scaleMax / tickCount) * (tickCount - i)),
   );
 
+  const count = points.length;
+  const slotWidth = chartWidth / Math.max(1, count);
+  const barWidth = timeRange === 7 ? 48 : 24;
+
   const coordinates: ChartCoordinate[] = points.map((point, index) => {
-    const x = paddingLeft + (index / Math.max(1, points.length - 1)) * chartWidth;
+    // For bar chart: center of each slot. For line chart: evenly spaced across chart width
+    const x =
+      chartStyle === "bar"
+        ? paddingLeft + (index + 0.5) * slotWidth
+        : paddingLeft + (index / Math.max(1, count - 1)) * chartWidth;
     const y = height - paddingBottom - (point.value / scaleMax) * chartHeight;
     return { ...point, x, y };
   });
+
+  const avgValueNumber = Number(averageVisitors) || 0;
+  const avgY = height - paddingBottom - (avgValueNumber / scaleMax) * chartHeight;
 
   const linePath = buildSmoothLinePath(coordinates, height - paddingBottom);
   const areaPath = buildAreaPath(coordinates, height - paddingBottom);
@@ -428,23 +488,42 @@ function VisitorLine({
             top: `${(activeCoord.y / height) * 100}%`,
             transform:
               activeCoord.y < 120
-                ? "translate(-50%, 16px)"
-                : "translate(-50%, -100%) translateY(-18px)",
+                ? "translate(-50%, 20px)"
+                : "translate(-50%, -100%) translateY(-22px)",
           }}
         >
-          <div className="rounded-2xl border border-white/90 bg-white/95 px-3.5 py-2.5 shadow-xl shadow-red-950/10 backdrop-blur-xl ring-1 ring-slate-900/5 text-center min-w-[130px] select-none">
+          <div className="rounded-2xl border border-white/95 bg-white/95 px-4 py-3 shadow-xl shadow-red-950/12 backdrop-blur-xl ring-1 ring-slate-900/5 text-center min-w-[140px] select-none">
             <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
               {activeCoord.fullDate}
             </p>
-            <div className="mt-1 flex items-baseline justify-center gap-1">
-              <span className="text-xl font-black tracking-tight text-slate-900 tabular-nums">
+            <div className="mt-1 flex items-baseline justify-center gap-1.5">
+              <span className="text-2xl font-black tracking-tight text-slate-900 tabular-nums">
                 {activeCoord.value}
               </span>
-              <span className="text-xs font-semibold text-slate-600">Pengunjung</span>
+              <span className="text-xs font-bold text-slate-600">Pengunjung</span>
             </div>
-            <p className="mt-0.5 text-[10px] font-semibold text-rose-600">
+            <div className="mt-1 flex items-center justify-center gap-1 text-[10px] font-bold">
+              {activeCoord.value === peakPoint.value && activeCoord.value > 0 ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-amber-800 border border-amber-200">
+                  🔥 Puncak Periode
+                </span>
+              ) : activeCoord.value >= avgValueNumber ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-emerald-800 border border-emerald-200">
+                  ▲ Di Atas Rata-rata
+                </span>
+              ) : activeCoord.value > 0 ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-slate-700 border border-slate-200">
+                  ▼ Di Bawah Rata-rata
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-slate-500 border border-slate-200">
+                  Libur / Nihil
+                </span>
+              )}
+            </div>
+            <p className="mt-1 text-[10px] font-medium text-slate-400">
               {totalVisitors > 0
-                ? `${Math.round((activeCoord.value / totalVisitors) * 100)}% dari total periode`
+                ? `${Math.round((activeCoord.value / totalVisitors) * 100)}% dari total pekan`
                 : "0%"}
             </p>
           </div>
@@ -457,30 +536,50 @@ function VisitorLine({
         viewBox={`0 0 ${width} ${height}`}
         className="w-full h-auto overflow-visible select-none cursor-crosshair"
         role="img"
-        aria-label="Grafik pengunjung realtime berukuran besar dan interaktif"
+        aria-label="Visualisasi data kehadiran harian"
         onPointerMove={handlePointerMove}
         onPointerLeave={handlePointerLeave}
       >
         <defs>
-          {/* Luminous Line Gradient */}
-          <linearGradient id="visitor-line-gradient" x1="0" y1="0" x2="1" y2="0">
+          {/* Bar Fill Gradient: Normal Days */}
+          <linearGradient id="bar-gradient-normal" x1="0" y1="1" x2="0" y2="0">
+            <stop offset="0%" stopColor="#be123c" />
+            <stop offset="60%" stopColor="#e11d48" />
+            <stop offset="100%" stopColor="#fb7185" />
+          </linearGradient>
+
+          {/* Bar Fill Gradient: Peak Day */}
+          <linearGradient id="bar-gradient-peak" x1="0" y1="1" x2="0" y2="0">
+            <stop offset="0%" stopColor="#be123c" />
+            <stop offset="45%" stopColor="#f43f5e" />
+            <stop offset="85%" stopColor="#fb923c" />
+            <stop offset="100%" stopColor="#f59e0b" />
+          </linearGradient>
+
+          {/* Line Stroke Gradient */}
+          <linearGradient id="line-gradient-vibrant" x1="0" y1="0" x2="1" y2="0">
             <stop offset="0%" stopColor="#e11d48" />
             <stop offset="50%" stopColor="#be123c" />
             <stop offset="85%" stopColor="#f43f5e" />
             <stop offset="100%" stopColor="#f59e0b" />
           </linearGradient>
 
-          {/* Rich Luminous Area Gradient */}
-          <linearGradient id="visitor-area-gradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#f43f5e" stopOpacity="0.32" />
-            <stop offset="40%" stopColor="#fb7185" stopOpacity="0.14" />
-            <stop offset="85%" stopColor="#fecdd3" stopOpacity="0.03" />
+          {/* Soft Ethereal Area Gradient */}
+          <linearGradient id="area-gradient-ethereal" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#f43f5e" stopOpacity="0.22" />
+            <stop offset="40%" stopColor="#fb7185" stopOpacity="0.08" />
+            <stop offset="90%" stopColor="#fda4af" stopOpacity="0.01" />
             <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
           </linearGradient>
 
-          {/* Soft Shadow Filter for the Main Stroke */}
-          <filter id="visitor-line-shadow" x="-10%" y="-10%" width="120%" height="130%">
-            <feDropShadow dx="0" dy="5" stdDeviation="4" floodColor="#be123c" floodOpacity="0.22" />
+          {/* Bar Drop Shadow Glow */}
+          <filter id="bar-hover-glow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="6" stdDeviation="6" floodColor="#be123c" floodOpacity="0.28" />
+          </filter>
+
+          {/* Line Drop Shadow */}
+          <filter id="line-drop-shadow" x="-10%" y="-10%" width="120%" height="130%">
+            <feDropShadow dx="0" dy="4" stdDeviation="3.5" floodColor="#be123c" floodOpacity="0.20" />
           </filter>
         </defs>
 
@@ -511,119 +610,324 @@ function VisitorLine({
           );
         })}
 
-        {/* Area Gradient Fill */}
-        <path
-          d={areaPath}
-          fill="url(#visitor-area-gradient)"
-          className="transition-all duration-500 ease-out"
-        />
-
-        {/* Ambient Glow Beneath Line */}
-        <path
-          d={linePath}
-          fill="none"
-          stroke="#f43f5e"
-          strokeWidth="11"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          opacity="0.12"
-          className="transition-all duration-500 ease-out"
-        />
-
-        {/* Main Line Stroke */}
-        <path
-          d={linePath}
-          fill="none"
-          stroke="url(#visitor-line-gradient)"
-          strokeWidth="5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          filter="url(#visitor-line-shadow)"
-          className="transition-all duration-500 ease-out"
-        />
-
-        {/* Active Inspection Crosshair Line */}
-        {activeCoord && (
-          <line
-            x1={activeCoord.x}
-            x2={activeCoord.x}
-            y1={paddingTop - 12}
-            y2={height - paddingBottom}
-            stroke="#e11d48"
-            strokeWidth="1.5"
-            strokeDasharray="4 4"
-            opacity="0.8"
-          />
-        )}
-
-        {/* Data Nodes & Static Value Labels */}
-        {coordinates.map((point, index) => {
-          const isHovered = hoveredIndex === index;
-          return (
-            <g key={point.dateKey || point.label} className="cursor-pointer">
-              {/* Static Value Label Above Point */}
+        {/* Average Attendance (x̄) Horizontal Reference Line */}
+        {avgValueNumber > 0 && avgY > paddingTop && avgY < height - paddingBottom && (
+          <g className="transition-all duration-300">
+            <line
+              x1={paddingLeft}
+              x2={width - paddingRight - 82}
+              y1={avgY}
+              y2={avgY}
+              stroke="#f59e0b"
+              strokeWidth="1.5"
+              strokeDasharray="4 4"
+              opacity="0.85"
+            />
+            <g transform={`translate(${width - paddingRight - 78}, ${avgY - 10})`}>
+              <rect width="78" height="20" rx="10" fill="#fffbeb" stroke="#fde68a" strokeWidth="1" />
               <text
-                x={point.x}
-                y={point.y - 12}
+                x="39"
+                y="14"
                 textAnchor="middle"
-                className={cn(
-                  "font-black text-[12px] sm:text-[13px] tabular-nums select-none transition-all duration-200",
-                  isHovered ? "fill-red-700 text-[14px]" : "fill-slate-900",
-                )}
+                className="fill-amber-800 text-[10px] font-extrabold select-none"
               >
-                {point.value}
-              </text>
-
-              {/* Hover Ping / Halo */}
-              {isHovered && (
-                <>
-                  <circle
-                    cx={point.x}
-                    cy={point.y}
-                    r="15"
-                    fill="#f43f5e"
-                    fillOpacity="0.22"
-                    className="animate-pulse"
-                  />
-                  <circle
-                    cx={point.x}
-                    cy={point.y}
-                    r="8"
-                    fill="#be123c"
-                    stroke="#ffffff"
-                    strokeWidth="3"
-                  />
-                </>
-              )}
-
-              {/* Standard Circular Node */}
-              {!isHovered && (
-                <circle
-                  cx={point.x}
-                  cy={point.y}
-                  r="5.5"
-                  fill="#e11d48"
-                  stroke="#ffffff"
-                  strokeWidth="2.5"
-                  className="transition-all duration-200 hover:r-7"
-                />
-              )}
-
-              {/* X-Axis Date Label */}
-              <text
-                x={point.x}
-                y={height - 18}
-                textAnchor="middle"
-                className={cn(
-                  "text-[11px] sm:text-[12px] select-none transition-all duration-200",
-                  isHovered ? "fill-red-700 font-extrabold" : "fill-slate-500 font-semibold",
-                )}
-              >
-                {point.label}
+                Rata²: {averageVisitors}
               </text>
             </g>
-          );
-        })}
+          </g>
+        )}
+
+        {/* ================= BAR CHART MODE ================= */}
+        {chartStyle === "bar" && (
+          <g>
+            {coordinates.map((point, index) => {
+              const isHovered = hoveredIndex === index;
+              const isPeak = point.value === peakPoint.value && point.value > 0;
+              const barHeightValue = Math.max(0, (point.value / scaleMax) * chartHeight);
+              const barActualHeight = point.value > 0 ? Math.max(10, barHeightValue) : 4;
+              const barY = height - paddingBottom - barActualHeight;
+              const barX = point.x - barWidth / 2;
+
+              // Background Ghost Track
+              const trackWidth = barWidth + 14;
+              const trackX = point.x - trackWidth / 2;
+
+              return (
+                <g
+                  key={point.dateKey || point.label}
+                  className="cursor-pointer transition-all duration-200"
+                  onMouseEnter={() => setHoveredIndex(index)}
+                >
+                  {/* Subtle Background Slot Track */}
+                  <rect
+                    x={trackX}
+                    y={paddingTop}
+                    width={trackWidth}
+                    height={chartHeight}
+                    rx="14"
+                    fill={isHovered ? "rgba(244, 63, 94, 0.06)" : "rgba(248, 250, 252, 0.7)"}
+                    stroke={isHovered ? "rgba(244, 63, 94, 0.2)" : "transparent"}
+                    strokeWidth="1"
+                    className="transition-colors duration-200"
+                  />
+
+                  {/* Main Rounded Pillar / Bar */}
+                  {point.value > 0 ? (
+                    <rect
+                      x={barX}
+                      y={barY}
+                      width={barWidth}
+                      height={barActualHeight}
+                      rx={Math.min(12, barWidth / 2)}
+                      fill={isPeak ? "url(#bar-gradient-peak)" : "url(#bar-gradient-normal)"}
+                      filter={isHovered ? "url(#bar-hover-glow)" : undefined}
+                      className={cn(
+                        "transition-all duration-200",
+                        isHovered ? "opacity-100" : "opacity-95",
+                      )}
+                    />
+                  ) : (
+                    /* Zero Day Minimal Indicator */
+                    <rect
+                      x={barX}
+                      y={height - paddingBottom - 4}
+                      width={barWidth}
+                      height="4"
+                      rx="2"
+                      fill="#cbd5e1"
+                    />
+                  )}
+
+                  {/* Value Pill Badge Atop Bar */}
+                  {point.value > 0 ? (
+                    <g transform={`translate(${point.x}, ${barY - 14})`}>
+                      <rect
+                        x="-14"
+                        y="-10"
+                        width="28"
+                        height="18"
+                        rx="6"
+                        fill="#ffffff"
+                        stroke={isPeak ? "#fbbf24" : isHovered ? "#f43f5e" : "#e2e8f0"}
+                        strokeWidth={isPeak || isHovered ? "1.5" : "1"}
+                        className="shadow-2xs"
+                      />
+                      <text
+                        x="0"
+                        y="3"
+                        textAnchor="middle"
+                        className={cn(
+                          "text-[11px] font-black tabular-nums select-none",
+                          isPeak ? "fill-amber-700" : isHovered ? "fill-red-700" : "fill-slate-900",
+                        )}
+                      >
+                        {point.value}
+                      </text>
+                    </g>
+                  ) : (
+                    <text
+                      x={point.x}
+                      y={height - paddingBottom - 10}
+                      textAnchor="middle"
+                      className="fill-slate-400 text-[10px] font-bold select-none"
+                    >
+                      0
+                    </text>
+                  )}
+
+                  {/* X-Axis Day & Date Labels (Two-Tier) */}
+                  <text
+                    x={point.x}
+                    y={height - paddingBottom + 18}
+                    textAnchor="middle"
+                    className={cn(
+                      "text-[11px] select-none transition-colors duration-200",
+                      isHovered ? "fill-red-700 font-extrabold" : "fill-slate-700 font-bold",
+                    )}
+                  >
+                    {point.dayName}
+                  </text>
+                  <text
+                    x={point.x}
+                    y={height - paddingBottom + 32}
+                    textAnchor="middle"
+                    className={cn(
+                      "text-[10px] select-none transition-colors duration-200",
+                      isHovered ? "fill-red-700 font-bold" : "fill-slate-400 font-medium",
+                    )}
+                  >
+                    {point.label}
+                  </text>
+                </g>
+              );
+            })}
+          </g>
+        )}
+
+        {/* ================= LINE / CURVE MODE ================= */}
+        {chartStyle === "line" && (
+          <g>
+            {/* Background Column Strips */}
+            {coordinates.map((point, index) => {
+              const isHovered = hoveredIndex === index;
+              const stripWidth = chartWidth / count;
+              const stripX = point.x - stripWidth / 2;
+
+              return (
+                <rect
+                  key={`strip-${point.dateKey || point.label}`}
+                  x={stripX}
+                  y={paddingTop}
+                  width={stripWidth}
+                  height={chartHeight}
+                  rx="10"
+                  fill={isHovered ? "rgba(244, 63, 94, 0.07)" : "rgba(248, 250, 252, 0.5)"}
+                  className="transition-colors duration-150"
+                />
+              );
+            })}
+
+            {/* Smooth Ethereal Area Wash */}
+            <path
+              d={areaPath}
+              fill="url(#area-gradient-ethereal)"
+              className="transition-all duration-500 ease-out"
+            />
+
+            {/* Soft Ambient Line Glow */}
+            <path
+              d={linePath}
+              fill="none"
+              stroke="#f43f5e"
+              strokeWidth="7"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              opacity="0.14"
+              className="transition-all duration-500 ease-out"
+            />
+
+            {/* Main Vector Spline Stroke */}
+            <path
+              d={linePath}
+              fill="none"
+              stroke="url(#line-gradient-vibrant)"
+              strokeWidth="3.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              filter="url(#line-drop-shadow)"
+              className="transition-all duration-500 ease-out"
+            />
+
+            {/* Active Vertical Inspection Crosshair */}
+            {activeCoord && (
+              <line
+                x1={activeCoord.x}
+                x2={activeCoord.x}
+                y1={paddingTop}
+                y2={height - paddingBottom}
+                stroke="#e11d48"
+                strokeWidth="1.5"
+                strokeDasharray="4 4"
+                opacity="0.85"
+              />
+            )}
+
+            {/* Data Nodes & Floating Chips */}
+            {coordinates.map((point, index) => {
+              const isHovered = hoveredIndex === index;
+              const isPeak = point.value === peakPoint.value && point.value > 0;
+
+              return (
+                <g key={point.dateKey || point.label} className="cursor-pointer">
+                  {/* Floating Value Pill Badge */}
+                  <g transform={`translate(${point.x}, ${point.y - 18})`}>
+                    <rect
+                      x="-14"
+                      y="-10"
+                      width="28"
+                      height="18"
+                      rx="6"
+                      fill="#ffffff"
+                      stroke={isPeak ? "#fbbf24" : isHovered ? "#f43f5e" : "#e2e8f0"}
+                      strokeWidth={isPeak || isHovered ? "1.5" : "1"}
+                      className="shadow-2xs"
+                    />
+                    <text
+                      x="0"
+                      y="3"
+                      textAnchor="middle"
+                      className={cn(
+                        "text-[11px] font-black tabular-nums select-none",
+                        isPeak ? "fill-amber-700" : isHovered ? "fill-red-700" : "fill-slate-900",
+                      )}
+                    >
+                      {point.value}
+                    </text>
+                  </g>
+
+                  {/* Peak Pulse Halo */}
+                  {isPeak && !isHovered && (
+                    <circle
+                      cx={point.x}
+                      cy={point.y}
+                      r="12"
+                      fill="#f59e0b"
+                      fillOpacity="0.22"
+                      className="animate-pulse"
+                    />
+                  )}
+
+                  {/* Hover Pulse Halo */}
+                  {isHovered && (
+                    <circle
+                      cx={point.x}
+                      cy={point.y}
+                      r="14"
+                      fill="#f43f5e"
+                      fillOpacity="0.25"
+                      className="animate-pulse"
+                    />
+                  )}
+
+                  {/* Circular Node */}
+                  <circle
+                    cx={point.x}
+                    cy={point.y}
+                    r={isHovered ? "7" : "5"}
+                    fill={isPeak ? "#f59e0b" : "#e11d48"}
+                    stroke="#ffffff"
+                    strokeWidth={isHovered ? "2.5" : "2"}
+                    className="transition-all duration-200"
+                  />
+
+                  {/* X-Axis Day & Date Labels (Two-Tier) */}
+                  <text
+                    x={point.x}
+                    y={height - paddingBottom + 18}
+                    textAnchor="middle"
+                    className={cn(
+                      "text-[11px] select-none transition-colors duration-200",
+                      isHovered ? "fill-red-700 font-extrabold" : "fill-slate-700 font-bold",
+                    )}
+                  >
+                    {point.dayName}
+                  </text>
+                  <text
+                    x={point.x}
+                    y={height - paddingBottom + 32}
+                    textAnchor="middle"
+                    className={cn(
+                      "text-[10px] select-none transition-colors duration-200",
+                      isHovered ? "fill-red-700 font-bold" : "fill-slate-400 font-medium",
+                    )}
+                  >
+                    {point.label}
+                  </text>
+                </g>
+              );
+            })}
+          </g>
+        )}
       </svg>
 
       {/* Empty State Notification */}
