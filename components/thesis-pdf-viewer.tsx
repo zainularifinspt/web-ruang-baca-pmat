@@ -71,26 +71,13 @@ export function ThesisPdfViewer({ pdfUrl, studentName }: ThesisPdfViewerProps) {
               Lihat PDF
             </Button>
           </DialogTrigger>
-          <DialogContent className="left-0 top-0 h-dvh max-h-dvh w-screen max-w-none translate-x-0 translate-y-0 grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden rounded-none border-0 p-0">
-            <DialogHeader className="px-5 py-4 pr-12 sm:px-6">
-              <DialogTitle>File Skripsi</DialogTitle>
-              <DialogDescription>{studentName || "Nama mahasiswa belum tercatat"}</DialogDescription>
-            </DialogHeader>
-            <div
-              className="min-h-0 select-none overflow-hidden border-t bg-slate-100"
-              onKeyDown={(event) => {
-                if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "c") {
-                  event.preventDefault();
-                }
-              }}
-              onContextMenu={(event) => event.preventDefault()}
-              onCopy={(event) => event.preventDefault()}
-              onCut={(event) => event.preventDefault()}
-              onSelect={(event) => event.preventDefault()}
-              onSelectCapture={(event) => event.preventDefault()}
-            >
-              <PdfCanvasReader active={open} pdfUrl={resolvedReaderPdfUrl} title={readerTitle} />
-            </div>
+          <DialogContent className="left-0 top-0 h-dvh max-h-dvh w-screen max-w-none translate-x-0 translate-y-0 flex flex-col gap-0 overflow-hidden rounded-none border-0 p-0 bg-slate-100">
+            <PdfCanvasReader
+              active={open}
+              pdfUrl={resolvedReaderPdfUrl}
+              title={readerTitle}
+              studentName={studentName}
+            />
           </DialogContent>
         </Dialog>
       </div>
@@ -106,10 +93,12 @@ function PdfCanvasReader({
   active,
   pdfUrl,
   title,
+  studentName,
 }: {
   active: boolean;
   pdfUrl: string;
   title: string;
+  studentName?: string;
 }) {
   const [document, setDocument] = useState<PDFDocumentProxy | null>(null);
   const [hiddenPageNumbers, setHiddenPageNumbers] = useState<Set<number>>(() => new Set());
@@ -436,83 +425,60 @@ function PdfCanvasReader({
     };
   }, [document, updateZoom]);
 
-  if (isLoading) {
-    return (
-      <div className="flex h-full items-center justify-center px-6 text-center text-sm font-medium text-slate-500">
-        <div className="w-full max-w-sm space-y-3">
-          <div>
-            <p>{loadingMessage}</p>
-            <p className="mt-1 text-xs font-normal text-slate-400">
-              PDF dirender sebagai gambar dan Bab IV disembunyikan dari pembaca.
-            </p>
-          </div>
-          <div className="h-2 overflow-hidden rounded-full bg-white">
-            <div
-              className="h-full rounded-full bg-red-600 transition-all"
-              style={{ width: `${loadingProgress}%` }}
-            />
-          </div>
-          <p className="text-xs font-semibold text-slate-500">
-            {loadingProgress ? `${loadingProgress}%` : "Menyiapkan viewer..."}
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex h-full items-center justify-center px-6 text-center text-sm leading-6 text-rose-700">
-        {error}
-      </div>
-    );
-  }
-
-  if (!document) {
-    return null;
-  }
-
-  const visiblePageNumbers = Array.from({ length: document.numPages }, (_, index) => index + 1)
-    .filter((pageNumber) => !hiddenPageNumbers.has(pageNumber));
+  const visiblePageNumbers = document
+    ? Array.from({ length: document.numPages }, (_, index) => index + 1)
+        .filter((pageNumber) => !hiddenPageNumbers.has(pageNumber))
+    : [];
 
   return (
-    <div className="relative h-full overflow-hidden bg-slate-200">
-      <div
-        ref={containerRef}
-        aria-label={title}
-        className="relative pdf-reader-scroll h-full overflow-auto bg-slate-200 px-4 select-none"
-        style={{
-          overflowAnchor: 'none',
-          paddingTop: `calc(1.5rem * ${zoom})`,
-          paddingBottom: `calc(1.5rem * ${zoom})`,
-        } as React.CSSProperties}
-        role="document"
-        tabIndex={0}
-        onKeyDown={(event) => {
-          if (!event.ctrlKey && !event.metaKey) return;
+    <div
+      className="flex h-full w-full flex-col overflow-hidden select-none bg-slate-200"
+      onKeyDown={(event) => {
+        if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "c") {
+          event.preventDefault();
+        }
+      }}
+      onContextMenu={(event) => event.preventDefault()}
+      onCopy={(event) => event.preventDefault()}
+      onCut={(event) => event.preventDefault()}
+      onSelect={(event) => event.preventDefault()}
+      onSelectCapture={(event) => event.preventDefault()}
+    >
+      {/* Top Unified Header: Title, Student Name, Controls, and Close Button Clearance */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-2.5 sm:px-6 sm:py-3 pr-14 select-none shrink-0 z-20 shadow-2xs">
+        <DialogHeader className="min-w-0 flex-1 space-y-0.5">
+          <DialogTitle className="text-sm sm:text-base font-bold text-slate-900 leading-tight">
+            File Skripsi
+          </DialogTitle>
+          <DialogDescription className="text-xs text-slate-500 truncate max-w-[180px] sm:max-w-xs md:max-w-md font-normal">
+            {studentName || "Nama mahasiswa belum tercatat"}
+          </DialogDescription>
+        </DialogHeader>
 
-          const key = event.key.toLowerCase();
-          if (key === "+" || key === "=") {
-            event.preventDefault();
-            zoomIn();
-          } else if (key === "-" || key === "_") {
-            event.preventDefault();
-            zoomOut();
-          } else if (key === "0") {
-            event.preventDefault();
-            resetZoom();
-          }
-        }}
-      >
-        <div className="sticky top-0 z-10 mx-auto mb-3 sm:mb-4 flex max-w-full flex-wrap items-center justify-center gap-1.5 sm:gap-2 rounded-2xl border border-slate-200 bg-white/95 p-1.5 sm:p-2 shadow-sm">
-          <div className="flex items-center gap-1.5 border-r border-slate-200 pr-2 sm:pr-3 mr-0.5 sm:mr-1">
-            <input
-              type="text"
-              className="h-7 w-10 sm:h-8 sm:w-12 rounded-lg border border-slate-200 text-center text-xs font-semibold text-slate-700 outline-none transition-colors focus:border-red-500 focus:ring-1 focus:ring-red-500"
-              value={inputPage}
-              onChange={(e) => setInputPage(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
+        {/* Buttons: Page, Zoom, Rotate - Dipindahkan ke atas menyatu di header */}
+        {document ? (
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            {/* Page Navigation */}
+            <div className="flex items-center gap-1 rounded-xl border border-slate-200 bg-slate-50/90 px-2 py-0.5 sm:py-1 shadow-2xs">
+              <input
+                type="text"
+                className="h-6 w-8 sm:h-7 sm:w-10 rounded-lg border border-slate-200 bg-white text-center text-xs font-bold text-slate-800 outline-none transition-colors focus:border-red-500 focus:ring-1 focus:ring-red-500 shadow-2xs"
+                value={inputPage}
+                onChange={(e) => setInputPage(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    const newPage = parseInt(inputPage, 10);
+                    if (newPage >= 1 && newPage <= document.numPages && !hiddenPageNumbers.has(newPage)) {
+                      const element = window.document.getElementById(`pdf-page-${newPage}`);
+                      if (element) {
+                        element.scrollIntoView({ behavior: "smooth", block: "start" });
+                      }
+                    } else {
+                      setInputPage(String(currentPage));
+                    }
+                  }
+                }}
+                onBlur={() => {
                   const newPage = parseInt(inputPage, 10);
                   if (newPage >= 1 && newPage <= document.numPages && !hiddenPageNumbers.has(newPage)) {
                     const element = window.document.getElementById(`pdf-page-${newPage}`);
@@ -522,84 +488,142 @@ function PdfCanvasReader({
                   } else {
                     setInputPage(String(currentPage));
                   }
-                }
-              }}
-              onBlur={() => {
-                const newPage = parseInt(inputPage, 10);
-                if (newPage >= 1 && newPage <= document.numPages && !hiddenPageNumbers.has(newPage)) {
-                  const element = window.document.getElementById(`pdf-page-${newPage}`);
-                  if (element) {
-                    element.scrollIntoView({ behavior: "smooth", block: "start" });
-                  }
-                } else {
-                  setInputPage(String(currentPage));
-                }
-              }}
-            />
-            <span className="text-[11px] sm:text-xs font-medium text-slate-500">
-              / {document.numPages}
-            </span>
+                }}
+                aria-label="Nomor halaman"
+              />
+              <span className="text-[11px] sm:text-xs font-semibold text-slate-500 tabular-nums">
+                / {document.numPages}
+              </span>
+            </div>
+
+            <div className="hidden sm:block h-4 w-px bg-slate-200" />
+
+            {/* Zoom Controls */}
+            <div className="flex items-center gap-0.5 sm:gap-1">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="size-7 sm:size-8 rounded-xl p-0 hover:bg-slate-100 hover:text-slate-900 border-slate-200 shadow-2xs cursor-pointer"
+                onClick={zoomOut}
+                disabled={zoom <= MIN_PDF_ZOOM}
+                aria-label="Zoom out"
+                title="Zoom out (Ctrl/Cmd + -)"
+              >
+                <ZoomOut className="size-3.5" />
+              </Button>
+              <span className="min-w-9 sm:min-w-11 text-center text-[11px] sm:text-xs font-bold text-slate-700 tabular-nums">
+                {zoomPercent}%
+              </span>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="size-7 sm:size-8 rounded-xl p-0 hover:bg-slate-100 hover:text-slate-900 border-slate-200 shadow-2xs cursor-pointer"
+                onClick={zoomIn}
+                disabled={zoom >= MAX_PDF_ZOOM}
+                aria-label="Zoom in"
+                title="Zoom in (Ctrl/Cmd + +)"
+              >
+                <ZoomIn className="size-3.5" />
+              </Button>
+            </div>
+
+            <div className="hidden sm:block h-4 w-px bg-slate-200" />
+
+            {/* Rotate Button */}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-7 sm:h-8 px-2 sm:px-2.5 text-xs font-semibold rounded-xl gap-1 hover:bg-slate-100 hover:text-slate-900 border-slate-200 shadow-2xs cursor-pointer"
+              onClick={() => setRotation((currentRotation) => (currentRotation + 180) % 360)}
+              aria-label="Putar halaman"
+              title="Putar halaman"
+            >
+              <RotateCw className="size-3.5 text-slate-600" />
+              <span className="hidden sm:inline">Putar</span>
+            </Button>
           </div>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="size-7 sm:size-9 rounded-xl p-0"
-            onClick={zoomOut}
-            disabled={zoom <= MIN_PDF_ZOOM}
-            aria-label="Zoom out"
-            title="Zoom out (Ctrl/Cmd + -)"
-          >
-            <ZoomOut className="size-3.5 sm:size-4" />
-          </Button>
-          <span className="min-w-10 sm:min-w-14 text-center text-[11px] sm:text-xs font-semibold text-slate-600">
-            {zoomPercent}%
-          </span>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="size-7 sm:size-9 rounded-xl p-0"
-            onClick={zoomIn}
-            disabled={zoom >= MAX_PDF_ZOOM}
-            aria-label="Zoom in"
-            title="Zoom in (Ctrl/Cmd + + atau Ctrl/Cmd + scroll)"
-          >
-            <ZoomIn className="size-3.5 sm:size-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="h-7 sm:h-9 px-2 sm:px-3 text-xs rounded-xl gap-1"
-            onClick={() => setRotation((currentRotation) => (currentRotation + 180) % 360)}
-            aria-label="Putar halaman"
-            title="Putar halaman"
-          >
-            <RotateCw className="size-3.5 sm:size-4" />
-            <span className="hidden sm:inline">Putar</span>
-          </Button>
-        </div>
-        {hiddenPageNumbers.size ? (
-          <p className="mx-auto mb-4 w-fit rounded-full bg-white/90 px-3 py-1 text-xs font-medium text-slate-500 shadow-sm">
-            Bab IV disembunyikan dari viewer
-          </p>
         ) : null}
-        <div 
-          className="mx-auto flex w-max min-w-full flex-col items-center"
-          style={{ gap: `calc(1.5rem * ${zoom})` }}
-        >
-          {visiblePageNumbers.map((pageNumber) => (
-            <PdfCanvasPage
-              key={`${pdfUrl}-${pageNumber}`}
-              document={document}
-              pageNumber={pageNumber}
-              pageBaseWidth={pageBaseWidth}
-              rotation={rotation}
-              zoom={zoom}
-            />
-          ))}
-        </div>
+      </div>
+
+      {/* Main Content Area: Loading, Error, or Scrollable Pages */}
+      <div className="relative min-h-0 flex-1 overflow-hidden bg-slate-200">
+        {isLoading ? (
+          <div className="flex h-full items-center justify-center px-6 text-center text-sm font-medium text-slate-500">
+            <div className="w-full max-w-sm space-y-3">
+              <div>
+                <p>{loadingMessage}</p>
+                <p className="mt-1 text-xs font-normal text-slate-400">
+                  PDF dirender sebagai gambar dan Bab IV disembunyikan dari pembaca.
+                </p>
+              </div>
+              <div className="h-2 overflow-hidden rounded-full bg-white">
+                <div
+                  className="h-full rounded-full bg-red-600 transition-all"
+                  style={{ width: `${loadingProgress}%` }}
+                />
+              </div>
+              <p className="text-xs font-semibold text-slate-500">
+                {loadingProgress ? `${loadingProgress}%` : "Menyiapkan viewer..."}
+              </p>
+            </div>
+          </div>
+        ) : error ? (
+          <div className="flex h-full items-center justify-center px-6 text-center text-sm leading-6 text-rose-700">
+            {error}
+          </div>
+        ) : document ? (
+          <div
+            ref={containerRef}
+            aria-label={title}
+            className="relative pdf-reader-scroll h-full overflow-auto bg-slate-200 px-4 select-none"
+            style={{
+              overflowAnchor: 'none',
+              paddingTop: `calc(1.5rem * ${zoom})`,
+              paddingBottom: `calc(1.5rem * ${zoom})`,
+            } as React.CSSProperties}
+            role="document"
+            tabIndex={0}
+            onKeyDown={(event) => {
+              if (!event.ctrlKey && !event.metaKey) return;
+
+              const key = event.key.toLowerCase();
+              if (key === "+" || key === "=") {
+                event.preventDefault();
+                zoomIn();
+              } else if (key === "-" || key === "_") {
+                event.preventDefault();
+                zoomOut();
+              } else if (key === "0") {
+                event.preventDefault();
+                resetZoom();
+              }
+            }}
+          >
+            {hiddenPageNumbers.size ? (
+              <p className="mx-auto mb-4 w-fit rounded-full bg-white/90 px-3 py-1 text-xs font-medium text-slate-500 shadow-sm">
+                Bab IV disembunyikan dari viewer
+              </p>
+            ) : null}
+            <div 
+              className="mx-auto flex w-max min-w-full flex-col items-center"
+              style={{ gap: `calc(1.5rem * ${zoom})` }}
+            >
+              {visiblePageNumbers.map((pageNumber) => (
+                <PdfCanvasPage
+                  key={`${pdfUrl}-${pageNumber}`}
+                  document={document}
+                  pageNumber={pageNumber}
+                  pageBaseWidth={pageBaseWidth}
+                  rotation={rotation}
+                  zoom={zoom}
+                />
+              ))}
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   );
