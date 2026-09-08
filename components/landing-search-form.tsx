@@ -25,22 +25,7 @@ export function LandingSearchForm() {
     }
   }
 
-  function handleTagClick(tag: string) {
-    if (category === "scopus") {
-      router.push(`/scopus?q=${encodeURIComponent(tag)}`);
-    } else {
-      router.push(`/katalog?q=${encodeURIComponent(tag)}`);
-    }
-  }
 
-  const quickPrompts = [
-    "Kalkulus",
-    "Etnomatematika",
-    "Statistika",
-    "RME",
-    "HOTS",
-    "Skripsi 2024",
-  ];
 
   return (
     <div className="mx-auto w-full max-w-2xl sm:max-w-3xl">
@@ -137,24 +122,6 @@ export function LandingSearchForm() {
           </button>
         </div>
       </form>
-
-      {/* Prompts / Popular Topics (Below the card) */}
-      <div className="mt-4.5 flex flex-wrap items-center justify-center gap-2 text-xs">
-        <span className="text-rose-200 font-semibold mr-1 text-xs flex items-center gap-1.5 drop-shadow-xs">
-          <Sparkles className="size-3.5 text-amber-300" />
-          <span>Topik Populer:</span>
-        </span>
-        {quickPrompts.map((tag) => (
-          <button
-            key={tag}
-            type="button"
-            onClick={() => handleTagClick(tag)}
-            className="rounded-full bg-white/15 hover:bg-white/25 border border-white/25 px-3.5 py-1 text-xs font-semibold text-white shadow-xs backdrop-blur-md transition-all hover:scale-105 active:scale-95 cursor-pointer"
-          >
-            {tag}
-          </button>
-        ))}
-      </div>
 
       {/* Subtitle Below Card (Pitch style) */}
       <p className="mx-auto mt-6 max-w-2xl text-sm sm:text-base leading-relaxed text-rose-100/95 font-medium text-center drop-shadow-sm">

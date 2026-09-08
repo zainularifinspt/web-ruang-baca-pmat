@@ -140,27 +140,20 @@ function JournalCard({ journal }: { journal: JournalInfo }) {
 
         {/* Action Button */}
         <div className="relative z-10 mt-auto pt-2">
-          <Button
-            asChild
-            className={`w-full rounded-full py-3 text-xs sm:text-sm font-bold text-white shadow-md transition-all duration-300 border-0 cursor-pointer ${
-              isEduMat
-                ? "bg-gradient-to-r from-red-700 via-red-800 to-rose-900 hover:from-red-800 hover:to-rose-950 shadow-red-950/20 hover:shadow-red-950/35"
-                : "bg-gradient-to-r from-rose-700 via-red-800 to-red-950 hover:from-rose-800 hover:to-black shadow-red-950/20 hover:shadow-red-950/35"
-            }`}
+          <a
+            href={journal.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => {
+              track("visit_journal", { journal: journal.title, id: journal.id });
+            }}
+            style={{ color: "#ffffff" }}
+            className="flex w-full items-center justify-center rounded-full bg-gradient-to-r from-red-600 via-rose-600 to-red-700 hover:from-red-500 hover:to-rose-500 py-3.5 text-xs sm:text-sm font-extrabold !text-white shadow-md shadow-red-600/30 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
           >
-            <a
-              href={journal.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => {
-                track("visit_journal", { journal: journal.title, id: journal.id });
-              }}
-            >
-              <Library className="size-4 mr-2" />
-              Kunjungi OJS Jurnal
-              <ExternalLink className="size-3.5 ml-2 opacity-85" />
-            </a>
-          </Button>
+            <Library className="size-4 mr-2 !text-white shrink-0" />
+            <span className="!text-white font-extrabold tracking-wide">Kunjungi OJS Jurnal</span>
+            <ExternalLink className="size-3.5 ml-2 !text-white/90 shrink-0 stroke-[2.5]" />
+          </a>
         </div>
       </div>
     </ScaleIn>

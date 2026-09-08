@@ -102,17 +102,18 @@ export function PublicNav({
           <NavLink href="/presensi" icon={ScanLine} label="Presensi" isHomeHero={isHomeHero} />
           <NavLink href="/tentang" icon={Info} label="Tentang" isHomeHero={isHomeHero} />
           <div className={cn("mx-1 h-5 w-px", isHomeHero ? "bg-white/20" : "bg-slate-200")} />
-          <Button asChild size="sm" className={cn(
-            "rounded-full px-4.5 py-2 text-xs font-bold transition-all duration-200 border-0 cursor-pointer",
-            isHomeHero
-              ? "bg-white text-slate-950 hover:bg-white/90 shadow-md hover:scale-105 active:scale-95"
-              : "bg-red-800 text-white hover:bg-red-900 active:scale-[0.99]"
-          )}>
-            <Link href="/login?redirectTo=/dashboard" className="flex items-center gap-1.5">
-              <span>Admin</span>
-              <ArrowRight className="size-3.5" />
-            </Link>
-          </Button>
+          <Link
+            href="/login?redirectTo=/dashboard"
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-full px-4.5 py-2 text-xs font-extrabold transition-all duration-200 shadow-sm hover:scale-105 active:scale-95 cursor-pointer",
+              isHomeHero
+                ? "bg-white text-slate-950 hover:bg-slate-100 shadow-md ring-1 ring-white/60"
+                : "bg-red-800 text-white hover:bg-red-900 shadow-red-950/25"
+            )}
+          >
+            <span className={isHomeHero ? "!text-slate-950 font-extrabold" : "!text-white font-extrabold"}>Admin</span>
+            <ArrowRight className={cn("size-3.5 stroke-[2.5]", isHomeHero ? "!text-slate-950" : "!text-white")} />
+          </Link>
         </nav>
         <MobileNav isHomeHero={isHomeHero} />
       </div>

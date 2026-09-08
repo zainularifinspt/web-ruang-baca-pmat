@@ -42,7 +42,7 @@ export default async function HomePage() {
       <PublicNav initialSearchItems={searchItems} />
       <main className="relative overflow-hidden">
         {/* Pitch-Style Glowing Red Hero */}
-        <section className="relative overflow-hidden bg-[#0c0103] pitch-red-hero text-white pb-32 pt-10 sm:pb-40 sm:pt-16 lg:pb-48 lg:pt-20">
+        <section className="relative overflow-hidden bg-[#0b0103] pitch-red-hero text-white pb-36 pt-10 sm:pb-44 sm:pt-16 lg:pb-52 lg:pt-20">
           <PitchHeroBackdrop />
 
           <FadeInStagger>
@@ -69,7 +69,7 @@ export default async function HomePage() {
         </section>
 
         {/* Quick Navigation Apple Bento Cards */}
-        <section className="relative mx-auto -mt-16 sm:-mt-20 max-w-6xl px-4 pb-8 sm:px-6 sm:pb-12 z-20">
+        <section className="relative mx-auto -mt-20 sm:-mt-24 max-w-6xl px-4 pb-8 sm:px-6 sm:pb-12 z-20">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {/* Katalog Buku & E-Book Button */}
             <Link
@@ -239,8 +239,8 @@ function PitchHeroBackdrop() {
       <div className="absolute -top-20 -right-20 h-96 w-96 rounded-full bg-rose-500/25 blur-3xl" />
       <div className="absolute -bottom-20 -left-20 h-96 w-96 rounded-full bg-red-600/30 blur-3xl" />
 
-      {/* Smooth Bottom Gradient Fade Transition to Light Slate Body */}
-      <div className="absolute inset-x-0 bottom-0 h-48 sm:h-72 bg-gradient-to-b from-transparent via-[#2a040b]/40 via-rose-950/20 via-rose-100/30 to-[#f8fafc]" />
+      {/* Ultra-Smooth Scrim Gradient Transition to Light Body */}
+      <div className="absolute inset-x-0 bottom-0 h-64 sm:h-80 lg:h-96 hero-scrim-fade pointer-events-none" />
     </div>
   );
 }
