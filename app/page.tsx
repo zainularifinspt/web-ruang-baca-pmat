@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { JournalShowcase } from "@/components/journal-showcase";
 import { LandingSearchForm } from "@/components/landing-search-form";
+import { MathGeometricBackdrop } from "@/components/math-geometric-backdrop";
 import { PublicNav } from "@/components/public-nav";
 import { RealtimeVisitorChart } from "@/components/realtime-visitor-chart";
 import { WebsiteVisitorStat } from "@/components/website-visitor-stat";
@@ -238,6 +239,9 @@ function PitchHeroBackdrop() {
       <div className="absolute -top-32 left-1/2 -translate-x-1/2 h-[600px] w-[1000px] rounded-full bg-rose-600/25 blur-3xl" />
       <div className="absolute -top-20 -right-20 h-96 w-96 rounded-full bg-rose-500/25 blur-3xl" />
       <div className="absolute -bottom-20 -left-20 h-96 w-96 rounded-full bg-red-600/30 blur-3xl" />
+
+      {/* 3D Mathematical Geometric Shapes & Floating Glyphs */}
+      <MathGeometricBackdrop />
 
       {/* Ultra-Smooth Scrim Gradient Transition to Light Body */}
       <div className="absolute inset-x-0 bottom-0 h-64 sm:h-80 lg:h-96 hero-scrim-fade pointer-events-none" />
