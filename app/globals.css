@@ -185,6 +185,28 @@ a {
   );
 }
 
+/* User-requested: background merah semakin ke bawah semakin transparan (bukan ke putih) */
+.hero-fade-to-transparent {
+  mask-image: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 1) 35%,
+    rgba(0, 0, 0, 0.88) 54%,
+    rgba(0, 0, 0, 0.58) 72%,
+    rgba(0, 0, 0, 0.25) 88%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 1) 35%,
+    rgba(0, 0, 0, 0.88) 54%,
+    rgba(0, 0, 0, 0.58) 72%,
+    rgba(0, 0, 0, 0.25) 88%,
+    rgba(0, 0, 0, 0) 100%
+  );
+}
+
 /* User-requested elegant keynote title gradient */
 /* impeccable-disable gradient-text */
 .hero-title-gradient {

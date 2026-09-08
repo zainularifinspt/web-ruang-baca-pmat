@@ -166,11 +166,14 @@ export default function AttendancePage() {
       <PublicNav />
 
       {/* Full-width Edge-to-Edge Hero Banner */}
-      <section className="relative w-full overflow-hidden bg-[#0c0103] apple-mesh-hero pt-10 pb-20 sm:pt-14 sm:pb-28 text-white shadow-xl shadow-red-950/20">
-        {/* Ambient glow blooms */}
-        <div className="pointer-events-none absolute -right-20 -top-20 size-96 rounded-full bg-rose-500/20 blur-3xl" />
-        <div className="pointer-events-none absolute -left-20 -bottom-20 size-96 rounded-full bg-amber-500/15 blur-3xl" />
-        <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-[600px] rounded-full bg-red-600/15 blur-3xl" />
+      <section className="relative w-full overflow-hidden pt-10 pb-20 sm:pt-14 sm:pb-28 text-white">
+        {/* Background layer that fades smoothly to full transparency at the bottom */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden hero-fade-to-transparent apple-mesh-hero bg-[#0c0103]">
+          {/* Ambient glow blooms */}
+          <div className="absolute -right-20 -top-20 size-96 rounded-full bg-rose-500/25 blur-3xl" />
+          <div className="absolute -left-20 -bottom-20 size-96 rounded-full bg-amber-500/20 blur-3xl" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-[650px] rounded-full bg-red-600/20 blur-3xl" />
+        </div>
 
         <div className="relative z-10 mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-2.5 max-w-2xl">
@@ -194,9 +197,6 @@ export default function AttendancePage() {
             </Link>
           </Button>
         </div>
-
-        {/* Smooth Bottom Scrim Fade Transition */}
-        <div className="absolute inset-x-0 bottom-0 h-24 sm:h-32 hero-scrim-fade pointer-events-none" />
       </section>
 
       {/* Main Form Content */}

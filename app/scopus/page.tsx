@@ -28,13 +28,16 @@ export default async function ScopusPage() {
     <div className="min-h-screen apple-mesh-body text-slate-900 antialiased">
       <PublicNav initialSearchItems={searchItems} />
 
-      <main className="relative overflow-hidden bg-gradient-to-b from-transparent via-white/80 to-white">
-        {/* Hero Section with Apple/Gemini mesh atmosphere and smooth fade to white */}
-        <section className="relative overflow-hidden apple-mesh-hero pt-12 pb-20 sm:pt-16 sm:pb-28 text-center text-white shadow-xl shadow-red-950/20">
-          {/* Ambient light glow */}
-          <div className="pointer-events-none absolute -left-20 -top-20 size-80 rounded-full bg-rose-500/20 blur-3xl" />
-          <div className="pointer-events-none absolute -right-20 bottom-0 size-80 rounded-full bg-amber-500/15 blur-3xl" />
-          <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-[600px] rounded-full bg-red-600/15 blur-3xl" />
+      <main className="relative overflow-hidden">
+        {/* Hero Section with Apple/Gemini mesh atmosphere and smooth fade to transparent */}
+        <section className="relative overflow-hidden pt-12 pb-20 sm:pt-16 sm:pb-28 text-center text-white">
+          {/* Background layer that fades smoothly to full transparency at the bottom */}
+          <div className="pointer-events-none absolute inset-0 overflow-hidden hero-fade-to-transparent apple-mesh-hero bg-[#0c0103]">
+            {/* Ambient light glow */}
+            <div className="absolute -left-20 -top-20 size-96 rounded-full bg-rose-500/25 blur-3xl" />
+            <div className="absolute -right-20 bottom-0 size-96 rounded-full bg-amber-500/20 blur-3xl" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-[650px] rounded-full bg-red-600/20 blur-3xl" />
+          </div>
 
           <FadeInStagger className="relative z-10 mx-auto max-w-5xl px-4 sm:px-6">
             {/* Top Badges */}
@@ -91,9 +94,6 @@ export default async function ScopusPage() {
               </span>
             </FadeIn>
           </FadeInStagger>
-
-          {/* Smooth Bottom Scrim Fade to White */}
-          <div className="absolute inset-x-0 bottom-0 h-28 sm:h-40 hero-scrim-fade-white pointer-events-none" />
         </section>
 
         {/* Search Browser Component */}
