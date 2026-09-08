@@ -87,10 +87,10 @@ export default async function ScopusPage() {
                 🌐 Database Terindeks Elsevier
               </span>
               <span className="apple-glass-pill inline-flex items-center rounded-full px-3.5 py-1.5 font-semibold text-white shadow-xs border border-white/20 bg-white/10 drop-shadow-xs">
-                📊 Data Sitasi &amp; Quartile
+                📊 Data Sitasi
               </span>
               <span className="apple-glass-pill inline-flex items-center rounded-full px-3.5 py-1.5 font-semibold text-white shadow-xs border border-white/20 bg-white/10 drop-shadow-xs">
-                🔓 Tautan DOI &amp; Open Access
+                🔗 Tautan Halaman Artikel
               </span>
             </FadeIn>
           </FadeInStagger>
