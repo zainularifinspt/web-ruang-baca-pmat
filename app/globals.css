@@ -171,6 +171,15 @@ a {
   );
 }
 
+/* User-requested elegant keynote title gradient */
+/* impeccable-disable gradient-text */
+.hero-title-gradient {
+  background: linear-gradient(180deg, #ffffff 0%, #fff1f2 40%, rgba(254, 205, 211, 0.9) 75%, rgba(251, 113, 133, 0.75) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
 /* Apple & Gemini Aesthetic System */
 .apple-mesh-hero {
   background-color: #0c0103;
@@ -190,26 +199,50 @@ a {
 }
 
 .apple-mesh-body {
-  background: 
-    radial-gradient(circle at 10% 15%, rgba(244, 63, 94, 0.035) 0%, transparent 40%),
-    radial-gradient(circle at 90% 55%, rgba(225, 29, 72, 0.03) 0%, transparent 50%),
-    radial-gradient(circle at 50% 90%, rgba(245, 158, 11, 0.02) 0%, transparent 45%),
-    #f8fafc;
+  background-color: #f8fafc;
+  background-image: 
+    /* Mathematical Micro-Dot Grid (Notebook & Precision Mesh) */
+    radial-gradient(circle, rgba(225, 29, 72, 0.085) 1.2px, transparent 1.2px),
+    /* Subtle Coordinate Grid Lines */
+    linear-gradient(to right, rgba(225, 29, 72, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(225, 29, 72, 0.02) 1px, transparent 1px),
+    /* Ambient Mathematical Light Blooms */
+    radial-gradient(circle at 12% 16%, rgba(244, 63, 94, 0.04) 0%, transparent 45%),
+    radial-gradient(circle at 88% 50%, rgba(225, 29, 72, 0.035) 0%, transparent 50%),
+    radial-gradient(circle at 48% 90%, rgba(245, 158, 11, 0.025) 0%, transparent 45%);
+  background-size: 
+    28px 28px,
+    112px 112px,
+    112px 112px,
+    100% 100%,
+    100% 100%,
+    100% 100%;
 }
 
-.apple-bento-card {
-  background: linear-gradient(180deg, #ffffff 0%, #fcfbfb 55%, #f9f2f2 100%);
-  border: 1px solid rgba(226, 232, 240, 0.88);
+.apple-bento-card,
+.glassmorphism-card {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.85);
   border-radius: 1.5rem;
-  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.04), 0 1px 3px 0 rgba(0, 0, 0, 0.02);
+  box-shadow: 
+    0 20px 40px -15px rgba(15, 23, 42, 0.05),
+    0 0 0 1px rgba(226, 232, 240, 0.4),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.95);
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
 }
 
-.apple-bento-card:hover {
-  transform: translateY(-3px);
-  border-color: rgba(225, 29, 72, 0.38);
-  box-shadow: 0 20px 35px -10px rgba(185, 28, 28, 0.12), 0 0 0 1px rgba(244, 63, 94, 0.1);
+.apple-bento-card:hover,
+.glassmorphism-card:hover {
+  transform: translateY(-4px);
+  background: rgba(255, 255, 255, 0.88);
+  border-color: rgba(244, 63, 94, 0.35);
+  box-shadow: 
+    0 25px 50px -12px rgba(225, 29, 72, 0.12),
+    0 0 0 1px rgba(244, 63, 94, 0.15),
+    inset 0 1px 2px 0 rgba(255, 255, 255, 1);
 }
 
 .apple-glass-pill {
@@ -243,10 +276,12 @@ a {
 }
 
 .glass-panel {
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border-radius: 1rem;
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 8px 30px -4px rgba(15, 23, 42, 0.05), inset 0 1px 1px rgba(255, 255, 255, 0.9);
 }
 
 .glass-panel-hover {
@@ -255,9 +290,9 @@ a {
 
 .glass-panel-hover:hover {
   transform: translateY(-2px);
-  background: #ffffff;
-  border-color: rgba(203, 213, 225, 1);
-  box-shadow: 0 12px 24px -4px rgba(15, 23, 42, 0.06);
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(244, 63, 94, 0.3);
+  box-shadow: 0 16px 32px -4px rgba(225, 29, 72, 0.08);
 }
 
 .nav-search-dropdown {

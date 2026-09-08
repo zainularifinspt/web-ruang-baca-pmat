@@ -64,7 +64,7 @@ function JournalCard({ journal }: { journal: JournalInfo }) {
       whileHover={{ y: -4, transition: { type: "spring", stiffness: 350, damping: 25 } }}
       className="h-full"
     >
-      <div className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-slate-200/85 bg-gradient-to-b from-white via-[#fcfbfb] to-[#fbf4f4] p-6 sm:p-8 shadow-sm transition-all duration-300 hover:border-red-300/80 hover:shadow-xl hover:shadow-red-950/8">
+      <div className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-white/85 bg-white/72 backdrop-blur-xl p-6 sm:p-8 shadow-xl shadow-slate-900/5 transition-all duration-300 hover:border-red-300/60 hover:bg-white/88 hover:shadow-2xl hover:shadow-red-950/10">
         {/* Subtle Apple ambient radial glow in top right */}
         <div 
           className="pointer-events-none absolute -right-16 -top-16 size-56 rounded-full bg-gradient-to-br from-red-500/10 via-rose-500/5 to-transparent blur-3xl transition-opacity duration-300 group-hover:opacity-100 opacity-60" 
@@ -77,7 +77,7 @@ function JournalCard({ journal }: { journal: JournalInfo }) {
             <Award className="size-3.5 text-amber-700" />
             {journal.accreditationBadge}
           </span>
-          <span className="rounded-full bg-slate-100/90 border border-slate-200/60 px-2.5 py-0.5 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+          <span className="rounded-full bg-white/70 backdrop-blur-sm border border-slate-200/60 px-2.5 py-0.5 text-[10px] font-bold text-slate-600 uppercase tracking-wider">
             {journal.tag}
           </span>
         </div>
@@ -91,13 +91,13 @@ function JournalCard({ journal }: { journal: JournalInfo }) {
 
         {/* Meta Chips: Frekuensi Terbit & Editor in Chief */}
         <div className="relative z-10 mb-4 flex flex-wrap items-center gap-2">
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-700 border border-slate-200/80 shadow-2xs">
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-white/80 backdrop-blur-sm px-3 py-1 text-xs font-semibold text-slate-700 border border-white/80 shadow-2xs">
             <Calendar className={`size-3.5 ${isEduMat ? "text-red-700" : "text-rose-700"}`} />
             <span>Terbit: <strong className="text-slate-900 font-bold">{journal.frequency}</strong></span>
           </div>
 
           {journal.editorInChief ? (
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1 text-xs font-medium text-slate-700 border border-slate-200/80 shadow-2xs">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/80 backdrop-blur-sm px-3 py-1 text-xs font-medium text-slate-700 border border-white/80 shadow-2xs">
               <span className="text-slate-500">Editor in Chief:</span>
               <strong className="font-bold text-slate-900">{journal.editorInChief}</strong>
             </div>
@@ -105,7 +105,7 @@ function JournalCard({ journal }: { journal: JournalInfo }) {
         </div>
 
         {/* Description Feature Box */}
-        <div className="relative z-10 mb-6 rounded-2xl border border-slate-200/80 bg-white/80 p-4 sm:p-5 shadow-2xs backdrop-blur-xs">
+        <div className="relative z-10 mb-6 rounded-2xl border border-white/80 bg-white/60 p-4 sm:p-5 shadow-2xs backdrop-blur-md">
           <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">
             Profil &amp; Ruang Lingkup
           </p>

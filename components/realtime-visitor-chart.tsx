@@ -121,7 +121,7 @@ export function RealtimeVisitorChart({
           <p className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">Grafik Kunjungan Harian</p>
           <p className="mt-1 text-xs text-slate-500 font-normal">Pencatatan kehadiran digital per hari secara realtime.</p>
         </div>
-        <div className="w-fit rounded-full bg-slate-100/90 border border-slate-200/70 px-3.5 py-1 text-xs font-bold text-slate-700 shadow-2xs">
+        <div className="w-fit rounded-full bg-white/70 backdrop-blur-sm border border-slate-200/60 px-3.5 py-1 text-xs font-bold text-slate-700 shadow-2xs">
           7 hari terakhir
         </div>
       </div>
@@ -224,7 +224,7 @@ function VisitorLine({ points }: { points: ChartPoint[] }) {
       </svg>
       <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:hidden">
         {points.map((point) => (
-          <div key={point.label} className="rounded-2xl border border-slate-200/50 bg-white/45 px-3 py-2 shadow-sm">
+          <div key={point.label} className="rounded-2xl border border-white/70 bg-white/50 backdrop-blur-md px-3 py-2 shadow-2xs">
             <p className="text-[11px] font-bold text-slate-500">{point.label}</p>
             <p className="mt-1 text-lg font-extrabold text-slate-950">{point.value.toLocaleString("id-ID")}</p>
           </div>

@@ -196,7 +196,7 @@ export default function AttendancePage() {
           <SuccessState record={submitted} onReset={resetForm} />
         ) : (
           <div className="mx-auto w-full max-w-5xl">
-            <div className="overflow-hidden rounded-3xl border border-slate-200/85 bg-white shadow-xl shadow-red-950/5">
+            <div className="overflow-hidden rounded-3xl border border-white/85 bg-white/80 backdrop-blur-xl shadow-xl shadow-red-950/8">
               <div>
                 <div className="border-b border-red-900/30 bg-gradient-to-r from-red-800 via-rose-800 to-red-950 px-6 py-6 text-white sm:px-8">
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -354,7 +354,7 @@ function SuccessState({
 }) {
   return (
     <div className="mx-auto max-w-2xl">
-      <Card className="overflow-hidden rounded-3xl border-slate-200 bg-white shadow-xl shadow-red-950/5 ring-1 ring-slate-200/80">
+      <Card className="overflow-hidden rounded-3xl border-white/85 bg-white/80 backdrop-blur-xl shadow-xl shadow-red-950/8 ring-1 ring-white/60">
         <CardContent className="space-y-6 p-6 text-center sm:p-8">
           <div className="mx-auto flex size-20 items-center justify-center rounded-2xl bg-red-50 text-red-800 ring-1 ring-red-200 shadow-xs">
             <CheckCircle2 className="size-10" />

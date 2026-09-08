@@ -8,22 +8,22 @@ export const metadata = {
 
 export default function TentangPage() {
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen apple-mesh-body">
       <PublicNav />
       <main className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
-        <div className="rounded-3xl border border-white/70 bg-white/50 p-8 shadow-sm ring-1 ring-slate-200/50 backdrop-blur-xl sm:p-12">
-          <div className="mx-auto flex size-16 items-center justify-center rounded-2xl bg-gradient-to-br from-red-600 via-yellow-600 to-orange-600 text-white shadow-lg shadow-red-900/20 mb-6">
+        <div className="rounded-3xl border border-white/85 bg-white/75 p-8 shadow-xl shadow-slate-900/5 ring-1 ring-white/60 backdrop-blur-xl sm:p-12">
+          <div className="mx-auto flex size-16 items-center justify-center rounded-2xl bg-gradient-to-br from-red-600 via-rose-600 to-red-800 text-white shadow-lg shadow-red-950/20 mb-6">
             <BookOpen className="size-8" />
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl text-center mb-4">
             Tentang Ruang Baca PMat
           </h1>
-          <p className="text-center text-slate-500 max-w-2xl mx-auto mb-12">
+          <p className="text-center text-slate-500 max-w-2xl mx-auto mb-12 text-sm leading-relaxed">
             Ruang Baca Jurusan Pendidikan Matematika Universitas Lambung Mangkurat merupakan fasilitas referensi akademik yang dirancang untuk membantu mahasiswa dan dosen dalam menemukan literatur.
           </p>
 
           <div className="grid gap-6 sm:grid-cols-2">
-            <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+            <div className="rounded-2xl border border-white/80 bg-white/70 p-6 shadow-sm backdrop-blur-md">
               <h3 className="mb-4 flex items-center gap-2 font-bold text-slate-900">
                 <MapPin className="size-5 text-red-600" /> Lokasi
               </h3>
@@ -34,12 +34,12 @@ export default function TentangPage() {
               </p>
             </div>
 
-            <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+            <div className="rounded-2xl border border-white/80 bg-white/70 p-6 shadow-sm backdrop-blur-md">
               <h3 className="mb-4 flex items-center gap-2 font-bold text-slate-900">
-                <Clock3 className="size-5 text-yellow-600" /> Jam Operasional
+                <Clock3 className="size-5 text-amber-600" /> Jam Operasional
               </h3>
               <ul className="space-y-2 text-sm leading-6 text-slate-600">
-                <li className="flex justify-between border-b border-slate-50 pb-2">
+                <li className="flex justify-between border-b border-slate-100/80 pb-2">
                   <span className="font-medium">Senin - Kamis</span>
                   <span>08.00 - 16.00 WITA</span>
                 </li>
@@ -54,9 +54,9 @@ export default function TentangPage() {
               </ul>
             </div>
 
-            <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+            <div className="rounded-2xl border border-white/80 bg-white/70 p-6 shadow-sm backdrop-blur-md">
               <h3 className="mb-4 flex items-center gap-2 font-bold text-slate-900">
-                <Mail className="size-5 text-sky-600" /> Kontak
+                <Mail className="size-5 text-rose-600" /> Kontak
               </h3>
               <p className="text-sm leading-6 text-slate-600">
                 Email: edu.mat@ulm.ac.id<br />
@@ -64,7 +64,7 @@ export default function TentangPage() {
               </p>
             </div>
 
-            <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+            <div className="rounded-2xl border border-white/80 bg-white/70 p-6 shadow-sm backdrop-blur-md">
               <h3 className="mb-4 flex items-center gap-2 font-bold text-slate-900">
                 <Users className="size-5 text-emerald-600" /> Layanan
               </h3>
@@ -76,7 +76,7 @@ export default function TentangPage() {
             </div>
           </div>
           
-          <div className="mt-12 rounded-2xl bg-slate-50 p-6 text-center border border-slate-100">
+          <div className="mt-12 rounded-2xl bg-white/60 p-6 text-center border border-white/70 backdrop-blur-sm">
              <Building2 className="mx-auto size-8 text-slate-400 mb-3" />
              <p className="text-sm text-slate-500 font-medium">
                Website dikembangkan secara khusus untuk mendukung ekosistem digital<br className="hidden sm:block" />

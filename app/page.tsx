@@ -55,9 +55,11 @@ export default async function HomePage() {
                 </div>
               </FadeIn>
               <FadeIn>
-                <h1 className="mx-auto max-w-5xl text-4xl font-black tracking-[-0.04em] text-white sm:text-6xl md:text-7xl lg:text-[5.5rem] leading-[1.04] sm:leading-[0.96] drop-shadow-[0_4px_24px_rgba(0,0,0,0.6)]">
-                  Ruang Baca <br className="hidden sm:inline" />
-                  Pendidikan Matematika.
+                <h1 className="mx-auto max-w-5xl text-4xl font-black tracking-[-0.04em] sm:text-6xl md:text-7xl lg:text-[5.5rem] leading-[1.04] sm:leading-[0.96] drop-shadow-[0_6px_28px_rgba(0,0,0,0.7)]">
+                  <span className="hero-title-gradient inline-block">
+                    Ruang Baca <br className="hidden sm:inline" />
+                    Pendidikan Matematika.
+                  </span>
                 </h1>
               </FadeIn>
 

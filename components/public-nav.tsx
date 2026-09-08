@@ -71,10 +71,10 @@ export function PublicNav({
       className={cn(
         "sticky top-0 z-40 border-b transition-all duration-300",
         isHomeHero
-          ? "border-b border-white/10 bg-[#0c0103]/90 backdrop-blur-md text-white shadow-sm"
+          ? "border-b border-white/10 bg-[#0c0103]/85 backdrop-blur-xl text-white shadow-sm"
           : scrolled
-            ? "border-slate-200/80 bg-white/95 shadow-xs backdrop-blur-md text-slate-900"
-            : "border-slate-200/50 bg-white/90 backdrop-blur-sm text-slate-900",
+            ? "border-white/80 bg-white/80 shadow-sm backdrop-blur-xl text-slate-900"
+            : "border-white/60 bg-white/70 backdrop-blur-lg text-slate-900",
       )}
     >
       <div className="mx-auto flex min-h-16 sm:min-h-18 max-w-7xl items-center justify-between gap-3 px-3.5 py-2.5 sm:px-6 sm:py-3.5">

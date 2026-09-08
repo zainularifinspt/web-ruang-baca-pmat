@@ -29,14 +29,14 @@ export function LandingSearchForm() {
 
   return (
     <div className="mx-auto w-full max-w-2xl sm:max-w-3xl">
-      {/* Pitch-Style Glowing White Prompt Card */}
+      {/* Pitch-Style Glowing Frosted Glass Prompt Card */}
       <form
         onSubmit={handleSubmit}
-        className="group relative rounded-3xl bg-white p-4 sm:p-5.5 text-left shadow-[0_30px_70px_-15px_rgba(0,0,0,0.65),0_0_50px_rgba(244,63,94,0.3)] ring-1 ring-white/40 border border-slate-100 transition-all duration-300 focus-within:shadow-[0_35px_80px_-12px_rgba(0,0,0,0.7),0_0_65px_rgba(244,63,94,0.45)] focus-within:ring-2 focus-within:ring-rose-400"
+        className="group relative rounded-3xl bg-white/90 backdrop-blur-2xl p-4 sm:p-5.5 text-left shadow-[0_30px_70px_-15px_rgba(0,0,0,0.65),0_0_45px_rgba(244,63,94,0.28)] ring-1 ring-white/60 border border-white/80 transition-all duration-300 focus-within:bg-white/95 focus-within:shadow-[0_35px_80px_-12px_rgba(0,0,0,0.7),0_0_60px_rgba(244,63,94,0.4)] focus-within:ring-2 focus-within:ring-rose-400"
       >
         {/* Top Input Area with Prompt Styling */}
         <div className="flex items-start gap-3">
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-red-700 mt-0.5 shadow-2xs">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-red-50/90 border border-red-100/60 text-red-700 mt-0.5 shadow-2xs">
             <Search className="size-5" />
           </div>
 
@@ -52,7 +52,7 @@ export function LandingSearchForm() {
 
           {/* Miniature Ecosystem Indicators in Card Top Right (Pitch Style) */}
           <div className="hidden sm:flex items-center gap-1.5 shrink-0 pt-1">
-            <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600 border border-slate-200/80">
+            <span className="inline-flex items-center gap-1 rounded-full bg-slate-100/80 px-2 py-0.5 text-[10px] font-bold text-slate-600 border border-slate-200/60 backdrop-blur-sm">
               <Sparkles className="size-3 text-red-600" />
               Ruang Baca
             </span>
