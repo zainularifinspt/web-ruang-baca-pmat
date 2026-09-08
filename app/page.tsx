@@ -12,7 +12,6 @@ import {
   Mail,
   MapPin,
   ScanLine,
-  Sparkles,
   Users,
 } from "lucide-react";
 import { JournalShowcase } from "@/components/journal-showcase";

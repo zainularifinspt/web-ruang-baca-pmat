@@ -8,7 +8,6 @@ import {
   GraduationCap,
   Layers3,
   MapPin,
-  Sparkles,
   UserRound,
   UsersRound,
 } from "lucide-react";

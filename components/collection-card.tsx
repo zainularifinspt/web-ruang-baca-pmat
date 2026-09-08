@@ -11,7 +11,6 @@ import {
   GraduationCap,
   Layers3,
   MapPin,
-  Sparkles,
   UserRound,
 } from "lucide-react";
 import { BookCover } from "@/components/book-cover";

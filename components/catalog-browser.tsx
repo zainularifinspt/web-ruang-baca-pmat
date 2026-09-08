@@ -13,7 +13,7 @@ import {
   GraduationCap,
   Search,
   SlidersHorizontal,
-  Sparkles,
+  Layers,
   UserRound,
   X,
 } from "lucide-react";
@@ -307,7 +307,7 @@ export function CatalogBrowser({
                 : "text-slate-600 hover:text-slate-900 hover:bg-white/70",
             )}
           >
-            <Sparkles className="size-4" />
+            <Layers className="size-4" />
             <span>Semua Koleksi</span>
             <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-bold", collectionType === "all" ? "bg-white/20 text-white" : "bg-white text-slate-700 shadow-2xs")}>
               {books.length + theses.length}

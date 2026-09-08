@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Suspense } from "react";
-import { ArrowLeft, BookOpenCheck, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowLeft, BookOpenCheck, LibraryBig, ShieldCheck } from "lucide-react";
 import { LoginForm } from "@/app/login/login-form";
 
 export default function LoginPage() {
@@ -54,7 +54,7 @@ export default function LoginPage() {
 
             <div className="relative my-auto py-8">
               <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3.5 py-1.5 text-xs font-medium text-yellow-200 backdrop-blur-md shadow-xs">
-                <Sparkles className="size-3.5 text-yellow-400 animate-pulse" />
+                <LibraryBig className="size-3.5 text-yellow-400" />
                 Ruang Baca Digital
               </div>
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-red-400">
@@ -113,7 +113,7 @@ export default function LoginPage() {
 
               <div className="mb-8">
                 <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-red-500/10 to-yellow-500/10 px-3.5 py-1 text-xs font-semibold text-red-800 border border-red-500/10 shadow-xs">
-                  <Sparkles className="size-3.5 text-red-600 animate-pulse" />
+                  <ShieldCheck className="size-3.5 text-red-600" />
                   Portal Autentikasi
                 </div>
                 <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">

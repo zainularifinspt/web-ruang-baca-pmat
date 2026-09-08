@@ -9,7 +9,6 @@ import {
   LibraryBig,
   Mail,
   MapPin,
-  Sparkles,
 } from "lucide-react";
 import { PublicNav } from "@/components/public-nav";
 import { ScopusSearchBrowser } from "@/components/scopus-search-browser";

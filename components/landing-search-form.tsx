@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowUpRight, BookOpen, Globe2, GraduationCap, Layers, Search, Sparkles } from "lucide-react";
+import { ArrowUpRight, BookOpen, Globe2, GraduationCap, Layers, Search } from "lucide-react";
 
 export function LandingSearchForm() {
   const router = useRouter();
@@ -53,7 +53,7 @@ export function LandingSearchForm() {
           {/* Miniature Ecosystem Indicators in Card Top Right (Pitch Style) */}
           <div className="hidden sm:flex items-center gap-1.5 shrink-0 pt-1">
             <span className="inline-flex items-center gap-1 rounded-full bg-slate-100/80 px-2 py-0.5 text-[10px] font-bold text-slate-600 border border-slate-200/60 backdrop-blur-sm">
-              <Sparkles className="size-3 text-red-600" />
+              <BookOpen className="size-3 text-red-600" />
               Ruang Baca
             </span>
           </div>

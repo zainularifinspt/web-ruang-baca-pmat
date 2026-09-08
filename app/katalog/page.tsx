@@ -1,4 +1,4 @@
-import { Sparkles } from "lucide-react";
+import { BookMarked, FileText, GraduationCap, LibraryBig } from "lucide-react";
 import { CatalogBrowser } from "@/components/catalog-browser";
 import { PublicNav } from "@/components/public-nav";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -36,7 +36,7 @@ function CatalogHero() {
 
       <div className="relative z-10 max-w-4xl space-y-3.5">
         <div className="apple-glass-pill inline-flex items-center gap-2 rounded-full px-3.5 py-1 text-xs sm:text-sm font-bold text-white shadow-xs">
-          <Sparkles className="size-3.5 text-amber-300" />
+          <LibraryBig className="size-3.5 text-amber-300" />
           <span>Koleksi Terpadu Ruang Baca PMat FKIP ULM</span>
         </div>
 
@@ -51,14 +51,17 @@ function CatalogHero() {
 
         {/* Quick Highlights */}
         <div className="flex flex-wrap items-center gap-2 pt-2 text-xs">
-          <span className="apple-glass-pill inline-flex items-center rounded-full px-3 py-1 font-semibold text-white/95">
-            📚 Buku Fisik &amp; Rak
+          <span className="apple-glass-pill inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-semibold text-white/95">
+            <BookMarked className="size-3.5 text-amber-300" />
+            <span>Buku Fisik &amp; Rak</span>
           </span>
-          <span className="apple-glass-pill inline-flex items-center rounded-full px-3 py-1 font-semibold text-white/95">
-            ⚡ E-Book &amp; PDF Drive
+          <span className="apple-glass-pill inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-semibold text-white/95">
+            <FileText className="size-3.5 text-rose-300" />
+            <span>E-Book &amp; PDF Drive</span>
           </span>
-          <span className="apple-glass-pill inline-flex items-center rounded-full px-3 py-1 font-semibold text-white/95">
-            🎓 Skripsi Mahasiswa
+          <span className="apple-glass-pill inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-semibold text-white/95">
+            <GraduationCap className="size-3.5 text-amber-300" />
+            <span>Skripsi Mahasiswa</span>
           </span>
         </div>
       </div>
