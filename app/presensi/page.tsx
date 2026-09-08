@@ -4,7 +4,6 @@ import { type ComponentType, type FormEvent, type ReactNode, useEffect, useState
 import Link from "next/link";
 import {
   AlertCircle,
-  ArrowLeft,
   CalendarCheck,
   CheckCircle2,
   GraduationCap,
@@ -166,7 +165,7 @@ export default function AttendancePage() {
       <PublicNav />
 
       {/* Full-width Edge-to-Edge Hero Banner */}
-      <section className="relative w-full overflow-hidden pt-10 pb-20 sm:pt-14 sm:pb-28 text-white">
+      <section className="relative w-full overflow-hidden pt-12 pb-28 sm:pt-16 sm:pb-36 lg:pb-44 text-white">
         {/* Background layer that fades smoothly to full transparency at the bottom */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden hero-fade-to-transparent apple-mesh-hero bg-[#0c0103]">
           {/* Ambient glow blooms */}
@@ -175,8 +174,8 @@ export default function AttendancePage() {
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-[650px] rounded-full bg-red-600/20 blur-3xl" />
         </div>
 
-        <div className="relative z-10 mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="space-y-2.5 max-w-2xl">
+        <div className="relative z-10 mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+          <div className="space-y-3 max-w-3xl">
             <div className="apple-glass-pill inline-flex items-center gap-2 rounded-full px-3.5 py-1 text-xs sm:text-sm font-bold text-white shadow-xs">
               <CalendarCheck className="size-3.5 text-amber-300" />
               <span>Buku Tamu &amp; Presensi Harian</span>
@@ -186,21 +185,15 @@ export default function AttendancePage() {
                 Presensi Pengunjung Ruang Baca
               </span>
             </h1>
-            <p className="text-xs sm:text-base leading-relaxed text-red-100/90 font-normal">
+            <p className="text-sm sm:text-base leading-relaxed text-rose-100/95 font-medium drop-shadow-sm">
               Sistem pencatatan kehadiran digital sivitas akademika Jurusan Pendidikan Matematika FKIP Universitas Lambung Mangkurat.
             </p>
           </div>
-          <Button asChild variant="outline" className="apple-glass-pill rounded-full text-white hover:bg-white hover:text-red-950 shadow-xs font-bold shrink-0 cursor-pointer border-white/30 self-start sm:self-auto">
-            <Link href="/">
-              <ArrowLeft className="size-4 mr-1.5" />
-              Kembali ke Beranda
-            </Link>
-          </Button>
         </div>
       </section>
 
       {/* Main Form Content */}
-      <main className="relative z-20 mx-auto w-full max-w-5xl px-4 -mt-10 sm:-mt-14 pb-14 sm:px-6 lg:px-8">
+      <main className="relative z-20 mx-auto w-full max-w-5xl px-4 -mt-12 sm:-mt-16 pb-16 sm:px-6 lg:px-8">
         {submitted ? (
           <SuccessState record={submitted} onReset={resetForm} />
         ) : (

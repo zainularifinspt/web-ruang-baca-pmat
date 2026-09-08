@@ -185,24 +185,24 @@ a {
   );
 }
 
-/* User-requested: background merah semakin ke bawah semakin transparan (bukan ke putih) */
+/* User-requested: background merah dipanjangkan ke bawah dan semakin ke bawah semakin transparan */
 .hero-fade-to-transparent {
   mask-image: linear-gradient(
     to bottom,
     rgba(0, 0, 0, 1) 0%,
-    rgba(0, 0, 0, 1) 35%,
-    rgba(0, 0, 0, 0.88) 54%,
-    rgba(0, 0, 0, 0.58) 72%,
-    rgba(0, 0, 0, 0.25) 88%,
+    rgba(0, 0, 0, 1) 68%,
+    rgba(0, 0, 0, 0.94) 80%,
+    rgba(0, 0, 0, 0.68) 90%,
+    rgba(0, 0, 0, 0.28) 96%,
     rgba(0, 0, 0, 0) 100%
   );
   -webkit-mask-image: linear-gradient(
     to bottom,
     rgba(0, 0, 0, 1) 0%,
-    rgba(0, 0, 0, 1) 35%,
-    rgba(0, 0, 0, 0.88) 54%,
-    rgba(0, 0, 0, 0.58) 72%,
-    rgba(0, 0, 0, 0.25) 88%,
+    rgba(0, 0, 0, 1) 68%,
+    rgba(0, 0, 0, 0.94) 80%,
+    rgba(0, 0, 0, 0.68) 90%,
+    rgba(0, 0, 0, 0.28) 96%,
     rgba(0, 0, 0, 0) 100%
   );
 }

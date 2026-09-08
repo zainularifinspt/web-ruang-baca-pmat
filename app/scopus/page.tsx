@@ -29,8 +29,8 @@ export default async function ScopusPage() {
       <PublicNav initialSearchItems={searchItems} />
 
       <main className="relative overflow-hidden">
-        {/* Hero Section with Apple/Gemini mesh atmosphere and smooth fade to transparent */}
-        <section className="relative overflow-hidden pt-12 pb-20 sm:pt-16 sm:pb-28 text-center text-white">
+        {/* Hero Section with Apple/Gemini mesh atmosphere and extended fade to transparent */}
+        <section className="relative overflow-hidden pt-12 pb-28 sm:pt-16 sm:pb-36 lg:pb-44 text-center text-white">
           {/* Background layer that fades smoothly to full transparency at the bottom */}
           <div className="pointer-events-none absolute inset-0 overflow-hidden hero-fade-to-transparent apple-mesh-hero bg-[#0c0103]">
             {/* Ambient light glow */}
@@ -73,23 +73,23 @@ export default async function ScopusPage() {
               </h1>
             </FadeIn>
 
-            {/* Subtitle */}
+            {/* Subtitle with High Contrast */}
             <FadeIn>
-              <p className="mx-auto mt-3.5 sm:mt-5 max-w-2xl text-xs sm:text-base leading-relaxed text-red-100/90 font-normal">
+              <p className="mx-auto mt-3.5 sm:mt-5 max-w-2xl text-sm sm:text-base leading-relaxed text-rose-100/95 font-medium drop-shadow-sm">
                 Eksplorasi publikasi jurnal internasional bereputasi tinggi (Q1–Q4), sitasi global, dan referensi mutakhir
                 di bidang Pendidikan Matematika dan kajian riset Universitas Lambung Mangkurat.
               </p>
             </FadeIn>
 
-            {/* Quick Feature Badges */}
-            <FadeIn className="mt-5 flex flex-wrap items-center justify-center gap-2 text-xs">
-              <span className="apple-glass-pill inline-flex items-center rounded-full px-3 py-1 font-semibold text-white/95">
+            {/* Quick Feature Badges with High Contrast */}
+            <FadeIn className="mt-5 sm:mt-6 flex flex-wrap items-center justify-center gap-2 text-xs">
+              <span className="apple-glass-pill inline-flex items-center rounded-full px-3.5 py-1.5 font-semibold text-white shadow-xs border border-white/20 bg-white/10 drop-shadow-xs">
                 🌐 Database Terindeks Elsevier
               </span>
-              <span className="apple-glass-pill inline-flex items-center rounded-full px-3 py-1 font-semibold text-white/95">
+              <span className="apple-glass-pill inline-flex items-center rounded-full px-3.5 py-1.5 font-semibold text-white shadow-xs border border-white/20 bg-white/10 drop-shadow-xs">
                 📊 Data Sitasi &amp; Quartile
               </span>
-              <span className="apple-glass-pill inline-flex items-center rounded-full px-3 py-1 font-semibold text-white/95">
+              <span className="apple-glass-pill inline-flex items-center rounded-full px-3.5 py-1.5 font-semibold text-white shadow-xs border border-white/20 bg-white/10 drop-shadow-xs">
                 🔓 Tautan DOI &amp; Open Access
               </span>
             </FadeIn>

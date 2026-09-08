@@ -111,7 +111,7 @@ export function ScopusSearchBrowser() {
 
 
   return (
-    <div className="relative z-20 mx-auto max-w-6xl px-4 -mt-6 sm:-mt-8 pb-10 sm:pb-16 sm:px-6">
+    <div className="relative z-20 mx-auto max-w-6xl px-4 -mt-12 sm:-mt-16 pb-12 sm:pb-16 sm:px-6">
       {/* Search Bar & Controls */}
       <div className="rounded-[2.25rem] border border-white/70 bg-white/90 p-4 sm:p-6 shadow-xl shadow-red-950/5 ring-1 ring-slate-200/80 backdrop-blur-xl mb-6">
         <form onSubmit={handleSearchSubmit} className="relative flex items-center gap-2">

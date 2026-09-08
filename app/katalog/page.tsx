@@ -17,7 +17,7 @@ export default async function CatalogPage() {
       <CatalogHero />
 
       {/* Main Catalog Content */}
-      <main className="relative z-20 mx-auto max-w-6xl space-y-5 sm:space-y-6 px-3.5 -mt-8 sm:-mt-12 pb-14 sm:px-6">
+      <main className="relative z-20 mx-auto max-w-6xl space-y-5 sm:space-y-6 px-3.5 -mt-12 sm:-mt-16 pb-16 sm:px-6">
         {error ? (
           <Alert className="border-amber-200 bg-amber-50 text-amber-950">
             <AlertTitle>Data belum dapat dimuat</AlertTitle>
@@ -32,7 +32,7 @@ export default async function CatalogPage() {
 
 function CatalogHero() {
   return (
-    <section className="relative w-full overflow-hidden pt-10 pb-20 sm:pt-14 sm:pb-28 text-white">
+    <section className="relative w-full overflow-hidden pt-12 pb-28 sm:pt-16 sm:pb-36 lg:pb-44 text-white">
       {/* Background layer that fades smoothly to full transparency at the bottom */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden hero-fade-to-transparent apple-mesh-hero bg-[#0c0103]">
         {/* Ambient glowing radial effects */}
@@ -53,7 +53,7 @@ function CatalogHero() {
           </span>
         </h1>
 
-        <p className="max-w-3xl text-xs sm:text-base leading-relaxed text-red-100/90 font-normal">
+        <p className="max-w-3xl text-sm sm:text-base leading-relaxed text-rose-100/95 font-medium drop-shadow-sm">
           Temukan buku teks matematika, baca dan unduh e-book perkuliahan digital via Google Drive,
           serta telusuri riset skripsi mahasiswa Jurusan Pendidikan Matematika.
         </p>
