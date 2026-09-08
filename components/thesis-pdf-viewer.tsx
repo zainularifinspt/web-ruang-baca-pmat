@@ -1,10 +1,11 @@
 "use client";
 
 import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Eye, RotateCw, ZoomIn, ZoomOut } from "lucide-react";
+import { Eye, RotateCw, X, ZoomIn, ZoomOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogHeader,
@@ -71,7 +72,7 @@ export function ThesisPdfViewer({ pdfUrl, studentName }: ThesisPdfViewerProps) {
               Lihat PDF
             </Button>
           </DialogTrigger>
-          <DialogContent className="left-0 top-0 h-dvh max-h-dvh w-screen max-w-none translate-x-0 translate-y-0 flex flex-col gap-0 overflow-hidden rounded-none border-0 p-0 bg-slate-100">
+          <DialogContent hideCloseButton className="left-0 top-0 h-dvh max-h-dvh w-screen max-w-none translate-x-0 translate-y-0 flex flex-col gap-0 overflow-hidden rounded-none border-0 p-0 bg-slate-100">
             <PdfCanvasReader
               active={open}
               pdfUrl={resolvedReaderPdfUrl}
@@ -444,29 +445,43 @@ function PdfCanvasReader({
       onSelect={(event) => event.preventDefault()}
       onSelectCapture={(event) => event.preventDefault()}
     >
-      {/* Top Unified Header: Title, Student Name, Controls, and Close Button Clearance */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-2.5 sm:px-6 sm:py-3 pr-14 select-none shrink-0 z-20 shadow-2xs">
-        <DialogHeader className="min-w-0 flex-1 space-y-0.5">
+      {/* Top Unified Header: Left (Info), Center (Controls), Right (Close Button) */}
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-4 border-b border-slate-200 bg-white px-3 sm:px-6 py-2 sm:py-2.5 select-none shrink-0 z-20 shadow-2xs">
+        {/* Left Column: Title & Student Name */}
+        <DialogHeader className="min-w-0 space-y-0.5 text-left justify-self-start">
           <DialogTitle className="text-sm sm:text-base font-bold text-slate-900 leading-tight">
             File Skripsi
           </DialogTitle>
-          <DialogDescription className="text-xs text-slate-500 truncate max-w-[180px] sm:max-w-xs md:max-w-md font-normal">
+          <DialogDescription className="text-[11px] sm:text-xs text-slate-500 truncate max-w-[120px] xs:max-w-[180px] sm:max-w-xs md:max-w-sm font-normal">
             {studentName || "Nama mahasiswa belum tercatat"}
           </DialogDescription>
         </DialogHeader>
 
-        {/* Buttons: Page, Zoom, Rotate - Dipindahkan ke atas menyatu di header */}
-        {document ? (
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            {/* Page Navigation */}
-            <div className="flex items-center gap-1 rounded-xl border border-slate-200 bg-slate-50/90 px-2 py-0.5 sm:py-1 shadow-2xs">
-              <input
-                type="text"
-                className="h-6 w-8 sm:h-7 sm:w-10 rounded-lg border border-slate-200 bg-white text-center text-xs font-bold text-slate-800 outline-none transition-colors focus:border-red-500 focus:ring-1 focus:ring-red-500 shadow-2xs"
-                value={inputPage}
-                onChange={(e) => setInputPage(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
+        {/* Center Column: Buttons (Page, Zoom, Rotate) - Berada persis di tengah */}
+        <div className="flex items-center justify-center justify-self-center">
+          {document ? (
+            <div className="flex items-center gap-1 sm:gap-2">
+              {/* Page Navigation */}
+              <div className="flex items-center gap-1 rounded-xl border border-slate-200 bg-slate-50/90 px-2 py-0.5 sm:py-1 shadow-2xs">
+                <input
+                  type="text"
+                  className="h-6 w-8 sm:h-7 sm:w-10 rounded-lg border border-slate-200 bg-white text-center text-xs font-bold text-slate-800 outline-none transition-colors focus:border-red-500 focus:ring-1 focus:ring-red-500 shadow-2xs"
+                  value={inputPage}
+                  onChange={(e) => setInputPage(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      const newPage = parseInt(inputPage, 10);
+                      if (newPage >= 1 && newPage <= document.numPages && !hiddenPageNumbers.has(newPage)) {
+                        const element = window.document.getElementById(`pdf-page-${newPage}`);
+                        if (element) {
+                          element.scrollIntoView({ behavior: "smooth", block: "start" });
+                        }
+                      } else {
+                        setInputPage(String(currentPage));
+                      }
+                    }
+                  }}
+                  onBlur={() => {
                     const newPage = parseInt(inputPage, 10);
                     if (newPage >= 1 && newPage <= document.numPages && !hiddenPageNumbers.has(newPage)) {
                       const element = window.document.getElementById(`pdf-page-${newPage}`);
@@ -476,76 +491,80 @@ function PdfCanvasReader({
                     } else {
                       setInputPage(String(currentPage));
                     }
-                  }
-                }}
-                onBlur={() => {
-                  const newPage = parseInt(inputPage, 10);
-                  if (newPage >= 1 && newPage <= document.numPages && !hiddenPageNumbers.has(newPage)) {
-                    const element = window.document.getElementById(`pdf-page-${newPage}`);
-                    if (element) {
-                      element.scrollIntoView({ behavior: "smooth", block: "start" });
-                    }
-                  } else {
-                    setInputPage(String(currentPage));
-                  }
-                }}
-                aria-label="Nomor halaman"
-              />
-              <span className="text-[11px] sm:text-xs font-semibold text-slate-500 tabular-nums">
-                / {document.numPages}
-              </span>
-            </div>
+                  }}
+                  aria-label="Nomor halaman"
+                />
+                <span className="text-[11px] sm:text-xs font-semibold text-slate-500 tabular-nums">
+                  / {document.numPages}
+                </span>
+              </div>
 
-            <div className="hidden sm:block h-4 w-px bg-slate-200" />
+              <div className="hidden sm:block h-4 w-px bg-slate-200" />
 
-            {/* Zoom Controls */}
-            <div className="flex items-center gap-0.5 sm:gap-1">
+              {/* Zoom Controls */}
+              <div className="flex items-center gap-0.5 sm:gap-1">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="size-7 sm:size-8 rounded-xl p-0 hover:bg-slate-100 hover:text-slate-900 border-slate-200 shadow-2xs cursor-pointer"
+                  onClick={zoomOut}
+                  disabled={zoom <= MIN_PDF_ZOOM}
+                  aria-label="Zoom out"
+                  title="Zoom out (Ctrl/Cmd + -)"
+                >
+                  <ZoomOut className="size-3.5" />
+                </Button>
+                <span className="min-w-9 sm:min-w-11 text-center text-[11px] sm:text-xs font-bold text-slate-700 tabular-nums">
+                  {zoomPercent}%
+                </span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="size-7 sm:size-8 rounded-xl p-0 hover:bg-slate-100 hover:text-slate-900 border-slate-200 shadow-2xs cursor-pointer"
+                  onClick={zoomIn}
+                  disabled={zoom >= MAX_PDF_ZOOM}
+                  aria-label="Zoom in"
+                  title="Zoom in (Ctrl/Cmd + +)"
+                >
+                  <ZoomIn className="size-3.5" />
+                </Button>
+              </div>
+
+              <div className="hidden sm:block h-4 w-px bg-slate-200" />
+
+              {/* Rotate Button */}
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                className="size-7 sm:size-8 rounded-xl p-0 hover:bg-slate-100 hover:text-slate-900 border-slate-200 shadow-2xs cursor-pointer"
-                onClick={zoomOut}
-                disabled={zoom <= MIN_PDF_ZOOM}
-                aria-label="Zoom out"
-                title="Zoom out (Ctrl/Cmd + -)"
+                className="h-7 sm:h-8 px-2 sm:px-2.5 text-xs font-semibold rounded-xl gap-1 hover:bg-slate-100 hover:text-slate-900 border-slate-200 shadow-2xs cursor-pointer"
+                onClick={() => setRotation((currentRotation) => (currentRotation + 180) % 360)}
+                aria-label="Putar halaman"
+                title="Putar halaman"
               >
-                <ZoomOut className="size-3.5" />
-              </Button>
-              <span className="min-w-9 sm:min-w-11 text-center text-[11px] sm:text-xs font-bold text-slate-700 tabular-nums">
-                {zoomPercent}%
-              </span>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="size-7 sm:size-8 rounded-xl p-0 hover:bg-slate-100 hover:text-slate-900 border-slate-200 shadow-2xs cursor-pointer"
-                onClick={zoomIn}
-                disabled={zoom >= MAX_PDF_ZOOM}
-                aria-label="Zoom in"
-                title="Zoom in (Ctrl/Cmd + +)"
-              >
-                <ZoomIn className="size-3.5" />
+                <RotateCw className="size-3.5 text-slate-600" />
+                <span className="hidden sm:inline">Putar</span>
               </Button>
             </div>
+          ) : null}
+        </div>
 
-            <div className="hidden sm:block h-4 w-px bg-slate-200" />
-
-            {/* Rotate Button */}
-            <Button
+        {/* Right Column: Tombol Keluar (X) Bulat Berbingkai */}
+        <div className="flex items-center justify-end justify-self-end">
+          <DialogClose asChild>
+            <button
               type="button"
-              variant="outline"
-              size="sm"
-              className="h-7 sm:h-8 px-2 sm:px-2.5 text-xs font-semibold rounded-xl gap-1 hover:bg-slate-100 hover:text-slate-900 border-slate-200 shadow-2xs cursor-pointer"
-              onClick={() => setRotation((currentRotation) => (currentRotation + 180) % 360)}
-              aria-label="Putar halaman"
-              title="Putar halaman"
+              className="flex size-8 sm:size-9 items-center justify-center rounded-full border border-slate-250/90 bg-white text-slate-600 transition-all duration-200 hover:border-slate-300 hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-red-500 cursor-pointer shadow-2xs group"
+              aria-label="Tutup dan keluar dari viewer"
+              title="Keluar (Esc)"
             >
-              <RotateCw className="size-3.5 text-slate-600" />
-              <span className="hidden sm:inline">Putar</span>
-            </Button>
-          </div>
-        ) : null}
+              <X className="size-4 sm:size-4.5 transition-transform duration-200 group-hover:scale-110" />
+              <span className="sr-only">Keluar</span>
+            </button>
+          </DialogClose>
+        </div>
       </div>
 
       {/* Main Content Area: Loading, Error, or Scrollable Pages */}
