@@ -162,113 +162,114 @@ export default function AttendancePage() {
   }
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-yellow-50 to-red-50 text-slate-950">
-      <div className="pointer-events-none absolute -left-28 top-20 size-80 rounded-full bg-yellow-200 opacity-40 blur-3xl" />
-      <div className="pointer-events-none absolute right-0 top-40 size-96 rounded-full bg-red-200 opacity-35 blur-3xl" />
-      <div className="pointer-events-none absolute bottom-0 left-1/3 size-80 rounded-full bg-violet-200 opacity-25 blur-3xl" />
+    <div className="min-h-screen bg-slate-50 text-slate-950">
       <PublicNav />
-      <main className="relative mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
-        <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
-          <div className="max-w-2xl space-y-3">
-            <Badge className="rounded-full border-red-100 bg-white/85 px-3 py-1 text-red-700 shadow-sm backdrop-blur">
-              <CalendarCheck className="mr-1.5 size-3.5" />
-              Presensi Ruang Baca
-            </Badge>
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
-                Presensi Kunjungan Ruang Baca
+      <main className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
+        {/* Page Hero Banner */}
+        <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-red-900/40 bg-gradient-to-br from-[#7f1d1d] via-[#881337] to-[#991b1b] p-6 sm:p-8 text-white shadow-xl shadow-red-950/25 mb-8">
+          <div className="pointer-events-none absolute -right-20 -top-20 size-72 rounded-full bg-red-400/20 blur-3xl" />
+          <div className="pointer-events-none absolute -left-20 -bottom-20 size-72 rounded-full bg-amber-400/15 blur-3xl" />
+          
+          <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-2 max-w-2xl">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs sm:text-sm font-bold text-white shadow-xs ring-1 ring-white/25 backdrop-blur">
+                <CalendarCheck className="size-3.5 text-amber-300" />
+                <span>Buku Tamu &amp; Presensi Harian</span>
+              </div>
+              <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-white leading-tight">
+                Presensi Pengunjung Ruang Baca
               </h1>
-              <p className="mt-3 text-base leading-7 text-slate-600">
-                Isi NIM atau identitas singkat untuk mencatat kunjungan.
+              <p className="text-xs sm:text-base leading-relaxed text-red-100 font-normal">
+                Sistem pencatatan kehadiran digital sivitas akademika Jurusan Pendidikan Matematika FKIP Universitas Lambung Mangkurat.
               </p>
             </div>
+            <Button asChild variant="outline" className="rounded-xl border-white/30 bg-white/10 text-white hover:bg-white hover:text-red-950 shadow-xs backdrop-blur font-bold shrink-0 cursor-pointer">
+              <Link href="/">
+                <ArrowLeft className="size-4 mr-1.5" />
+                Kembali ke Beranda
+              </Link>
+            </Button>
           </div>
-          <Button asChild variant="outline" className="rounded-full border-slate-200 bg-white/90 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:border-red-200 hover:bg-red-50 hover:text-red-700">
-            <Link href="/">
-              <ArrowLeft className="size-4" />
-              Beranda
-            </Link>
-          </Button>
-        </div>
+        </section>
 
         {submitted ? (
           <SuccessState record={submitted} onReset={resetForm} />
         ) : (
           <div className="mx-auto w-full max-w-5xl">
-            <Card className="overflow-hidden rounded-3xl border-white/80 bg-white/85 shadow-xl shadow-slate-950/10 backdrop-blur">
+            <Card className="overflow-hidden rounded-3xl border-slate-200 bg-white shadow-lg shadow-red-950/5 ring-1 ring-slate-200/80">
               <CardContent className="p-0">
-                <div className="border-b border-red-100 bg-gradient-to-br from-red-700 via-rose-700 to-yellow-700 px-5 py-6 text-white sm:px-8">
+                <div className="border-b border-red-900/30 bg-gradient-to-r from-red-800 via-rose-800 to-red-900 px-6 py-6 text-white sm:px-8">
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-center gap-4">
-                      <div className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-white/20 text-white shadow-sm ring-1 ring-white/25 backdrop-blur">
-                        <QrCode className="size-7" />
+                      <div className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-white/20 text-white shadow-xs ring-1 ring-white/25 backdrop-blur">
+                        <QrCode className="size-7 text-amber-300" />
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-red-50">
-                          Form presensi cepat
+                        <p className="text-xs font-bold uppercase tracking-wider text-red-200">
+                          Formulir Presensi Cepat
                         </p>
-                        <h2 className="text-xl font-bold tracking-tight text-white sm:text-2xl">
-                          Catat kunjungan dalam satu menit
+                        <h2 className="text-lg font-bold tracking-tight text-white sm:text-2xl">
+                          Catat Kunjungan Anda
                         </h2>
-                        <p className="mt-1 text-sm leading-6 text-red-50">
-                          Cukup ketik NIM/NIP, lalu nama dan status pengunjung akan muncul otomatis jika data sudah diimport admin.
+                        <p className="mt-0.5 text-xs sm:text-sm text-red-100">
+                          Ketik NIM atau NIP Anda. Data nama dan program studi akan terisi otomatis jika sudah tersimpan di sistem.
                         </p>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6 p-5 sm:p-8">
+                <form onSubmit={handleSubmit} className="space-y-6 p-6 sm:p-8">
                   <div className="space-y-2">
-                    <label className="text-sm font-semibold text-slate-800" htmlFor="identifier">
-                      NIM/NIP
+                    <label className="text-sm font-bold text-slate-900" htmlFor="identifier">
+                      NIM / NIP
                     </label>
-                    <p className="text-sm leading-6 text-slate-500">
-                      Pengunjung hanya perlu mengetik NIM/NIP. Nama, status, dan program studi akan terisi otomatis dari data presensi.
+                    <p className="text-xs text-slate-500">
+                      Cukup ketik NIM Anda, data identitas pengunjung akan dicek secara langsung.
                     </p>
                     <div className="relative">
-                      <Search className="absolute left-4 top-1/2 size-4 -translate-y-1/2 text-red-600/70" />
+                      <Search className="absolute left-4 top-1/2 size-4 -translate-y-1/2 text-red-700" />
                       <Input
                         id="identifier"
                         value={identifier}
                         onChange={(event) => handleIdentifierChange(event.target.value)}
                         placeholder="Contoh: 2311040007"
-                        className="h-12 rounded-2xl border-slate-200 bg-white/90 pl-11 text-base shadow-sm placeholder:text-slate-400 focus-visible:border-yellow-300 focus-visible:ring-yellow-500/20"
+                        className="h-12 rounded-xl border-slate-200 bg-slate-50/50 pl-11 text-base shadow-xs placeholder:text-slate-400 focus-visible:border-red-700 focus-visible:ring-red-700/20"
                       />
                     </div>
                     {matchedUser ? (
-                      <div className="flex w-fit items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 shadow-sm ring-1 ring-emerald-100">
+                      <div className="flex w-fit items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-800 shadow-xs ring-1 ring-emerald-200">
                         <CheckCircle2 className="size-3.5" />
-                        Data ditemukan
+                        Data ditemukan: {matchedUser.name} ({matchedUser.visitorStatus})
                       </div>
                     ) : isLookupLoading ? (
-                      <p className="rounded-2xl bg-yellow-50 px-3 py-2 text-sm text-yellow-800 ring-1 ring-yellow-100">
-                        Mencari data NIM/NIP...
+                      <p className="rounded-xl bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800 ring-1 ring-amber-200">
+                        Mengecek data NIM/NIP...
                       </p>
                     ) : isUnknownIdentifier ? (
-                      <div className="flex w-fit items-center gap-2 rounded-full bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 shadow-sm ring-1 ring-red-100">
-                        <AlertCircle className="size-3.5" />
-                        Data tidak ditemukan, silakan lengkapi manual.
+                      <div className="flex w-fit items-center gap-2 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-xs ring-1 ring-slate-200">
+                        <AlertCircle className="size-3.5 text-slate-500" />
+                        NIM belum terdaftar otomatis, silakan lengkapi form di bawah ini.
                       </div>
                     ) : null}
                   </div>
 
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <Field label="Nama" icon={UserRound}>
+                    <Field label="Nama Pengunjung" icon={UserRound}>
                       <Input
                         value={name}
                         onChange={(event) => setName(event.target.value)}
-                        placeholder="Nama pengunjung"
-                        className="h-12 rounded-2xl border-slate-200 bg-white/90 shadow-sm placeholder:text-slate-400 focus-visible:border-yellow-300 focus-visible:ring-yellow-500/20"
+                        placeholder="Nama lengkap pengunjung"
+                        className="h-12 rounded-xl border-slate-200 bg-slate-50/50 shadow-xs placeholder:text-slate-400 focus-visible:border-red-700 focus-visible:ring-red-700/20"
                       />
                     </Field>
 
-                    <Field label="Status pengunjung" icon={IdCard}>
+                    <Field label="Status Pengunjung" icon={IdCard}>
                       <Select
                         value={visitorStatus}
                         onValueChange={(value) => setVisitorStatus(value as VisitorStatus)}
                       >
-                        <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-white/90 shadow-sm focus:ring-yellow-500/20">
+                        <SelectTrigger className="h-12 rounded-xl border-slate-200 bg-slate-50/50 shadow-xs focus:ring-red-700/20">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -282,19 +283,19 @@ export default function AttendancePage() {
                     </Field>
                   </div>
 
-                  <Field label="Program Studi" icon={GraduationCap}>
+                  <Field label="Program Studi / Instansi" icon={GraduationCap}>
                     <Input
                       value={studyProgram}
                       onChange={(event) => setStudyProgram(event.target.value)}
                       placeholder="Contoh: Pendidikan Matematika"
-                      className="h-12 rounded-2xl border-slate-200 bg-white/90 shadow-sm placeholder:text-slate-400 focus-visible:border-yellow-300 focus-visible:ring-yellow-500/20"
+                      className="h-12 rounded-xl border-slate-200 bg-slate-50/50 shadow-xs placeholder:text-slate-400 focus-visible:border-red-700 focus-visible:ring-red-700/20"
                     />
                   </Field>
 
-                  <Field label="Keperluan kunjungan" icon={LibraryBig}>
+                  <Field label="Keperluan Kunjungan" icon={LibraryBig}>
                     <Select value={purpose} onValueChange={(value) => setPurpose(value as VisitPurpose)}>
-                      <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-white/90 shadow-sm focus:ring-yellow-500/20">
-                        <SelectValue placeholder="Pilih keperluan kunjungan" />
+                      <SelectTrigger className="h-12 rounded-xl border-slate-200 bg-slate-50/50 shadow-xs focus:ring-red-700/20">
+                        <SelectValue placeholder="Pilih keperluan kunjungan..." />
                       </SelectTrigger>
                       <SelectContent>
                         {visitPurposes.map((item) => (
@@ -307,12 +308,12 @@ export default function AttendancePage() {
                   </Field>
 
                   <Button
-                    className="h-12 w-full rounded-full bg-gradient-to-r from-red-700 via-rose-700 to-yellow-700 text-base font-bold text-white shadow-lg shadow-red-950/15 transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-red-950/20 disabled:translate-y-0 disabled:shadow-sm"
+                    className="h-12 w-full rounded-xl bg-red-800 hover:bg-red-900 text-base font-bold text-white shadow-lg shadow-red-950/20 transition cursor-pointer disabled:opacity-50"
                     disabled={!canSubmit || isSubmitting}
                     type="submit"
                   >
-                    <CalendarCheck className="size-4" />
-                    {isSubmitting ? "Menyimpan..." : "Simpan Presensi"}
+                    <CalendarCheck className="size-4 mr-2" />
+                    {isSubmitting ? "Menyimpan Presensi..." : "Simpan Presensi Kunjungan"}
                   </Button>
                 </form>
               </CardContent>
@@ -335,8 +336,8 @@ function Field({
 }) {
   return (
     <div className="space-y-2">
-      <label className="flex items-center gap-2 text-sm font-semibold text-slate-800">
-        <Icon className="size-4 text-red-600" />
+      <label className="flex items-center gap-2 text-sm font-bold text-slate-800">
+        <Icon className="size-4 text-red-700" />
         {label}
       </label>
       {children}
@@ -353,32 +354,32 @@ function SuccessState({
 }) {
   return (
     <div className="mx-auto max-w-2xl">
-      <Card className="overflow-hidden rounded-3xl border-white/80 bg-white/85 shadow-xl shadow-slate-950/10 backdrop-blur">
+      <Card className="overflow-hidden rounded-3xl border-slate-200 bg-white shadow-xl shadow-red-950/5 ring-1 ring-slate-200/80">
         <CardContent className="space-y-6 p-6 text-center sm:p-8">
-          <div className="mx-auto flex size-20 items-center justify-center rounded-full bg-gradient-to-br from-red-100 to-yellow-100 text-red-700 shadow-sm ring-1 ring-red-100">
+          <div className="mx-auto flex size-20 items-center justify-center rounded-2xl bg-red-50 text-red-800 ring-1 ring-red-200 shadow-xs">
             <CheckCircle2 className="size-10" />
           </div>
 
           <div>
             <h2 className="text-2xl font-bold tracking-tight text-slate-950">
-              Presensi berhasil dicatat
+              Presensi Berhasil Dicatat!
             </h2>
             <p className="mt-2 text-sm leading-6 text-slate-600">
-              Terima kasih. Ringkasan kunjungan Anda tampil di bawah ini.
+              Terima kasih telah berkunjung ke Ruang Baca Pendidikan Matematika FKIP ULM.
             </p>
           </div>
 
-          <div className="grid gap-3 rounded-3xl border border-slate-200/70 bg-slate-50/70 p-4 text-left sm:grid-cols-3">
-            <SummaryItem label="Nama" value={record.name} />
+          <div className="grid gap-3 rounded-2xl border border-slate-200/80 bg-slate-50/80 p-4 text-left sm:grid-cols-3">
+            <SummaryItem label="Nama Pengunjung" value={record.name} />
             <SummaryItem label="Keperluan" value={record.purpose} />
-            <SummaryItem label="Waktu presensi" value={formatDate(record.visitedAt)} />
+            <SummaryItem label="Waktu Presensi" value={formatDate(record.visitedAt)} />
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
-            <Button className="h-11 rounded-full bg-gradient-to-r from-red-700 via-rose-700 to-yellow-700 font-bold text-white shadow-lg shadow-red-950/15 transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-red-950/20" onClick={onReset}>
+            <Button className="h-11 rounded-xl bg-red-800 hover:bg-red-900 font-bold text-white shadow-md shadow-red-950/20 cursor-pointer" onClick={onReset}>
               Isi Presensi Lagi
             </Button>
-            <Button asChild variant="outline" className="h-11 rounded-full border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-red-200 hover:bg-red-50 hover:text-red-700">
+            <Button asChild variant="outline" className="h-11 rounded-xl border-slate-300 bg-white shadow-xs hover:bg-red-50 hover:text-red-900 hover:border-red-200 font-bold cursor-pointer">
               <Link href="/">Kembali ke Beranda</Link>
             </Button>
           </div>

@@ -113,16 +113,16 @@ export function ScopusSearchBrowser() {
   return (
     <div className="relative z-20 mx-auto max-w-6xl px-4 -mt-6 sm:-mt-8 pb-10 sm:pb-16 sm:px-6">
       {/* Search Bar & Controls */}
-      <div className="rounded-[2.25rem] border border-white/70 bg-white/90 p-4 sm:p-6 shadow-lg shadow-orange-500/5 ring-1 ring-slate-200/60 backdrop-blur-xl mb-6">
+      <div className="rounded-[2.25rem] border border-white/70 bg-white/90 p-4 sm:p-6 shadow-xl shadow-red-950/5 ring-1 ring-slate-200/80 backdrop-blur-xl mb-6">
         <form onSubmit={handleSearchSubmit} className="relative flex items-center gap-2">
           <div className="relative flex-1">
-            <Search className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-orange-600/70" />
+            <Search className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-red-700/70" />
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Cari berdasarkan judul artikel di Scopus (contoh: realistic mathematics education, ethnomathematics)..."
-              className="h-12 sm:h-14 w-full rounded-full border border-slate-200/80 bg-white pl-12 pr-10 text-xs sm:text-base font-semibold text-slate-800 shadow-inner outline-none transition-all placeholder:font-normal placeholder:text-slate-400 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10"
+              className="h-12 sm:h-14 w-full rounded-full border border-slate-200/80 bg-white pl-12 pr-10 text-xs sm:text-base font-semibold text-slate-800 shadow-inner outline-none transition-all placeholder:font-normal placeholder:text-slate-400 focus:border-red-700 focus:ring-4 focus:ring-red-700/10"
             />
             {query ? (
               <button
@@ -148,7 +148,7 @@ export function ScopusSearchBrowser() {
           <Button
             type="submit"
             disabled={isPending}
-            className="h-12 sm:h-14 shrink-0 rounded-full bg-gradient-to-r from-orange-600 via-red-600 to-amber-600 px-6 sm:px-8 text-xs sm:text-sm font-extrabold text-white shadow-md hover:from-orange-700 hover:to-red-700 border-0"
+            className="h-12 sm:h-14 shrink-0 rounded-full bg-red-800 hover:bg-red-900 px-6 sm:px-8 text-xs sm:text-sm font-extrabold text-white shadow-md shadow-red-950/20 border-0 cursor-pointer transition-colors"
           >
             {isPending ? (
               <Loader2 className="size-4 animate-spin mr-1.5" />
@@ -165,21 +165,21 @@ export function ScopusSearchBrowser() {
             <button
               type="button"
               onClick={() => setShowFilters(!showFilters)}
-              className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold transition-colors ${
+              className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold transition-colors cursor-pointer ${
                 hasActiveFilters || showFilters
-                  ? "bg-orange-100 text-orange-800 ring-1 ring-orange-300"
+                  ? "bg-red-50 text-red-900 ring-1 ring-red-200"
                   : "bg-slate-100 text-slate-700 hover:bg-slate-200"
               }`}
             >
               <SlidersHorizontal className="size-3.5" />
-              <span>Filter & Opsi Pencarian</span>
+              <span>Filter &amp; Opsi Pencarian</span>
               {hasActiveFilters ? (
-                <span className="size-2 rounded-full bg-orange-600" />
+                <span className="size-2 rounded-full bg-red-700" />
               ) : null}
             </button>
 
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-50/90 border border-orange-200/70 px-3 py-1 text-[11px] font-bold text-orange-800">
-              <BookOpen className="size-3 text-orange-600" />
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-red-50/80 border border-red-200/70 px-3 py-1 text-[11px] font-bold text-red-900">
+              <BookOpen className="size-3 text-red-700" />
               {searchField === "title"
                 ? "Cakupan: Hanya Judul Artikel"
                 : searchField === "author"
@@ -192,7 +192,7 @@ export function ScopusSearchBrowser() {
             <button
               type="button"
               onClick={handleResetFilters}
-              className="flex items-center gap-1 text-xs font-bold text-red-600 hover:text-red-700"
+              className="flex items-center gap-1 text-xs font-bold text-red-700 hover:text-red-800 cursor-pointer"
             >
               <RotateCcw className="size-3" />
               <span>Reset Filter</span>
@@ -217,7 +217,7 @@ export function ScopusSearchBrowser() {
                       fetchResults(query, sort, 1, val);
                     }
                   }}
-                  className="w-full rounded-xl border border-slate-200 bg-white p-2 font-semibold text-slate-800 outline-none focus:border-orange-500"
+                  className="w-full rounded-xl border border-slate-200 bg-white p-2 font-semibold text-slate-800 outline-none focus:border-red-600"
                 >
                   <option value="title">Hanya Judul (Default - Paling Akurat)</option>
                   <option value="all">Semua (Judul, Abstrak, Keyword)</option>
@@ -234,7 +234,7 @@ export function ScopusSearchBrowser() {
                     setYear(e.target.value);
                     setPage(1);
                   }}
-                  className="w-full rounded-xl border border-slate-200 bg-white p-2 font-semibold text-slate-800 outline-none focus:border-orange-500"
+                  className="w-full rounded-xl border border-slate-200 bg-white p-2 font-semibold text-slate-800 outline-none focus:border-red-600"
                 >
                   <option value="all">Semua Tahun</option>
                   <option value="last3">3 Tahun Terakhir (2023 - 2026)</option>
@@ -258,7 +258,7 @@ export function ScopusSearchBrowser() {
                     setLanguage(e.target.value);
                     setPage(1);
                   }}
-                  className="w-full rounded-xl border border-slate-200 bg-white p-2 font-semibold text-slate-800 outline-none focus:border-orange-500"
+                  className="w-full rounded-xl border border-slate-200 bg-white p-2 font-semibold text-slate-800 outline-none focus:border-red-600"
                 >
                   <option value="all">Semua Bahasa</option>
                   <option value="english">English (Inggris)</option>
@@ -275,7 +275,7 @@ export function ScopusSearchBrowser() {
                     setDocType(e.target.value);
                     setPage(1);
                   }}
-                  className="w-full rounded-xl border border-slate-200 bg-white p-2 font-semibold text-slate-800 outline-none focus:border-orange-500"
+                  className="w-full rounded-xl border border-slate-200 bg-white p-2 font-semibold text-slate-800 outline-none focus:border-red-600"
                 >
                   <option value="all">Semua Tipe</option>
                   <option value="ar">Artikel Jurnal (Article)</option>
@@ -296,7 +296,7 @@ export function ScopusSearchBrowser() {
                       setOpenAccessOnly(e.target.checked);
                       setPage(1);
                     }}
-                    className="size-4 rounded accent-orange-600 cursor-pointer"
+                    className="size-4 rounded accent-red-700 cursor-pointer"
                   />
                   <span className="font-semibold text-slate-700">Hanya Open Access</span>
                 </label>
@@ -310,14 +310,14 @@ export function ScopusSearchBrowser() {
       {hasSearched ? (
         <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1">
           <div className="text-xs sm:text-sm font-semibold text-slate-600 flex flex-wrap items-center gap-2">
-            <Globe2 className="size-4 text-orange-600 shrink-0" />
+            <Globe2 className="size-4 text-red-700 shrink-0" />
             <span>
               {isPending
                 ? "Sedang mencari artikel Scopus..."
                 : `Ditemukan ${data?.totalResults?.toLocaleString("id-ID") ?? 0} publikasi internasional`}
             </span>
             {!isPending ? (
-              <Badge variant="outline" className="text-[11px] font-bold border-orange-200 text-orange-800 bg-orange-50/80">
+              <Badge variant="outline" className="text-[11px] font-bold border-red-200 text-red-900 bg-red-50/80">
                 {searchField === "title"
                   ? "Pencarian Judul"
                   : searchField === "author"
@@ -336,7 +336,7 @@ export function ScopusSearchBrowser() {
                   setSort(e.target.value as "relevance" | "newest" | "citations");
                   setPage(1);
                 }}
-                className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-800 outline-none focus:border-orange-500"
+                className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-800 outline-none focus:border-red-600"
               >
                 <option value="relevance">Paling Relevan</option>
                 <option value="newest">Terbitan Terbaru</option>
@@ -349,11 +349,11 @@ export function ScopusSearchBrowser() {
 
       {/* Content Area: Initial Hero or Articles List */}
       {!hasSearched ? (
-        <div className="rounded-[2.25rem] border border-dashed border-orange-200/80 bg-gradient-to-b from-white/90 via-orange-50/25 to-amber-50/15 p-8 sm:p-14 text-center shadow-sm">
-          <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-2xl bg-orange-100/80 text-orange-600 ring-4 ring-orange-500/10">
+        <div className="rounded-[2.25rem] border border-dashed border-red-200/90 bg-gradient-to-b from-white/95 via-red-50/25 to-amber-50/15 p-8 sm:p-14 text-center shadow-sm">
+          <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-2xl bg-red-100 text-red-800 ring-4 ring-red-600/10">
             <Search className="size-8" />
           </div>
-          <h3 className="text-lg sm:text-xl font-extrabold text-slate-800">
+          <h3 className="text-lg sm:text-xl font-extrabold text-slate-900">
             Pencarian Literatur Scopus Berdasarkan Judul
           </h3>
           <p className="mx-auto mt-2 max-w-lg text-xs sm:text-sm text-slate-600 leading-relaxed">
@@ -368,7 +368,7 @@ export function ScopusSearchBrowser() {
                 setPage(1);
                 fetchResults("realistic mathematics education", sort, 1, searchField);
               }}
-              className="rounded-full bg-white px-3 py-1 font-semibold text-orange-700 ring-1 ring-orange-200 hover:bg-orange-50 shadow-2xs cursor-pointer transition-colors"
+              className="rounded-full bg-white px-3 py-1 font-semibold text-red-900 ring-1 ring-red-200 hover:bg-red-50 shadow-2xs cursor-pointer transition-colors"
             >
               realistic mathematics education
             </button>
@@ -379,7 +379,7 @@ export function ScopusSearchBrowser() {
                 setPage(1);
                 fetchResults("ethnomathematics", sort, 1, searchField);
               }}
-              className="rounded-full bg-white px-3 py-1 font-semibold text-orange-700 ring-1 ring-orange-200 hover:bg-orange-50 shadow-2xs cursor-pointer transition-colors"
+              className="rounded-full bg-white px-3 py-1 font-semibold text-red-900 ring-1 ring-red-200 hover:bg-red-50 shadow-2xs cursor-pointer transition-colors"
             >
               ethnomathematics
             </button>
@@ -390,7 +390,7 @@ export function ScopusSearchBrowser() {
                 setPage(1);
                 fetchResults("mathematical problem solving", sort, 1, searchField);
               }}
-              className="rounded-full bg-white px-3 py-1 font-semibold text-orange-700 ring-1 ring-orange-200 hover:bg-orange-50 shadow-2xs cursor-pointer transition-colors"
+              className="rounded-full bg-white px-3 py-1 font-semibold text-red-900 ring-1 ring-red-200 hover:bg-red-50 shadow-2xs cursor-pointer transition-colors"
             >
               mathematical problem solving
             </button>
@@ -463,13 +463,13 @@ function ArticleCard({
   const articleUrl = article.doiUrl || article.scopusUrl;
 
   return (
-    <div className="group relative flex flex-col justify-between rounded-[1.75rem] border border-white/70 bg-white/85 p-5 sm:p-6 shadow-xs ring-1 ring-slate-200/40 transition-all duration-200 hover:bg-white hover:shadow-lg hover:shadow-orange-950/5">
+    <div className="group relative flex flex-col justify-between rounded-[1.75rem] border border-slate-200/80 bg-white p-5 sm:p-6 shadow-xs ring-1 ring-slate-200/50 transition-all duration-200 hover:border-red-300 hover:shadow-lg hover:shadow-red-950/5">
         <div>
           {/* Top Badges */}
           <div className="mb-2.5 flex flex-wrap items-center gap-2">
             <Badge
               variant="outline"
-              className="rounded-full border-orange-200 bg-orange-50/80 px-2.5 py-0.5 text-[10px] font-bold text-orange-800"
+              className="rounded-full border-red-200 bg-red-50/80 px-2.5 py-0.5 text-[10px] font-bold text-red-900"
             >
               Scopus Indexed
             </Badge>
@@ -490,7 +490,7 @@ function ArticleCard({
           </div>
 
           {/* Title */}
-          <h3 className="text-base sm:text-lg font-extrabold text-slate-900 group-hover:text-orange-600 transition-colors leading-snug">
+          <h3 className="text-base sm:text-lg font-extrabold text-slate-900 group-hover:text-red-800 transition-colors leading-snug">
             {articleUrl ? (
               <a
                 href={articleUrl}
@@ -512,7 +512,7 @@ function ArticleCard({
               <span className="line-clamp-2">{article.authors}</span>
             </p>
             <p className="flex items-center gap-1.5 font-semibold text-slate-700">
-              <BookOpen className="size-3.5 text-orange-500 shrink-0" />
+              <BookOpen className="size-3.5 text-red-700 shrink-0" />
               <span>
                 {article.journal}
                 {article.volume ? `, Vol. ${article.volume}` : ""}
@@ -551,7 +551,7 @@ function ArticleCard({
                 href={articleUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group/btn inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-orange-600 via-orange-500 to-amber-600 px-4 sm:px-5 py-2 text-xs sm:text-sm font-extrabold !text-white shadow-md shadow-orange-600/25 transition-all duration-200 hover:-translate-y-0.5 hover:from-orange-700 hover:via-orange-600 hover:to-amber-700 hover:shadow-lg hover:shadow-orange-600/40 active:translate-y-0 ring-2 ring-orange-500/20 hover:ring-orange-500/40 no-underline"
+                className="group/btn inline-flex items-center gap-2 rounded-full bg-red-800 hover:bg-red-900 px-4 sm:px-5 py-2 text-xs sm:text-sm font-bold !text-white shadow-md shadow-red-950/20 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-red-950/30 active:translate-y-0 ring-2 ring-red-700/20 hover:ring-red-700/40 no-underline cursor-pointer"
               >
                 <span className="!text-white font-black tracking-tight drop-shadow-xs">
                   Buka Artikel

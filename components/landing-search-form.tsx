@@ -15,25 +15,53 @@ export function LandingSearchForm() {
     router.push(`/katalog${search}`);
   }
 
+  function handleTagClick(tag: string) {
+    router.push(`/katalog?q=${encodeURIComponent(tag)}`);
+  }
+
+  const quickTags = [
+    "Kalkulus",
+    "Etnomatematika",
+    "Statistika",
+    "RME",
+    "HOTS",
+    "Skripsi 2024",
+  ];
+
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="mx-auto flex w-full max-w-3xl items-center gap-2 rounded-full border border-white/60 bg-white/80 p-2 shadow-sm ring-1 ring-slate-200/20 transition-colors duration-200 focus-within:border-yellow-300/80 focus-within:bg-white focus-within:ring-8 focus-within:ring-yellow-500/5"
-    >
-      <Search className="ml-2.5 sm:ml-4 size-4.5 sm:size-5 shrink-0 text-yellow-600/70" />
-      <input
-        value={query}
-        onChange={(event) => setQuery(event.target.value)}
-        className="h-11 min-w-0 flex-1 border-0 bg-transparent text-xs sm:text-base font-semibold text-slate-800 outline-none placeholder:font-medium placeholder:text-slate-400 sm:h-14 px-1.5 sm:px-2"
-        placeholder="Cari judul, penulis, skripsi, atau topik..."
-      />
-      <button
-        type="submit"
-        className="inline-flex h-10 shrink-0 items-center justify-center gap-1.5 sm:gap-2 rounded-full bg-gradient-to-r from-red-600 via-yellow-600 to-orange-600 px-4 sm:px-8 text-xs sm:text-sm font-bold text-white shadow-sm transition-transform duration-200 hover:-translate-y-0.5 active:scale-[0.99] sm:h-12 border-0"
+    <div className="mx-auto w-full max-w-3xl">
+      <form
+        onSubmit={handleSubmit}
+        className="flex w-full items-center gap-2 rounded-xl border border-slate-200 bg-white p-1.5 sm:p-2 shadow-lg shadow-red-950/10 transition-all focus-within:border-red-700 focus-within:ring-4 focus-within:ring-red-500/10"
       >
-        <Search className="size-3.5 sm:size-4" />
-        <span>Cari</span>
-      </button>
-    </form>
+        <Search className="ml-2.5 sm:ml-3.5 size-4 sm:size-5 shrink-0 text-red-700" />
+        <input
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          className="h-10 sm:h-12 min-w-0 flex-1 border-0 bg-transparent text-xs sm:text-sm font-medium text-slate-900 outline-none placeholder:text-slate-400 px-1.5 sm:px-2"
+          placeholder="Cari buku, skripsi, pengarang, atau topik riset..."
+        />
+        <button
+          type="submit"
+          className="inline-flex h-9 sm:h-11 shrink-0 items-center justify-center gap-1.5 sm:gap-2 rounded-lg bg-red-800 px-4 sm:px-6 text-xs sm:text-sm font-bold text-white shadow-xs transition-colors hover:bg-red-900 cursor-pointer"
+        >
+          <span>Cari</span>
+        </button>
+      </form>
+
+      <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 text-xs">
+        <span className="text-red-200/80 font-medium mr-1 hidden sm:inline">Pencarian populer:</span>
+        {quickTags.map((tag) => (
+          <button
+            key={tag}
+            type="button"
+            onClick={() => handleTagClick(tag)}
+            className="rounded-full border border-white/20 bg-white/10 px-2.5 py-0.5 text-[11px] font-medium text-white transition-colors hover:bg-white/20 hover:border-white/40 cursor-pointer"
+          >
+            {tag}
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }

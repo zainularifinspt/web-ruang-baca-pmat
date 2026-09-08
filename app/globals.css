@@ -125,6 +125,24 @@ a {
   transform: translateY(-2px);
 }
 
+.academic-crimson-card {
+  background: #ffffff;
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  border-radius: 0.875rem;
+  box-shadow: 0 2px 4px 0 rgba(15, 23, 42, 0.04);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.academic-crimson-card:hover {
+  border-color: #b91c1c;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px -4px rgba(185, 28, 28, 0.12);
+}
+
+.crimson-glow {
+  box-shadow: 0 10px 30px -10px rgba(185, 28, 28, 0.25);
+}
+
 .glass-panel {
   background: rgba(255, 255, 255, 0.95);
   border-radius: 1rem;

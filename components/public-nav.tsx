@@ -73,7 +73,7 @@ export function PublicNav({
       <div className="mx-auto flex min-h-16 sm:min-h-18 max-w-7xl items-center justify-between gap-3 px-3.5 py-2.5 sm:px-6 sm:py-3.5">
         <Link href="/" className="group flex min-w-0 max-w-[calc(100%-54px)] items-center gap-3">
           <div className="flex shrink-0 items-center -space-x-1 sm:-space-x-1.5">
-            <div className="flex size-9 sm:size-10 items-center justify-center rounded-xl bg-slate-900 text-white shadow-xs transition-transform duration-200 group-hover:scale-105">
+            <div className="flex size-9 sm:size-10 items-center justify-center rounded-xl bg-red-800 text-white shadow-xs transition-transform duration-200 group-hover:scale-105">
               <BookOpen className="size-4.5 sm:size-5" />
             </div>
             <span className="flex size-8 sm:size-9 items-center justify-center rounded-full border border-white bg-white shadow-xs ring-1 ring-slate-200">
@@ -92,7 +92,7 @@ export function PublicNav({
           <NavLink href="/presensi" icon={ScanLine} label="Presensi" />
           <NavLink href="/tentang" icon={Info} label="Tentang" />
           <div className="mx-1 h-5 w-px bg-slate-200" />
-          <Button asChild size="sm" className="rounded-lg bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs transition-colors duration-200 hover:bg-slate-800 active:scale-[0.99] border-0">
+          <Button asChild size="sm" className="rounded-lg bg-red-800 px-4 py-2 text-xs font-semibold text-white shadow-xs transition-colors duration-200 hover:bg-red-900 active:scale-[0.99] border-0">
             <Link href="/login?redirectTo=/dashboard">
               <LogIn className="size-3.5" />
               Admin

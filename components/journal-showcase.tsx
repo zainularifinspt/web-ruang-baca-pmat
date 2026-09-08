@@ -78,7 +78,7 @@ function JournalCard({ journal }: { journal: JournalInfo }) {
 
         {/* Title */}
         <div className="mb-3">
-          <h3 className={`text-xl sm:text-2xl font-bold tracking-tight text-slate-900 transition-colors duration-200 ${isEduMat ? "group-hover:text-amber-700" : "group-hover:text-blue-700"}`}>
+          <h3 className={`text-xl sm:text-2xl font-bold tracking-tight text-slate-900 transition-colors duration-200 ${isEduMat ? "group-hover:text-red-800" : "group-hover:text-red-700"}`}>
             {journal.title}
           </h3>
         </div>
@@ -86,7 +86,7 @@ function JournalCard({ journal }: { journal: JournalInfo }) {
         {/* Meta Chips: Frekuensi Terbit & Editor in Chief */}
         <div className="mb-4 flex flex-wrap items-center gap-2">
           <div className="inline-flex items-center gap-1.5 rounded-md bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700 border border-slate-200/50">
-            <Calendar className={`size-3.5 ${isEduMat ? "text-amber-600" : "text-blue-600"}`} />
+            <Calendar className={`size-3.5 ${isEduMat ? "text-red-700" : "text-rose-700"}`} />
             <span>Terbit: <strong className="text-slate-900 font-semibold">{journal.frequency}</strong></span>
           </div>
 
@@ -136,10 +136,10 @@ function JournalCard({ journal }: { journal: JournalInfo }) {
         <div className="mt-auto pt-2">
           <Button
             asChild
-            className={`w-full rounded-lg py-2.5 text-xs sm:text-sm font-semibold text-white shadow-xs transition-colors duration-200 border-0 ${
+            className={`w-full rounded-xl py-2.5 text-xs sm:text-sm font-bold text-white shadow-xs transition-colors duration-200 border-0 cursor-pointer ${
               isEduMat
-                ? "bg-amber-600 hover:bg-amber-700"
-                : "bg-blue-600 hover:bg-blue-700"
+                ? "bg-red-800 hover:bg-red-900"
+                : "bg-slate-900 hover:bg-slate-800"
             }`}
           >
             <a
@@ -151,7 +151,7 @@ function JournalCard({ journal }: { journal: JournalInfo }) {
               }}
             >
               <Library className="size-4 mr-2" />
-              Kunjungi Halaman Jurnal
+              Kunjungi OJS Jurnal
               <ExternalLink className="size-3.5 ml-2 opacity-85" />
             </a>
           </Button>

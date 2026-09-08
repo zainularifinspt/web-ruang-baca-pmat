@@ -31,22 +31,24 @@ export default async function ScopusPage() {
 
       <main className="relative overflow-hidden">
         {/* Hero Section */}
-        <section className="relative overflow-hidden border-b border-slate-200/80 bg-white pt-10 pb-12 sm:pt-14 sm:pb-16 text-center">
-          <ScopusHeroBackdrop />
+        <section className="relative overflow-hidden border-b border-red-950/20 bg-gradient-to-b from-[#7f1d1d] via-[#881337] to-[#991b1b] pt-12 pb-16 sm:pt-16 sm:pb-20 text-center text-white shadow-xl shadow-red-950/25">
+          {/* Ambient light glow */}
+          <div className="pointer-events-none absolute -left-20 -top-20 size-80 rounded-full bg-red-400/20 blur-3xl" />
+          <div className="pointer-events-none absolute -right-20 bottom-0 size-80 rounded-full bg-amber-400/15 blur-3xl" />
 
           <FadeInStagger className="relative z-10 mx-auto max-w-5xl px-4 sm:px-6">
             {/* Top Badges */}
             <FadeIn className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mb-4 sm:mb-5">
-              <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3.5 py-1 text-xs font-semibold text-slate-700 shadow-2xs">
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/15 px-3.5 py-1 text-xs font-semibold text-white shadow-xs backdrop-blur">
                 <span className="relative flex size-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex size-2 rounded-full bg-emerald-500"></span>
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-300 opacity-75"></span>
+                  <span className="relative inline-flex size-2 rounded-full bg-emerald-400"></span>
                 </span>
-                <Globe2 className="size-3.5 text-slate-500" />
+                <Globe2 className="size-3.5 text-amber-300" />
                 Elsevier Scopus® Hub
               </span>
 
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3.5 py-1 text-xs font-semibold text-slate-700 shadow-2xs">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/15 px-3.5 py-1 text-xs font-semibold text-white shadow-xs backdrop-blur">
                 <Image
                   src="/ulm-logo.png"
                   alt="Logo ULM"
@@ -61,17 +63,30 @@ export default async function ScopusPage() {
 
             {/* Headline */}
             <FadeIn>
-              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-slate-900 leading-tight">
+              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white leading-tight">
                 Pencarian Publikasi Ilmiah Scopus®
               </h1>
             </FadeIn>
 
             {/* Subtitle */}
             <FadeIn>
-              <p className="mx-auto mt-3.5 sm:mt-5 max-w-2xl text-xs sm:text-base leading-relaxed text-slate-600 font-normal">
+              <p className="mx-auto mt-3.5 sm:mt-5 max-w-2xl text-xs sm:text-base leading-relaxed text-red-100 font-normal">
                 Eksplorasi publikasi jurnal internasional bereputasi tinggi (Q1–Q4), sitasi global, dan referensi mutakhir
                 di bidang Pendidikan Matematika dan kajian riset Universitas Lambung Mangkurat.
               </p>
+            </FadeIn>
+
+            {/* Quick Feature Badges */}
+            <FadeIn className="mt-5 flex flex-wrap items-center justify-center gap-2 text-xs">
+              <span className="inline-flex items-center rounded-lg bg-black/25 px-2.5 py-1 font-semibold text-red-100 ring-1 ring-white/15">
+                🌐 Database Terindeks Elsevier
+              </span>
+              <span className="inline-flex items-center rounded-lg bg-black/25 px-2.5 py-1 font-semibold text-red-100 ring-1 ring-white/15">
+                📊 Data Sitasi &amp; Quartile
+              </span>
+              <span className="inline-flex items-center rounded-lg bg-black/25 px-2.5 py-1 font-semibold text-red-100 ring-1 ring-white/15">
+                🔓 Tautan DOI &amp; Open Access
+              </span>
             </FadeIn>
           </FadeInStagger>
         </section>
@@ -160,14 +175,5 @@ function Footer() {
         © 2026 Ruang Baca Jurusan Pendidikan Matematika ULM.
       </div>
     </footer>
-  );
-}
-
-function ScopusHeroBackdrop() {
-  return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-      <div className="absolute right-0 top-0 h-72 w-72 rounded-full bg-slate-100/80 blur-3xl" />
-      <div className="absolute left-0 bottom-0 h-72 w-72 rounded-full bg-rose-50/40 blur-3xl" />
-    </div>
   );
 }

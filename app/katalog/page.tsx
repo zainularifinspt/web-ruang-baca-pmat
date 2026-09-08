@@ -29,19 +29,38 @@ export default async function CatalogPage() {
 
 function CatalogHero() {
   return (
-    <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-white/70 bg-gradient-to-br from-red-800 via-rose-700 to-yellow-800 p-4 sm:p-6 text-white shadow-xl shadow-red-950/20">
-      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:40px_40px] opacity-30" />
-      <div className="relative max-w-4xl">
-        <div className="inline-flex items-center gap-1.5 sm:gap-2 rounded-full bg-white/20 px-2.5 py-0.5 sm:px-3 sm:py-1 text-xs sm:text-sm font-semibold text-red-50 shadow-sm ring-1 ring-white/25 backdrop-blur">
-          <Sparkles className="size-3 sm:size-3.5" />
-          Perpustakaan digital
+    <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-red-900/40 bg-gradient-to-br from-[#7f1d1d] via-[#881337] to-[#991b1b] p-5 sm:p-8 text-white shadow-xl shadow-red-950/25">
+      {/* Ambient glowing radial effects */}
+      <div className="pointer-events-none absolute -right-20 -top-20 size-72 rounded-full bg-red-400/20 blur-3xl" />
+      <div className="pointer-events-none absolute -left-20 -bottom-20 size-72 rounded-full bg-amber-400/15 blur-3xl" />
+
+      <div className="relative z-10 max-w-4xl space-y-3">
+        <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs sm:text-sm font-bold text-white shadow-xs ring-1 ring-white/25 backdrop-blur">
+          <Sparkles className="size-3.5 text-amber-300" />
+          <span>Koleksi Terpadu Ruang Baca PMat FKIP ULM</span>
         </div>
-        <h1 className="mt-3 text-2xl font-extrabold tracking-tight sm:text-4xl leading-tight">
-          Katalog Buku, E-Book, dan Repositori Skripsi
+
+        <h1 className="text-2xl font-black tracking-tight sm:text-4xl text-white leading-tight">
+          Katalog Buku, E-Book Digital &amp; Repositori Skripsi
         </h1>
-        <p className="mt-2 sm:mt-3 max-w-3xl text-xs sm:text-base leading-relaxed text-red-50">
-          Cari referensi akademik, baca dan download e-book perkuliahan digital via Google Drive, serta telusuri repositori skripsi mahasiswa Pendidikan Matematika.
+
+        <p className="max-w-3xl text-xs sm:text-base leading-relaxed text-red-100 font-normal">
+          Temukan buku teks matematika, baca dan download e-book perkuliahan digital via Google Drive,
+          serta telusuri riset skripsi mahasiswa Jurusan Pendidikan Matematika.
         </p>
+
+        {/* Quick Highlights */}
+        <div className="flex flex-wrap items-center gap-2 pt-2 text-xs">
+          <span className="inline-flex items-center rounded-lg bg-black/25 px-2.5 py-1 font-semibold text-red-100 ring-1 ring-white/15">
+            📚 Buku Fisik &amp; Lokasi Rak
+          </span>
+          <span className="inline-flex items-center rounded-lg bg-black/25 px-2.5 py-1 font-semibold text-red-100 ring-1 ring-white/15">
+            ⚡ E-Book Digital &amp; PDF Drive
+          </span>
+          <span className="inline-flex items-center rounded-lg bg-black/25 px-2.5 py-1 font-semibold text-red-100 ring-1 ring-white/15">
+            🎓 Skripsi &amp; Pembimbing
+          </span>
+        </div>
       </div>
     </section>
   );
