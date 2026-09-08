@@ -30,6 +30,7 @@ export type ScopusSearchOptions = {
   docType?: string;
   openAccessOnly?: boolean;
   apiKey?: string;
+  searchField?: "title" | "all" | "author";
 };
 
 export type ScopusSearchResponse = {
@@ -87,34 +88,42 @@ export function formatScopusQuery(options: {
   language?: string;
   docType?: string;
   openAccessOnly?: boolean;
+  searchField?: "title" | "all" | "author";
 }): string {
   let baseQuery = "";
   const trimmed = options.rawQuery.trim();
+  const searchField = options.searchField ?? "title";
+  const fieldTag =
+    searchField === "author"
+      ? "AUTH"
+      : searchField === "all"
+      ? "TITLE-ABS-KEY"
+      : "TITLE";
 
   // If preset is selected and query is empty, use preset defaults
   if (!trimmed && options.preset) {
     switch (options.preset) {
       case "pmat":
-        baseQuery = 'TITLE-ABS-KEY("mathematics education" OR "mathematics learning")';
+        baseQuery = `${fieldTag}("mathematics education" OR "mathematics learning")`;
         break;
       case "ulm":
-        baseQuery = 'AFFIL("Universitas Lambung Mangkurat") AND ("mathematics" OR "pendidikan")';
+        baseQuery = `AFFIL("Universitas Lambung Mangkurat") AND ${fieldTag}("mathematics" OR "matematika" OR "pendidikan")`;
         break;
       case "rme":
-        baseQuery = 'TITLE-ABS-KEY("realistic mathematics education" OR "RME" OR "PMRI")';
+        baseQuery = `${fieldTag}("realistic mathematics education" OR "RME" OR "PMRI")`;
         break;
       case "ethnomath":
-        baseQuery = 'TITLE-ABS-KEY("ethnomathematics" OR "ethno-mathematics")';
+        baseQuery = `${fieldTag}("ethnomathematics" OR "ethno-mathematics")`;
         break;
       case "hots":
         baseQuery =
-          'TITLE-ABS-KEY("mathematical problem solving" OR "higher order thinking" OR "HOTS") AND "mathematics"';
+          `${fieldTag}("mathematical problem solving" OR "higher order thinking" OR "HOTS")`;
         break;
       default:
-        baseQuery = 'TITLE-ABS-KEY("mathematics education")';
+        baseQuery = `${fieldTag}("mathematics education")`;
     }
   } else if (!trimmed) {
-    baseQuery = 'TITLE-ABS-KEY("mathematics education")';
+    baseQuery = `${fieldTag}("mathematics education")`;
   } else {
     // 1. Check if the query is or contains a DOI (e.g., 10.37251/jetlc.v3i2.2425)
     const doiMatch = trimmed.match(/\b(10\.\d{4,9}\/[-._;()/:A-Za-z0-9]+)\b/);
@@ -122,6 +131,7 @@ export function formatScopusQuery(options: {
       baseQuery = `DOI("${doiMatch[1]}")`;
     } else if (
       trimmed.includes("TITLE-ABS-KEY(") ||
+      trimmed.includes("TITLE(") ||
       trimmed.includes("AUTH(") ||
       trimmed.includes("AFFIL(") ||
       trimmed.includes("EXACTSRCTITLE(") ||
@@ -131,7 +141,7 @@ export function formatScopusQuery(options: {
       // Direct Scopus query syntax
       baseQuery = trimmed;
     } else if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
-      baseQuery = `TITLE-ABS-KEY(${trimmed})`;
+      baseQuery = `${fieldTag}(${trimmed})`;
     } else {
       // Clean and split words, removing punctuation like quotes, commas, colons, brackets, dots
       const cleanText = trimmed.replace(/["'(),:;[\]\.]/g, " ");
@@ -150,15 +160,15 @@ export function formatScopusQuery(options: {
         // Use clean phrase match OR top significant keywords to guarantee matching
         const phraseSnippet = words.slice(0, 8).join(" ");
         const keyTerms = meaningfulWords.slice(0, 6).join(" AND ");
-        baseQuery = `(TITLE("${phraseSnippet}") OR TITLE-ABS-KEY(${keyTerms}))`;
+        baseQuery = `(${fieldTag}("${phraseSnippet}") OR ${fieldTag}(${keyTerms}))`;
       } else if (meaningfulWords.length > 1) {
-        baseQuery = `TITLE-ABS-KEY(${meaningfulWords.join(" AND ")})`;
+        baseQuery = `${fieldTag}(${meaningfulWords.join(" AND ")})`;
       } else if (meaningfulWords.length === 1) {
-        baseQuery = `TITLE-ABS-KEY(${meaningfulWords[0]})`;
+        baseQuery = `${fieldTag}(${meaningfulWords[0]})`;
       } else if (words.length > 0) {
-        baseQuery = `TITLE-ABS-KEY(${words[0]})`;
+        baseQuery = `${fieldTag}(${words[0]})`;
       } else {
-        baseQuery = 'TITLE-ABS-KEY("mathematics education")';
+        baseQuery = `${fieldTag}("mathematics education")`;
       }
     }
   }
@@ -232,6 +242,7 @@ export async function searchScopusArticles(
     language: options.language,
     docType: options.docType,
     openAccessOnly: options.openAccessOnly,
+    searchField: options.searchField,
   });
 
   // If no Scopus API key is configured, use realistic mock dataset
@@ -775,16 +786,30 @@ function getMockScopusResponse(
       .split(/\s+/)
       .filter((w) => !SCOPUS_STOP_WORDS.has(w) && w.length >= 2);
 
+    const targetField = options.searchField ?? "title";
+
     filtered = filtered.filter((art) => {
-      const artText =
+      const artTitle = art.title.toLowerCase();
+      const artAuthors = art.authors.toLowerCase();
+      const artAll =
         `${art.title} ${art.authors} ${art.journal} ${art.doi ?? ""} ${art.affiliations.join(" ")}`.toLowerCase();
 
-      // Direct substring match
-      if (artText.includes(q) || artText.includes(qClean)) return true;
+      const textToSearch =
+        targetField === "author"
+          ? artAuthors
+          : targetField === "all"
+          ? artAll
+          : artTitle;
 
-      // Token match: if at least 2 tokens match or more than 40% of tokens match
+      // Direct substring match
+      if (textToSearch.includes(q) || textToSearch.includes(qClean)) return true;
+
+      // Token match
       if (qTokens.length > 0) {
-        const matchesCount = qTokens.filter((token) => artText.includes(token)).length;
+        if (targetField === "title") {
+          return qTokens.every((token) => textToSearch.includes(token));
+        }
+        const matchesCount = qTokens.filter((token) => textToSearch.includes(token)).length;
         if (qTokens.length === 1) return matchesCount === 1;
         return matchesCount >= Math.min(2, qTokens.length) || matchesCount / qTokens.length >= 0.4;
       }

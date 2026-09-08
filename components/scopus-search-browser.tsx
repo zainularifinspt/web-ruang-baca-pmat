@@ -27,6 +27,7 @@ export function ScopusSearchBrowser() {
   const [page, setPage] = useState(1);
 
   // Advanced Filters State
+  const [searchField, setSearchField] = useState<"title" | "all" | "author">("title");
   const [year, setYear] = useState("all");
   const [language, setLanguage] = useState("all");
   const [docType, setDocType] = useState("all");
@@ -38,15 +39,25 @@ export function ScopusSearchBrowser() {
   const [hasSearched, setHasSearched] = useState(false);
 
   const hasActiveFilters =
-    year !== "all" || language !== "all" || docType !== "all" || openAccessOnly;
+    year !== "all" ||
+    language !== "all" ||
+    docType !== "all" ||
+    openAccessOnly ||
+    searchField !== "title";
 
-  function fetchResults(searchQuery: string, sortMode: string, pageNum: number) {
+  function fetchResults(
+    searchQuery: string,
+    sortMode: string,
+    pageNum: number,
+    fieldMode: "title" | "all" | "author" = searchField,
+  ) {
     const params = new URLSearchParams();
     if (searchQuery.trim()) params.set("q", searchQuery.trim());
     if (year !== "all") params.set("year", year);
     if (language !== "all") params.set("language", language);
     if (docType !== "all") params.set("docType", docType);
     if (openAccessOnly) params.set("openAccess", "true");
+    params.set("searchField", fieldMode);
 
     params.set("sort", sortMode);
     params.set("page", pageNum.toString());
@@ -69,19 +80,19 @@ export function ScopusSearchBrowser() {
   useEffect(() => {
     // Only re-fetch if user has already searched or selected an active filter
     if (hasSearched || hasActiveFilters) {
-      fetchResults(query, sort, page);
+      fetchResults(query, sort, page, searchField);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sort, page, year, language, docType, openAccessOnly]);
+  }, [sort, page, year, language, docType, openAccessOnly, searchField]);
 
   function handleSearchSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!query.trim() && !hasActiveFilters) {
-      toast.info("Silakan masukkan kata kunci pencarian terlebih dahulu");
+      toast.info("Silakan masukkan kata kunci judul artikel terlebih dahulu");
       return;
     }
     setPage(1);
-    fetchResults(query, sort, 1);
+    fetchResults(query, sort, 1, searchField);
   }
 
   function handleResetFilters() {
@@ -89,6 +100,7 @@ export function ScopusSearchBrowser() {
     setLanguage("all");
     setDocType("all");
     setOpenAccessOnly(false);
+    setSearchField("title");
     setSort("relevance");
     setPage(1);
     if (!query.trim()) {
@@ -109,7 +121,7 @@ export function ScopusSearchBrowser() {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Cari judul artikel, topik, atau keyword di Scopus (contoh: ethnomathematics, geometry, RME)..."
+              placeholder="Cari berdasarkan judul artikel di Scopus (contoh: realistic mathematics education, ethnomathematics)..."
               className="h-12 sm:h-14 w-full rounded-full border border-slate-200/80 bg-white pl-12 pr-10 text-xs sm:text-base font-semibold text-slate-800 shadow-inner outline-none transition-all placeholder:font-normal placeholder:text-slate-400 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10"
             />
             {query ? (
@@ -122,7 +134,7 @@ export function ScopusSearchBrowser() {
                     setHasSearched(false);
                     setData(null);
                   } else {
-                    fetchResults("", sort, 1);
+                    fetchResults("", sort, 1, searchField);
                   }
                 }}
                 className="absolute right-3.5 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
@@ -148,22 +160,33 @@ export function ScopusSearchBrowser() {
         </form>
 
         {/* Filter Toggle Bar */}
-        <div className="mt-3 flex items-center justify-between gap-2 pt-2">
-          <button
-            type="button"
-            onClick={() => setShowFilters(!showFilters)}
-            className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold transition-colors ${
-              hasActiveFilters || showFilters
-                ? "bg-orange-100 text-orange-800 ring-1 ring-orange-300"
-                : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-            }`}
-          >
-            <SlidersHorizontal className="size-3.5" />
-            <span>Filter Spesifik (Tahun, Bahasa, Tipe)</span>
-            {hasActiveFilters ? (
-              <span className="size-2 rounded-full bg-orange-600" />
-            ) : null}
-          </button>
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 pt-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setShowFilters(!showFilters)}
+              className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold transition-colors ${
+                hasActiveFilters || showFilters
+                  ? "bg-orange-100 text-orange-800 ring-1 ring-orange-300"
+                  : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+              }`}
+            >
+              <SlidersHorizontal className="size-3.5" />
+              <span>Filter & Opsi Pencarian</span>
+              {hasActiveFilters ? (
+                <span className="size-2 rounded-full bg-orange-600" />
+              ) : null}
+            </button>
+
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-50/90 border border-orange-200/70 px-3 py-1 text-[11px] font-bold text-orange-800">
+              <BookOpen className="size-3 text-orange-600" />
+              {searchField === "title"
+                ? "Cakupan: Hanya Judul Artikel"
+                : searchField === "author"
+                ? "Cakupan: Nama Penulis"
+                : "Cakupan: Judul, Abstrak & Keyword"}
+            </span>
+          </div>
 
           {hasActiveFilters ? (
             <button
@@ -180,7 +203,28 @@ export function ScopusSearchBrowser() {
         {/* Expandable Advanced Filters Box */}
         {showFilters ? (
           <div className="mt-3 rounded-2xl bg-slate-50/90 p-4 border border-slate-200/70 text-xs animate-in fade-in-50 duration-200">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+              {/* Cakupan Pencarian */}
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Cari Pada:</label>
+                <select
+                  value={searchField}
+                  onChange={(e) => {
+                    const val = e.target.value as "title" | "all" | "author";
+                    setSearchField(val);
+                    setPage(1);
+                    if (query.trim()) {
+                      fetchResults(query, sort, 1, val);
+                    }
+                  }}
+                  className="w-full rounded-xl border border-slate-200 bg-white p-2 font-semibold text-slate-800 outline-none focus:border-orange-500"
+                >
+                  <option value="title">Hanya Judul (Default - Paling Akurat)</option>
+                  <option value="all">Semua (Judul, Abstrak, Keyword)</option>
+                  <option value="author">Nama Penulis (Author)</option>
+                </select>
+              </div>
+
               {/* Filter Tahun */}
               <div>
                 <label className="block font-bold text-slate-700 mb-1">Tahun Terbit:</label>
@@ -265,13 +309,22 @@ export function ScopusSearchBrowser() {
       {/* Meta Filter Bar (Result Count & Sort) */}
       {hasSearched ? (
         <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1">
-          <div className="text-xs sm:text-sm font-semibold text-slate-600 flex items-center gap-2">
-            <Globe2 className="size-4 text-orange-600" />
+          <div className="text-xs sm:text-sm font-semibold text-slate-600 flex flex-wrap items-center gap-2">
+            <Globe2 className="size-4 text-orange-600 shrink-0" />
             <span>
               {isPending
                 ? "Sedang mencari artikel Scopus..."
                 : `Ditemukan ${data?.totalResults?.toLocaleString("id-ID") ?? 0} publikasi internasional`}
             </span>
+            {!isPending ? (
+              <Badge variant="outline" className="text-[11px] font-bold border-orange-200 text-orange-800 bg-orange-50/80">
+                {searchField === "title"
+                  ? "Pencarian Judul"
+                  : searchField === "author"
+                  ? "Pencarian Penulis"
+                  : "Pencarian Lengkap"}
+              </Badge>
+            ) : null}
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5 self-end sm:self-auto">
@@ -301,30 +354,19 @@ export function ScopusSearchBrowser() {
             <Search className="size-8" />
           </div>
           <h3 className="text-lg sm:text-xl font-extrabold text-slate-800">
-            Mulai Pencarian Literatur Scopus
+            Pencarian Literatur Scopus Berdasarkan Judul
           </h3>
           <p className="mx-auto mt-2 max-w-lg text-xs sm:text-sm text-slate-600 leading-relaxed">
-            Ketik kata kunci judul artikel, topik, atau keyword riset di kolom pencarian di atas, lalu tekan tombol <strong>Cari Scopus</strong> atau tekan Enter.
+            Ketik kata kunci judul artikel di kolom pencarian di atas untuk mendapatkan publikasi yang relevan dan presisi, lalu tekan tombol <strong>Cari Scopus</strong> atau tekan Enter.
           </p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-2 text-xs text-slate-500">
-            <span className="font-semibold text-slate-700">Contoh kata kunci:</span>
-            <button
-              type="button"
-              onClick={() => {
-                setQuery("ethnomathematics");
-                setPage(1);
-                fetchResults("ethnomathematics", sort, 1);
-              }}
-              className="rounded-full bg-white px-3 py-1 font-semibold text-orange-700 ring-1 ring-orange-200 hover:bg-orange-50 shadow-2xs cursor-pointer transition-colors"
-            >
-              ethnomathematics
-            </button>
+            <span className="font-semibold text-slate-700">Contoh judul riset:</span>
             <button
               type="button"
               onClick={() => {
                 setQuery("realistic mathematics education");
                 setPage(1);
-                fetchResults("realistic mathematics education", sort, 1);
+                fetchResults("realistic mathematics education", sort, 1, searchField);
               }}
               className="rounded-full bg-white px-3 py-1 font-semibold text-orange-700 ring-1 ring-orange-200 hover:bg-orange-50 shadow-2xs cursor-pointer transition-colors"
             >
@@ -333,13 +375,24 @@ export function ScopusSearchBrowser() {
             <button
               type="button"
               onClick={() => {
-                setQuery("Lambung Mangkurat");
+                setQuery("ethnomathematics");
                 setPage(1);
-                fetchResults("Lambung Mangkurat", sort, 1);
+                fetchResults("ethnomathematics", sort, 1, searchField);
               }}
               className="rounded-full bg-white px-3 py-1 font-semibold text-orange-700 ring-1 ring-orange-200 hover:bg-orange-50 shadow-2xs cursor-pointer transition-colors"
             >
-              Lambung Mangkurat
+              ethnomathematics
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setQuery("mathematical problem solving");
+                setPage(1);
+                fetchResults("mathematical problem solving", sort, 1, searchField);
+              }}
+              className="rounded-full bg-white px-3 py-1 font-semibold text-orange-700 ring-1 ring-orange-200 hover:bg-orange-50 shadow-2xs cursor-pointer transition-colors"
+            >
+              mathematical problem solving
             </button>
           </div>
         </div>

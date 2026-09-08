@@ -29,7 +29,7 @@ export function LogoutButton({ className }: { className?: string }) {
       type="button"
       variant="outline"
       className={cn(
-        "rounded-full border-slate-200 bg-white/90 font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700",
+        "rounded-lg border-slate-200 bg-white font-medium text-slate-800 shadow-2xs hover:bg-slate-50 hover:text-red-700",
         className,
       )}
       onClick={handleLogout}

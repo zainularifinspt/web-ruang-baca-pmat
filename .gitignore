@@ -14,3 +14,14 @@ check-*.js
 delete-*.js
 *.tsbuildinfo
 Data Error/
+
+# AI Coding Harnesses & Local Skills
+.agent/
+.agents/
+.claude/
+.codex/
+.cursor/
+.gemini/
+.opencode/
+.qoder/
+.impeccable/

@@ -16,26 +16,26 @@ export function QuickActionCard({
   tone?: "emerald" | "blue" | "amber";
 }) {
   const tones = {
-    emerald: "bg-gradient-to-br from-red-50 to-yellow-50 text-red-700 ring-red-100",
-    blue: "bg-gradient-to-br from-amber-50 to-yellow-50 text-amber-700 ring-amber-100",
-    amber: "bg-gradient-to-br from-amber-50 to-red-50 text-amber-700 ring-amber-100",
+    emerald: "bg-red-50 text-red-700 border-red-200/60",
+    blue: "bg-amber-50 text-amber-800 border-amber-200/60",
+    amber: "bg-orange-50 text-orange-800 border-orange-200/60",
   };
 
   return (
     <Link
       href={href}
-      className="group rounded-3xl border border-white/80 bg-white/80 p-5 shadow-sm backdrop-blur transition duration-300 hover:-translate-y-1 hover:border-red-100 hover:bg-white hover:shadow-xl hover:shadow-slate-950/10"
+      className="group rounded-xl border border-slate-200 bg-white p-5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md"
     >
       <div className="flex items-start justify-between gap-4">
-        <div className={cn("rounded-2xl p-3 shadow-sm ring-1 transition duration-300 group-hover:scale-105", tones[tone])}>
+        <div className={cn("rounded-lg p-2.5 border transition duration-200 group-hover:scale-105", tones[tone])}>
           <Icon className="size-5" />
         </div>
-        <span className="flex size-8 items-center justify-center rounded-full bg-slate-50 text-slate-400 ring-1 ring-slate-200 transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:bg-red-50 group-hover:text-red-700 group-hover:ring-red-100">
-          <ArrowUpRight className="size-4" />
+        <span className="flex size-7 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition group-hover:bg-slate-900 group-hover:text-white">
+          <ArrowUpRight className="size-3.5" />
         </span>
       </div>
-      <h3 className="mt-5 font-bold tracking-tight text-slate-950">{title}</h3>
-      <p className="mt-2 text-sm leading-6 text-slate-600">{description}</p>
+      <h3 className="mt-4 font-semibold tracking-tight text-slate-900">{title}</h3>
+      <p className="mt-1.5 text-sm leading-relaxed text-slate-600">{description}</p>
     </Link>
   );
 }

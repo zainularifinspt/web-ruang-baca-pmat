@@ -19,6 +19,10 @@ export async function GET(request: NextRequest) {
     const docType = searchParams.get("docType") ?? undefined;
     const openAccessOnly = searchParams.get("openAccess") === "true";
     const apiKey = searchParams.get("apiKey") || request.headers.get("x-scopus-api-key") || undefined;
+    const searchField = (searchParams.get("searchField") ?? "title") as
+      | "title"
+      | "all"
+      | "author";
 
     const result = await searchScopusArticles({
       query,
@@ -31,6 +35,7 @@ export async function GET(request: NextRequest) {
       docType: docType || undefined,
       openAccessOnly,
       apiKey: apiKey || undefined,
+      searchField,
     });
 
     return NextResponse.json(result, {

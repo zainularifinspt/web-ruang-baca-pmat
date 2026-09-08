@@ -66,35 +66,35 @@ export function PublicNav({
       className={cn(
         "sticky top-0 z-40 border-b transition-colors duration-200",
         scrolled
-          ? "border-white/50 bg-white/90 shadow-sm backdrop-blur-md"
-          : "border-transparent bg-white/80 backdrop-blur-sm",
+          ? "border-slate-200/80 bg-white/95 shadow-xs backdrop-blur-md"
+          : "border-slate-200/50 bg-white/90 backdrop-blur-sm",
       )}
     >
-      <div className="mx-auto flex min-h-16 sm:min-h-18 max-w-7xl items-center justify-between gap-3 px-3.5 py-2.5 sm:px-6 sm:py-4">
-        <Link href="/" className="group flex min-w-0 max-w-[calc(100%-54px)] items-center gap-2.5 sm:gap-3">
-          <div className="flex shrink-0 items-center -space-x-1.5 sm:-space-x-2">
-            <div className="flex size-9 sm:size-11 items-center justify-center rounded-xl sm:rounded-2xl bg-[linear-gradient(135deg,#047857,#0891b2_55%,#7c3aed)] text-primary-foreground shadow-md shadow-red-950/15 transition-all duration-300 group-hover:scale-105">
+      <div className="mx-auto flex min-h-16 sm:min-h-18 max-w-7xl items-center justify-between gap-3 px-3.5 py-2.5 sm:px-6 sm:py-3.5">
+        <Link href="/" className="group flex min-w-0 max-w-[calc(100%-54px)] items-center gap-3">
+          <div className="flex shrink-0 items-center -space-x-1 sm:-space-x-1.5">
+            <div className="flex size-9 sm:size-10 items-center justify-center rounded-xl bg-slate-900 text-white shadow-xs transition-transform duration-200 group-hover:scale-105">
               <BookOpen className="size-4.5 sm:size-5" />
             </div>
-            <span className="flex size-8 sm:size-10 items-center justify-center rounded-full border border-white bg-white shadow-sm ring-1 ring-slate-100">
-              <Image src="/ulm-logo.png" alt="Logo Universitas Lambung Mangkurat" width={30} height={30} className="size-6 object-contain sm:size-8" priority />
+            <span className="flex size-8 sm:size-9 items-center justify-center rounded-full border border-white bg-white shadow-xs ring-1 ring-slate-200">
+              <Image src="/ulm-logo.png" alt="Logo Universitas Lambung Mangkurat" width={28} height={28} className="size-5 sm:size-6 object-contain" priority />
             </span>
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm sm:text-base font-bold leading-tight tracking-tight text-slate-950">Ruang Baca PMat</p>
-            <p className="mt-0.5 truncate text-[11px] sm:text-xs text-slate-500 font-medium">Pendidikan Matematika ULM</p>
+            <p className="truncate text-sm sm:text-base font-bold leading-tight tracking-tight text-slate-900">Ruang Baca PMat</p>
+            <p className="mt-0.5 truncate text-[11px] sm:text-xs text-slate-500 font-medium">Pendidikan Matematika FKIP ULM</p>
           </div>
         </Link>
         <NavbarSearch items={searchItems} className="hidden md:block order-3 w-full md:order-none md:w-[min(42vw,28rem)]" />
-        <nav className="hidden items-center gap-3 md:flex">
+        <nav className="hidden items-center gap-2 md:flex">
           <NavLink href="/katalog" icon={Search} label="Katalog" />
           <NavLink href="/scopus" icon={Globe2} label="Scopus" />
           <NavLink href="/presensi" icon={ScanLine} label="Presensi" />
           <NavLink href="/tentang" icon={Info} label="Tentang" />
-          <div className="mx-1 h-6 w-px bg-slate-200/50" />
-          <Button asChild size="sm" className="rounded-[1.25rem] bg-[#ff5e3a] px-6 font-semibold text-white shadow-sm transition-colors duration-200 hover:bg-red-600 active:scale-[0.98] border-0">
+          <div className="mx-1 h-5 w-px bg-slate-200" />
+          <Button asChild size="sm" className="rounded-lg bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs transition-colors duration-200 hover:bg-slate-800 active:scale-[0.99] border-0">
             <Link href="/login?redirectTo=/dashboard">
-              <LogIn className="size-4" />
+              <LogIn className="size-3.5" />
               Admin
             </Link>
           </Button>
@@ -140,14 +140,14 @@ function NavbarSearch({
   return (
     <div className={cn("relative", className)}>
       <div className="relative">
-        <Search className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-yellow-600/70" />
+        <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           onFocus={() => setFocused(true)}
           onBlur={() => window.setTimeout(() => setFocused(false), 140)}
           placeholder="Cari buku atau skripsi..."
-          className="h-11 w-full rounded-full border border-white/60 bg-white/75 pl-10 pr-10 text-sm font-semibold text-slate-800 shadow-sm outline-none transition-colors duration-200 placeholder:font-medium placeholder:text-slate-400 focus:border-yellow-300/80 focus:bg-white focus:ring-4 focus:ring-yellow-500/5"
+          className="h-9.5 w-full rounded-lg border border-slate-200 bg-slate-50/80 pl-9 pr-9 text-xs sm:text-sm font-medium text-slate-800 shadow-2xs outline-none transition-colors duration-200 placeholder:text-slate-400 focus:border-slate-300 focus:bg-white focus:ring-2 focus:ring-slate-100"
         />
         {query ? (
           <button
@@ -157,10 +157,10 @@ function NavbarSearch({
               setQuery("");
               setDebouncedQuery("");
             }}
-            className="absolute right-2.5 top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+            className="absolute right-2.5 top-1/2 flex size-6 -translate-y-1/2 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
             aria-label="Kosongkan pencarian"
           >
-            <X className="size-4" />
+            <X className="size-3.5" />
           </button>
         ) : null}
       </div>
@@ -172,10 +172,10 @@ function NavbarSearch({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.97, y: -6 }}
             transition={{ type: "spring", stiffness: 400, damping: 28 }}
-            className="nav-search-dropdown absolute left-0 right-0 top-full mt-2.5 origin-top overflow-hidden rounded-[1.75rem] border border-white/60 bg-white/95 shadow-xl ring-1 ring-slate-200/20"
+            className="nav-search-dropdown absolute left-0 right-0 top-full mt-2 origin-top overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg ring-1 ring-slate-950/5"
             style={{ willChange: "transform, opacity" }}
           >
-            <div className="border-b border-slate-100/50 px-4 py-2.5 text-xs font-semibold text-slate-500">
+            <div className="border-b border-slate-100 px-4 py-2 text-xs font-semibold text-slate-500">
               {results.length ? `${results.length} hasil cepat` : "Tidak ada hasil"}
             </div>
             <div className="grid max-h-80 overflow-auto p-2">
@@ -253,11 +253,10 @@ function NavLink({
   return (
     <Link
       href={href}
-      className="group relative inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition-colors duration-200 hover:bg-white/70 hover:text-slate-950"
+      className="group inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-600 transition-colors duration-200 hover:bg-slate-100 hover:text-slate-900"
     >
-      <Icon className="size-4 text-red-600 transition-transform duration-200 group-hover:-translate-y-0.5" />
+      <Icon className="size-3.5 text-slate-400 transition-colors group-hover:text-slate-900" />
       {label}
-      <span className="absolute inset-x-4 -bottom-px h-0.5 scale-x-0 rounded-full bg-[linear-gradient(90deg,#047857,#0891b2,#7c3aed)] transition-transform duration-300 group-hover:scale-x-100" />
     </Link>
   );
 }
