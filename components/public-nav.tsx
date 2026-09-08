@@ -71,7 +71,7 @@ export function PublicNav({
       className={cn(
         "sticky top-0 z-40 border-b transition-all duration-300",
         isHomeHero
-          ? "border-white/10 bg-transparent text-white"
+          ? "border-b border-white/10 bg-[#0c0103]/90 backdrop-blur-md text-white shadow-sm"
           : scrolled
             ? "border-slate-200/80 bg-white/95 shadow-xs backdrop-blur-md text-slate-900"
             : "border-slate-200/50 bg-white/90 backdrop-blur-sm text-slate-900",

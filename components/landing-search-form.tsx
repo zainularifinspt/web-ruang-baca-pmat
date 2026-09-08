@@ -139,9 +139,9 @@ export function LandingSearchForm() {
       </form>
 
       {/* Prompts / Popular Topics (Below the card) */}
-      <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-xs">
-        <span className="text-red-200/90 font-medium mr-1 text-xs flex items-center gap-1">
-          <Sparkles className="size-3 text-amber-300" />
+      <div className="mt-4.5 flex flex-wrap items-center justify-center gap-2 text-xs">
+        <span className="text-rose-200 font-semibold mr-1 text-xs flex items-center gap-1.5 drop-shadow-xs">
+          <Sparkles className="size-3.5 text-amber-300" />
           <span>Topik Populer:</span>
         </span>
         {quickPrompts.map((tag) => (
@@ -149,7 +149,7 @@ export function LandingSearchForm() {
             key={tag}
             type="button"
             onClick={() => handleTagClick(tag)}
-            className="rounded-full bg-white/10 hover:bg-white/20 border border-white/15 px-3 py-1 text-xs font-semibold text-white/95 backdrop-blur-md transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-2xs"
+            className="rounded-full bg-white/15 hover:bg-white/25 border border-white/25 px-3.5 py-1 text-xs font-semibold text-white shadow-xs backdrop-blur-md transition-all hover:scale-105 active:scale-95 cursor-pointer"
           >
             {tag}
           </button>
@@ -157,7 +157,7 @@ export function LandingSearchForm() {
       </div>
 
       {/* Subtitle Below Card (Pitch style) */}
-      <p className="mx-auto mt-6 max-w-2xl text-xs sm:text-base leading-relaxed text-red-100/90 font-normal text-center">
+      <p className="mx-auto mt-6 max-w-2xl text-sm sm:text-base leading-relaxed text-rose-100/95 font-medium text-center drop-shadow-sm">
         Pusat literatur ilmiah, repositori skripsi S1, dan eksplorasi jurnal Scopus bereputasi Jurusan Pendidikan Matematika FKIP Universitas Lambung Mangkurat.
       </p>
     </div>

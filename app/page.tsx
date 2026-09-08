@@ -42,19 +42,19 @@ export default async function HomePage() {
       <PublicNav initialSearchItems={searchItems} />
       <main className="relative overflow-hidden">
         {/* Pitch-Style Glowing Red Hero */}
-        <section className="relative overflow-hidden pitch-red-hero text-white pb-24 pt-12 sm:pb-32 sm:pt-18 lg:pb-36 lg:pt-22">
+        <section className="relative overflow-hidden bg-[#0c0103] pitch-red-hero text-white pb-24 pt-10 sm:pb-32 sm:pt-16 lg:pb-36 lg:pt-20">
           <PitchHeroBackdrop />
 
           <FadeInStagger>
             <div className="relative z-10 mx-auto max-w-5xl px-4 text-center sm:px-6">
               <FadeIn>
-                <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-bold text-white shadow-xs backdrop-blur-md mb-6 sm:mb-8">
+                <div className="inline-flex items-center gap-2 rounded-full border border-rose-400/40 bg-rose-950/70 px-4 py-1.5 text-xs font-bold text-rose-100 shadow-md backdrop-blur-md mb-6 sm:mb-8">
                   <Image src="/ulm-logo.png" alt="Logo Universitas Lambung Mangkurat" width={18} height={18} className="size-4 object-contain drop-shadow-xs" priority />
                   <span>Jurusan Pendidikan Matematika FKIP ULM</span>
                 </div>
               </FadeIn>
               <FadeIn>
-                <h1 className="mx-auto max-w-5xl text-4xl font-black tracking-[-0.04em] text-white sm:text-6xl md:text-7xl lg:text-[5.5rem] leading-[1.04] sm:leading-[0.96] drop-shadow-sm">
+                <h1 className="mx-auto max-w-5xl text-4xl font-black tracking-[-0.04em] text-white sm:text-6xl md:text-7xl lg:text-[5.5rem] leading-[1.04] sm:leading-[0.96] drop-shadow-[0_4px_24px_rgba(0,0,0,0.6)]">
                   Ruang Baca <br className="hidden sm:inline" />
                   Pendidikan Matematika.
                 </h1>
@@ -242,87 +242,87 @@ function PitchHeroBackdrop() {
       {/* Floating Academic Preview Cards - Pitch.com Style */}
       <div className="absolute inset-0">
         {/* Card 1: Top Left */}
-        <div className="absolute top-6 left-3 sm:left-6 lg:left-12 -rotate-3 w-48 sm:w-56 pitch-floating-tile p-3 sm:p-3.5 opacity-25 sm:opacity-40">
+        <div className="absolute top-6 left-3 sm:left-6 lg:left-12 -rotate-3 w-48 sm:w-56 pitch-floating-tile p-3 sm:p-3.5 opacity-90 sm:opacity-95 shadow-2xl">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="rounded-full bg-red-500/25 text-red-200 border border-red-400/30 px-2 py-0.5 text-[9px] font-bold">
+            <span className="rounded-full bg-rose-500/30 text-rose-100 border border-rose-400/40 px-2 py-0.5 text-[10px] font-bold">
               Buku Teks Wajib
             </span>
-            <span className="text-[10px] text-white/50">MAT301</span>
+            <span className="text-[11px] font-bold text-rose-300">MAT301</span>
           </div>
-          <p className="text-xs sm:text-sm font-bold text-white tracking-tight leading-snug">
+          <p className="text-xs sm:text-sm font-bold text-white tracking-tight leading-snug drop-shadow-xs">
             Kalkulus Peubah Banyak
           </p>
-          <p className="text-[10px] text-red-200/70 mt-0.5">Analisis Vektor &amp; Integral</p>
+          <p className="text-[11px] text-rose-100 font-medium mt-0.5">Analisis Vektor &amp; Integral</p>
         </div>
 
         {/* Card 2: Top Center-Left */}
-        <div className="hidden md:block absolute top-5 left-[33%] -translate-x-1/2 -rotate-1 w-44 pitch-floating-tile p-2.5 opacity-20 sm:opacity-35">
+        <div className="hidden md:block absolute top-5 left-[33%] -translate-x-1/2 -rotate-1 w-44 pitch-floating-tile p-3 opacity-90 sm:opacity-95 shadow-2xl">
           <div className="flex items-center gap-1.5 text-amber-300 text-[10px] font-bold mb-1">
             <Sparkles className="size-3" />
             <span>RME Model</span>
           </div>
           <p className="text-xs font-bold text-white">Inovasi Didaktik</p>
-          <p className="text-[9px] text-red-200/70 mt-0.5">Pembelajaran Kontekstual</p>
+          <p className="text-[10px] text-rose-100 font-medium mt-0.5">Pembelajaran Kontekstual</p>
         </div>
 
         {/* Card 3: Top Right */}
-        <div className="absolute top-6 right-3 sm:right-6 lg:right-12 rotate-3 w-48 sm:w-56 pitch-floating-tile p-3 sm:p-3.5 opacity-25 sm:opacity-40">
+        <div className="absolute top-6 right-3 sm:right-6 lg:right-12 rotate-3 w-48 sm:w-56 pitch-floating-tile p-3 sm:p-3.5 opacity-90 sm:opacity-95 shadow-2xl">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="rounded-full bg-amber-500/25 text-amber-200 border border-amber-400/30 px-2 py-0.5 text-[9px] font-bold">
+            <span className="rounded-full bg-amber-500/30 text-amber-200 border border-amber-400/40 px-2 py-0.5 text-[10px] font-bold">
               Elsevier Scopus®
             </span>
-            <span className="text-[10px] text-emerald-400 font-bold">Q1–Q4</span>
+            <span className="text-[11px] text-emerald-400 font-extrabold">Q1–Q4</span>
           </div>
-          <p className="text-xs sm:text-sm font-bold text-white tracking-tight leading-snug">
+          <p className="text-xs sm:text-sm font-bold text-white tracking-tight leading-snug drop-shadow-xs">
             Global Indexed Papers
           </p>
-          <p className="text-[10px] text-red-200/70 mt-0.5">Sitasi &amp; Penulis Dunia</p>
+          <p className="text-[11px] text-rose-100 font-medium mt-0.5">Sitasi &amp; Penulis Dunia</p>
         </div>
 
         {/* Card 4: Middle Left (Flanking Title) */}
-        <div className="hidden sm:block absolute top-48 -left-6 lg:left-6 rotate-2 w-52 sm:w-60 pitch-floating-tile p-3.5 opacity-25 sm:opacity-35">
+        <div className="hidden sm:block absolute top-48 -left-6 lg:left-6 rotate-2 w-52 sm:w-60 pitch-floating-tile p-3.5 opacity-85 sm:opacity-90 shadow-2xl">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="rounded-full bg-rose-500/25 text-rose-200 border border-rose-400/30 px-2 py-0.5 text-[9px] font-bold">
+            <span className="rounded-full bg-rose-500/30 text-rose-100 border border-rose-400/40 px-2 py-0.5 text-[10px] font-bold">
               Skripsi S1
             </span>
-            <span className="text-[10px] text-white/50">2024</span>
+            <span className="text-[11px] font-bold text-rose-300">2024</span>
           </div>
-          <p className="text-xs sm:text-sm font-bold text-white tracking-tight leading-snug">
+          <p className="text-xs sm:text-sm font-bold text-white tracking-tight leading-snug drop-shadow-xs">
             Etnomatematika Sasirangan
           </p>
-          <p className="text-[10px] text-red-200/70 mt-0.5">Geometri Motif Kain Tradisional</p>
+          <p className="text-[11px] text-rose-100 font-medium mt-0.5">Geometri Motif Kain Tradisional</p>
         </div>
 
         {/* Card 5: Middle Right (Flanking Title) */}
-        <div className="hidden sm:block absolute top-48 -right-6 lg:right-6 -rotate-3 w-52 sm:w-60 pitch-floating-tile p-3.5 opacity-25 sm:opacity-35">
+        <div className="hidden sm:block absolute top-48 -right-6 lg:right-6 -rotate-3 w-52 sm:w-60 pitch-floating-tile p-3.5 opacity-85 sm:opacity-90 shadow-2xl">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="rounded-full bg-amber-500/25 text-amber-200 border border-amber-400/30 px-2 py-0.5 text-[9px] font-bold">
+            <span className="rounded-full bg-amber-500/30 text-amber-200 border border-amber-400/40 px-2 py-0.5 text-[10px] font-bold">
               SINTA 3
             </span>
-            <span className="text-[10px] text-white/50">Jurnal Prodi</span>
+            <span className="text-[11px] text-rose-200 font-semibold">Jurnal Prodi</span>
           </div>
-          <p className="text-xs sm:text-sm font-bold text-white tracking-tight leading-snug">
+          <p className="text-xs sm:text-sm font-bold text-white tracking-tight leading-snug drop-shadow-xs">
             EDU-MAT Jurnal Ilmiah
           </p>
-          <p className="text-[10px] text-red-200/70 mt-0.5">FKIP Universitas Lambung Mangkurat</p>
+          <p className="text-[11px] text-rose-100 font-medium mt-0.5">FKIP Universitas Lambung Mangkurat</p>
         </div>
 
         {/* Card 6: Bottom Left */}
-        <div className="hidden lg:block absolute bottom-28 left-4 lg:left-14 -rotate-2 w-52 pitch-floating-tile p-3.5 opacity-20 sm:opacity-30">
-          <div className="flex items-center gap-1 text-[10px] font-bold text-red-200 mb-1">
+        <div className="hidden lg:block absolute bottom-28 left-4 lg:left-14 -rotate-2 w-52 pitch-floating-tile p-3.5 opacity-85 sm:opacity-90 shadow-2xl">
+          <div className="flex items-center gap-1 text-[10px] font-bold text-rose-200 mb-1">
             <span>⚡ E-Book Digital</span>
           </div>
           <p className="text-xs font-bold text-white">Statistika Multivariat</p>
-          <p className="text-[10px] text-red-200/70 mt-0.5">Akses Cepat Google Drive</p>
+          <p className="text-[10px] text-rose-100 font-medium mt-0.5">Akses Cepat Google Drive</p>
         </div>
 
         {/* Card 7: Bottom Right */}
-        <div className="hidden lg:block absolute bottom-28 right-4 lg:right-14 rotate-4 w-52 pitch-floating-tile p-3.5 opacity-20 sm:opacity-30">
+        <div className="hidden lg:block absolute bottom-28 right-4 lg:right-14 rotate-4 w-52 pitch-floating-tile p-3.5 opacity-85 sm:opacity-90 shadow-2xl">
           <div className="flex items-center gap-1 text-[10px] font-bold text-rose-200 mb-1">
             <span>🎓 JURMADIKTA</span>
           </div>
           <p className="text-xs font-bold text-white">Riset Mahasiswa S1</p>
-          <p className="text-[10px] text-red-200/70 mt-0.5">Diseminasi Karya Ilmiah</p>
+          <p className="text-[10px] text-rose-100 font-medium mt-0.5">Diseminasi Karya Ilmiah</p>
         </div>
       </div>
     </div>
