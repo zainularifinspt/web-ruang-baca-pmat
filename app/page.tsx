@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import type { ComponentType } from "react";
 import {
+  Award,
   BookOpen,
   Building2,
   Clock3,
@@ -11,6 +12,7 @@ import {
   Mail,
   MapPin,
   ScanLine,
+  Sparkles,
   Users,
 } from "lucide-react";
 import { JournalShowcase } from "@/components/journal-showcase";
@@ -39,31 +41,27 @@ export default async function HomePage() {
     <div className="min-h-screen apple-mesh-body text-slate-900 antialiased">
       <PublicNav initialSearchItems={searchItems} />
       <main className="relative overflow-hidden">
-        {/* Apple & Gemini Deep Atmosphere Mesh Hero */}
-        <section className="relative overflow-hidden apple-mesh-hero text-white pb-24 pt-12 sm:pb-32 sm:pt-18 lg:pb-36 lg:pt-22">
-          <MathBackdrop />
+        {/* Pitch-Style Glowing Red Hero */}
+        <section className="relative overflow-hidden pitch-red-hero text-white pb-24 pt-12 sm:pb-32 sm:pt-18 lg:pb-36 lg:pt-22">
+          <PitchHeroBackdrop />
 
           <FadeInStagger>
-            <div className="relative z-10 mx-auto max-w-4xl px-4 text-center sm:px-6">
+            <div className="relative z-10 mx-auto max-w-5xl px-4 text-center sm:px-6">
               <FadeIn>
-                <div className="apple-glass-pill inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold text-white shadow-xs">
+                <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-bold text-white shadow-xs backdrop-blur-md mb-6 sm:mb-8">
                   <Image src="/ulm-logo.png" alt="Logo Universitas Lambung Mangkurat" width={18} height={18} className="size-4 object-contain drop-shadow-xs" priority />
                   <span>Jurusan Pendidikan Matematika FKIP ULM</span>
                 </div>
               </FadeIn>
               <FadeIn>
-                <h1 className="mx-auto mt-6 max-w-3xl text-3xl font-black tracking-tight text-white sm:text-5xl lg:text-6xl leading-tight">
-                  Ruang Baca Pendidikan Matematika
+                <h1 className="mx-auto max-w-5xl text-4xl font-black tracking-[-0.04em] text-white sm:text-6xl md:text-7xl lg:text-[5.5rem] leading-[1.04] sm:leading-[0.96] drop-shadow-sm">
+                  Ruang Baca <br className="hidden sm:inline" />
+                  Pendidikan Matematika.
                 </h1>
               </FadeIn>
-              <FadeIn>
-                <p className="mx-auto mt-4 max-w-2xl text-xs sm:text-base leading-relaxed text-red-100/90 font-normal">
-                  Pusat literatur ilmiah dan referensi akademik Jurusan Pendidikan Matematika Universitas Lambung Mangkurat. Akses katalog buku, repositori skripsi, jurnal Scopus, dan presensi kunjungan.
-                </p>
-              </FadeIn>
 
-              {/* Interactive Search Bar inside Hero */}
-              <FadeIn className="mt-8 sm:mt-10">
+              {/* Interactive Pitch-Style Prompt Search Card */}
+              <FadeIn className="mt-8 sm:mt-11">
                 <LandingSearchForm />
               </FadeIn>
             </div>
@@ -232,15 +230,101 @@ function StatTile({
   );
 }
 
-function MathBackdrop() {
+function PitchHeroBackdrop() {
   return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-      {/* Top center ethereal spotlight */}
-      <div className="absolute -top-32 left-1/2 -translate-x-1/2 h-[500px] w-[800px] rounded-full bg-gradient-to-b from-rose-500/25 via-red-600/15 to-transparent blur-3xl" />
-      {/* Right warm ruby aura */}
-      <div className="absolute top-10 -right-20 h-96 w-96 rounded-full bg-rose-500/20 blur-3xl" />
-      {/* Left subtle amber halo */}
-      <div className="absolute bottom-10 -left-20 h-96 w-96 rounded-full bg-amber-500/15 blur-3xl" />
+    <div className="pointer-events-none absolute inset-0 overflow-hidden select-none" aria-hidden="true">
+      {/* Central Radiant Aurora Glow (Pitch Style) */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[750px] w-[1050px] rounded-full bg-gradient-to-b from-rose-500/40 via-red-600/30 to-transparent blur-3xl" />
+      <div className="absolute -top-32 left-1/2 -translate-x-1/2 h-[550px] w-[850px] rounded-full bg-rose-600/25 blur-3xl" />
+      <div className="absolute -top-20 -right-20 h-96 w-96 rounded-full bg-rose-500/25 blur-3xl" />
+      <div className="absolute -bottom-20 -left-20 h-96 w-96 rounded-full bg-red-600/30 blur-3xl" />
+
+      {/* Floating Academic Preview Cards - Pitch.com Style */}
+      <div className="absolute inset-0">
+        {/* Card 1: Top Left */}
+        <div className="absolute top-6 left-3 sm:left-6 lg:left-12 -rotate-3 w-48 sm:w-56 pitch-floating-tile p-3 sm:p-3.5 opacity-25 sm:opacity-40">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="rounded-full bg-red-500/25 text-red-200 border border-red-400/30 px-2 py-0.5 text-[9px] font-bold">
+              Buku Teks Wajib
+            </span>
+            <span className="text-[10px] text-white/50">MAT301</span>
+          </div>
+          <p className="text-xs sm:text-sm font-bold text-white tracking-tight leading-snug">
+            Kalkulus Peubah Banyak
+          </p>
+          <p className="text-[10px] text-red-200/70 mt-0.5">Analisis Vektor &amp; Integral</p>
+        </div>
+
+        {/* Card 2: Top Center-Left */}
+        <div className="hidden md:block absolute top-5 left-[33%] -translate-x-1/2 -rotate-1 w-44 pitch-floating-tile p-2.5 opacity-20 sm:opacity-35">
+          <div className="flex items-center gap-1.5 text-amber-300 text-[10px] font-bold mb-1">
+            <Sparkles className="size-3" />
+            <span>RME Model</span>
+          </div>
+          <p className="text-xs font-bold text-white">Inovasi Didaktik</p>
+          <p className="text-[9px] text-red-200/70 mt-0.5">Pembelajaran Kontekstual</p>
+        </div>
+
+        {/* Card 3: Top Right */}
+        <div className="absolute top-6 right-3 sm:right-6 lg:right-12 rotate-3 w-48 sm:w-56 pitch-floating-tile p-3 sm:p-3.5 opacity-25 sm:opacity-40">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="rounded-full bg-amber-500/25 text-amber-200 border border-amber-400/30 px-2 py-0.5 text-[9px] font-bold">
+              Elsevier Scopus®
+            </span>
+            <span className="text-[10px] text-emerald-400 font-bold">Q1–Q4</span>
+          </div>
+          <p className="text-xs sm:text-sm font-bold text-white tracking-tight leading-snug">
+            Global Indexed Papers
+          </p>
+          <p className="text-[10px] text-red-200/70 mt-0.5">Sitasi &amp; Penulis Dunia</p>
+        </div>
+
+        {/* Card 4: Middle Left (Flanking Title) */}
+        <div className="hidden sm:block absolute top-48 -left-6 lg:left-6 rotate-2 w-52 sm:w-60 pitch-floating-tile p-3.5 opacity-25 sm:opacity-35">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="rounded-full bg-rose-500/25 text-rose-200 border border-rose-400/30 px-2 py-0.5 text-[9px] font-bold">
+              Skripsi S1
+            </span>
+            <span className="text-[10px] text-white/50">2024</span>
+          </div>
+          <p className="text-xs sm:text-sm font-bold text-white tracking-tight leading-snug">
+            Etnomatematika Sasirangan
+          </p>
+          <p className="text-[10px] text-red-200/70 mt-0.5">Geometri Motif Kain Tradisional</p>
+        </div>
+
+        {/* Card 5: Middle Right (Flanking Title) */}
+        <div className="hidden sm:block absolute top-48 -right-6 lg:right-6 -rotate-3 w-52 sm:w-60 pitch-floating-tile p-3.5 opacity-25 sm:opacity-35">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="rounded-full bg-amber-500/25 text-amber-200 border border-amber-400/30 px-2 py-0.5 text-[9px] font-bold">
+              SINTA 3
+            </span>
+            <span className="text-[10px] text-white/50">Jurnal Prodi</span>
+          </div>
+          <p className="text-xs sm:text-sm font-bold text-white tracking-tight leading-snug">
+            EDU-MAT Jurnal Ilmiah
+          </p>
+          <p className="text-[10px] text-red-200/70 mt-0.5">FKIP Universitas Lambung Mangkurat</p>
+        </div>
+
+        {/* Card 6: Bottom Left */}
+        <div className="hidden lg:block absolute bottom-28 left-4 lg:left-14 -rotate-2 w-52 pitch-floating-tile p-3.5 opacity-20 sm:opacity-30">
+          <div className="flex items-center gap-1 text-[10px] font-bold text-red-200 mb-1">
+            <span>⚡ E-Book Digital</span>
+          </div>
+          <p className="text-xs font-bold text-white">Statistika Multivariat</p>
+          <p className="text-[10px] text-red-200/70 mt-0.5">Akses Cepat Google Drive</p>
+        </div>
+
+        {/* Card 7: Bottom Right */}
+        <div className="hidden lg:block absolute bottom-28 right-4 lg:right-14 rotate-4 w-52 pitch-floating-tile p-3.5 opacity-20 sm:opacity-30">
+          <div className="flex items-center gap-1 text-[10px] font-bold text-rose-200 mb-1">
+            <span>🎓 JURMADIKTA</span>
+          </div>
+          <p className="text-xs font-bold text-white">Riset Mahasiswa S1</p>
+          <p className="text-[10px] text-red-200/70 mt-0.5">Diseminasi Karya Ilmiah</p>
+        </div>
+      </div>
     </div>
   );
 }

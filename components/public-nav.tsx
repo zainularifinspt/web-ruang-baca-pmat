@@ -2,9 +2,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
+  ArrowRight,
   BookOpen,
   Globe2,
   GraduationCap,
@@ -24,8 +26,11 @@ export function PublicNav({
 }: {
   initialSearchItems?: CatalogSearchItem[];
 }) {
+  const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [searchItems, setSearchItems] = useState<CatalogSearchItem[]>(initialSearchItems);
+
+  const isHomeHero = pathname === "/" && !scrolled;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -64,16 +69,21 @@ export function PublicNav({
   return (
     <header
       className={cn(
-        "sticky top-0 z-40 border-b transition-colors duration-200",
-        scrolled
-          ? "border-slate-200/80 bg-white/95 shadow-xs backdrop-blur-md"
-          : "border-slate-200/50 bg-white/90 backdrop-blur-sm",
+        "sticky top-0 z-40 border-b transition-all duration-300",
+        isHomeHero
+          ? "border-white/10 bg-transparent text-white"
+          : scrolled
+            ? "border-slate-200/80 bg-white/95 shadow-xs backdrop-blur-md text-slate-900"
+            : "border-slate-200/50 bg-white/90 backdrop-blur-sm text-slate-900",
       )}
     >
       <div className="mx-auto flex min-h-16 sm:min-h-18 max-w-7xl items-center justify-between gap-3 px-3.5 py-2.5 sm:px-6 sm:py-3.5">
         <Link href="/" className="group flex min-w-0 max-w-[calc(100%-54px)] items-center gap-3">
           <div className="flex shrink-0 items-center -space-x-1 sm:-space-x-1.5">
-            <div className="flex size-9 sm:size-10 items-center justify-center rounded-xl bg-red-800 text-white shadow-xs transition-transform duration-200 group-hover:scale-105">
+            <div className={cn(
+              "flex size-9 sm:size-10 items-center justify-center rounded-xl text-white shadow-xs transition-transform duration-200 group-hover:scale-105",
+              isHomeHero ? "bg-white/20 border border-white/30 backdrop-blur-sm" : "bg-red-800"
+            )}>
               <BookOpen className="size-4.5 sm:size-5" />
             </div>
             <span className="flex size-8 sm:size-9 items-center justify-center rounded-full border border-white bg-white shadow-xs ring-1 ring-slate-200">
@@ -81,25 +91,30 @@ export function PublicNav({
             </span>
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm sm:text-base font-bold leading-tight tracking-tight text-slate-900">Ruang Baca PMat</p>
-            <p className="mt-0.5 truncate text-[11px] sm:text-xs text-slate-500 font-medium">Pendidikan Matematika FKIP ULM</p>
+            <p className={cn("truncate text-sm sm:text-base font-bold leading-tight tracking-tight", isHomeHero ? "text-white" : "text-slate-900")}>Ruang Baca PMat</p>
+            <p className={cn("mt-0.5 truncate text-[11px] sm:text-xs font-medium", isHomeHero ? "text-red-200/85" : "text-slate-500")}>Pendidikan Matematika FKIP ULM</p>
           </div>
         </Link>
-        <NavbarSearch items={searchItems} className="hidden md:block order-3 w-full md:order-none md:w-[min(42vw,28rem)]" />
-        <nav className="hidden items-center gap-2 md:flex">
-          <NavLink href="/katalog" icon={Search} label="Katalog" />
-          <NavLink href="/scopus" icon={Globe2} label="Scopus" />
-          <NavLink href="/presensi" icon={ScanLine} label="Presensi" />
-          <NavLink href="/tentang" icon={Info} label="Tentang" />
-          <div className="mx-1 h-5 w-px bg-slate-200" />
-          <Button asChild size="sm" className="rounded-lg bg-red-800 px-4 py-2 text-xs font-semibold text-white shadow-xs transition-colors duration-200 hover:bg-red-900 active:scale-[0.99] border-0">
-            <Link href="/login?redirectTo=/dashboard">
-              <LogIn className="size-3.5" />
-              Admin
+        <NavbarSearch items={searchItems} className={cn(isHomeHero ? "hidden" : "hidden md:block", "order-3 w-full md:order-none md:w-[min(42vw,28rem)]")} />
+        <nav className="hidden items-center gap-1.5 md:flex">
+          <NavLink href="/katalog" icon={Search} label="Katalog" isHomeHero={isHomeHero} />
+          <NavLink href="/scopus" icon={Globe2} label="Scopus" isHomeHero={isHomeHero} />
+          <NavLink href="/presensi" icon={ScanLine} label="Presensi" isHomeHero={isHomeHero} />
+          <NavLink href="/tentang" icon={Info} label="Tentang" isHomeHero={isHomeHero} />
+          <div className={cn("mx-1 h-5 w-px", isHomeHero ? "bg-white/20" : "bg-slate-200")} />
+          <Button asChild size="sm" className={cn(
+            "rounded-full px-4.5 py-2 text-xs font-bold transition-all duration-200 border-0 cursor-pointer",
+            isHomeHero
+              ? "bg-white text-slate-950 hover:bg-white/90 shadow-md hover:scale-105 active:scale-95"
+              : "bg-red-800 text-white hover:bg-red-900 active:scale-[0.99]"
+          )}>
+            <Link href="/login?redirectTo=/dashboard" className="flex items-center gap-1.5">
+              <span>Admin</span>
+              <ArrowRight className="size-3.5" />
             </Link>
           </Button>
         </nav>
-        <MobileNav />
+        <MobileNav isHomeHero={isHomeHero} />
       </div>
     </header>
   );
@@ -245,23 +260,33 @@ function NavLink({
   href,
   icon: Icon,
   label,
+  isHomeHero = false,
 }: {
   href: string;
   icon: React.ComponentType<{ className?: string }>;
   label: string;
+  isHomeHero?: boolean;
 }) {
   return (
     <Link
       href={href}
-      className="group inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-600 transition-colors duration-200 hover:bg-slate-100 hover:text-slate-900"
+      className={cn(
+        "group inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-bold transition-all duration-200",
+        isHomeHero
+          ? "text-white/85 hover:text-white hover:bg-white/15"
+          : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
+      )}
     >
-      <Icon className="size-3.5 text-slate-400 transition-colors group-hover:text-slate-900" />
+      <Icon className={cn(
+        "size-3.5 transition-colors",
+        isHomeHero ? "text-white/70 group-hover:text-white" : "text-slate-400 group-hover:text-slate-900",
+      )} />
       {label}
     </Link>
   );
 }
 
-function MobileNav() {
+function MobileNav({ isHomeHero = false }: { isHomeHero?: boolean }) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -270,10 +295,15 @@ function MobileNav() {
         variant="outline"
         size="icon"
         onClick={() => setIsOpen(!isOpen)}
-        className="size-10 rounded-full border-white/80 bg-white/85 shadow-sm transition-colors hover:bg-slate-100"
+        className={cn(
+          "size-10 rounded-full shadow-sm transition-colors",
+          isHomeHero
+            ? "border-white/30 bg-white/15 text-white hover:bg-white/25"
+            : "border-white/80 bg-white/85 text-slate-700 hover:bg-slate-100",
+        )}
         aria-label="Toggle menu"
       >
-        {isOpen ? <X className="size-5 text-slate-700" /> : <Menu className="size-5 text-slate-700" />}
+        {isOpen ? <X className="size-5" /> : <Menu className="size-5" />}
       </Button>
       <AnimatePresence>
         {isOpen && (
