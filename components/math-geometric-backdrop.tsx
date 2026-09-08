@@ -56,73 +56,77 @@ export function MathGeometricBackdrop() {
       </svg>
 
       {/* 2. Top-Left: True 3D Rotating Icosahedron (Platonic Solid - 20 Triangles) */}
-      <div className="absolute top-8 left-3 sm:left-8 lg:left-14 opacity-55 sm:opacity-75 hover:opacity-100 transition-opacity duration-300">
+      <div className="pointer-events-auto absolute top-8 left-3 sm:left-8 lg:left-14 opacity-65 sm:opacity-85 hover:opacity-100 transition-all duration-300">
         <RotatingPolyhedron3D
           type="icosahedron"
           size={145}
           speed={{ x: 0.007, y: 0.010, z: 0.004 }}
           glowColor="#f43f5e"
+          label="Ikosahedron 3D"
         />
       </div>
 
       {/* 3. Top-Right: True 3D Rotating Dodecahedron (Platonic Solid - 12 Pentagons) */}
-      <div className="absolute top-10 right-3 sm:right-8 lg:right-16 opacity-55 sm:opacity-75 hover:opacity-100 transition-opacity duration-300">
+      <div className="pointer-events-auto absolute top-10 right-3 sm:right-8 lg:right-16 opacity-65 sm:opacity-85 hover:opacity-100 transition-all duration-300">
         <RotatingPolyhedron3D
           type="dodecahedron"
           size={145}
           speed={{ x: 0.008, y: -0.009, z: 0.005 }}
           glowColor="#fb7185"
+          label="Dodekahedron 3D"
         />
       </div>
 
       {/* 4. Mid-Left: True 3D Rotating Octahedron (Dual-Pyramid Diamond) */}
-      <div className="hidden sm:block absolute top-52 left-6 lg:left-20 opacity-50 sm:opacity-70 hover:opacity-95 transition-opacity duration-300">
+      <div className="pointer-events-auto hidden sm:block absolute top-52 left-6 lg:left-20 opacity-60 sm:opacity-80 hover:opacity-100 transition-all duration-300">
         <RotatingPolyhedron3D
           type="octahedron"
           size={135}
           speed={{ x: -0.009, y: 0.011, z: -0.005 }}
           glowColor="#e11d48"
+          label="Oktahedron 3D"
         />
       </div>
 
       {/* 5. Mid-Right: True 3D Rotating Torus Knot (Parametric Topology) */}
-      <div className="hidden sm:block absolute top-48 right-6 lg:right-20 opacity-50 sm:opacity-70 hover:opacity-95 transition-opacity duration-300">
+      <div className="pointer-events-auto hidden sm:block absolute top-48 right-6 lg:right-20 opacity-60 sm:opacity-80 hover:opacity-100 transition-all duration-300">
         <RotatingPolyhedron3D
           type="torusKnot"
           size={140}
           speed={{ x: 0.010, y: 0.012, z: 0.006 }}
           glowColor="#f43f5e"
+          label="Torus Knot 3D"
         />
       </div>
 
       {/* 6. Floating 3D Glass Math Badges (Elegantly Scattered with Translucent Depth) */}
       {/* Integral Badge (Top Left Near Header) */}
-      <div className="hidden md:block absolute top-28 left-[22%] animate-[float-slow_7s_ease-in-out_infinite] opacity-45 sm:opacity-60 hover:opacity-95 transition-opacity duration-300">
+      <div className="pointer-events-auto hidden md:block absolute top-28 left-[22%] animate-[float-slow_7s_ease-in-out_infinite] opacity-55 sm:opacity-75 hover:opacity-100 transition-all duration-300">
         <MathGlassBadge symbol="∫" label="f(x)dx" glow="#f43f5e" />
       </div>
 
       {/* Sigma Badge (Top Right Near Header) */}
-      <div className="hidden md:block absolute top-24 right-[22%] animate-[float-reverse_8.5s_ease-in-out_infinite] opacity-45 sm:opacity-60 hover:opacity-95 transition-opacity duration-300">
+      <div className="pointer-events-auto hidden md:block absolute top-24 right-[22%] animate-[float-reverse_8.5s_ease-in-out_infinite] opacity-55 sm:opacity-75 hover:opacity-100 transition-all duration-300">
         <MathGlassBadge symbol="∑" label="i=1..n" glow="#fb7185" />
       </div>
 
       {/* Pi Badge (Lower Left Flank) */}
-      <div className="absolute bottom-28 left-4 sm:left-14 lg:left-28 animate-[float-slow_9.5s_ease-in-out_infinite] opacity-45 sm:opacity-60 hover:opacity-95 transition-opacity duration-300">
+      <div className="pointer-events-auto absolute bottom-28 left-4 sm:left-14 lg:left-28 animate-[float-slow_9.5s_ease-in-out_infinite] opacity-55 sm:opacity-75 hover:opacity-100 transition-all duration-300">
         <MathGlassBadge symbol="π" label="3.14159..." glow="#e11d48" />
       </div>
 
       {/* Infinity Badge (Lower Right Flank) */}
-      <div className="absolute bottom-28 right-4 sm:right-14 lg:right-28 animate-[float-reverse_9s_ease-in-out_infinite] opacity-45 sm:opacity-60 hover:opacity-95 transition-opacity duration-300">
+      <div className="pointer-events-auto absolute bottom-28 right-4 sm:right-14 lg:right-28 animate-[float-reverse_9s_ease-in-out_infinite] opacity-55 sm:opacity-75 hover:opacity-100 transition-all duration-300">
         <MathGlassBadge symbol="∞" label="limit" glow="#f43f5e" />
       </div>
 
       {/* Golden Ratio Phi Badge (Center Ambient Left) */}
-      <div className="hidden lg:block absolute top-[65%] left-[8%] animate-[float-slow_8s_ease-in-out_infinite] opacity-40 sm:opacity-55 hover:opacity-90 transition-opacity duration-300">
+      <div className="pointer-events-auto hidden lg:block absolute top-[65%] left-[8%] animate-[float-slow_8s_ease-in-out_infinite] opacity-50 sm:opacity-70 hover:opacity-100 transition-all duration-300">
         <MathGlassBadge symbol="Φ" label="1.618" glow="#fb7185" />
       </div>
 
       {/* Nabla / Delta Vector Operator Badge (Center Ambient Right) */}
-      <div className="hidden lg:block absolute top-[62%] right-[8%] animate-[float-reverse_10s_ease-in-out_infinite] opacity-40 sm:opacity-55 hover:opacity-90 transition-opacity duration-300">
+      <div className="pointer-events-auto hidden lg:block absolute top-[62%] right-[8%] animate-[float-reverse_10s_ease-in-out_infinite] opacity-50 sm:opacity-70 hover:opacity-100 transition-all duration-300">
         <MathGlassBadge symbol="∇" label="vector" glow="#f43f5e" />
       </div>
     </div>
@@ -139,11 +143,13 @@ export function RotatingPolyhedron3D({
   size = 140,
   speed = { x: 0.008, y: 0.010, z: 0.005 },
   glowColor = "#f43f5e",
+  label,
 }: {
   type: "icosahedron" | "dodecahedron" | "octahedron" | "torusKnot";
   size?: number;
   speed?: { x: number; y: number; z: number };
   glowColor?: string;
+  label?: string;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -164,6 +170,78 @@ export function RotatingPolyhedron3D({
     let angleY = Math.random() * Math.PI * 2;
     let angleZ = Math.random() * Math.PI * 2;
 
+    // Interactive mouse drag state
+    let isDragging = false;
+    let lastPointerX = 0;
+    let lastPointerY = 0;
+    let dragVelocityX = 0;
+    let dragVelocityY = 0;
+    let isHovered = false;
+
+    // Global cursor tracking for ambient tilt
+    let globalMouseX = window.innerWidth / 2;
+    let globalMouseY = window.innerHeight / 2;
+    let hasMouseMoved = false;
+    let tiltX = 0;
+    let tiltY = 0;
+
+    const handleGlobalPointerMove = (e: PointerEvent) => {
+      globalMouseX = e.clientX;
+      globalMouseY = e.clientY;
+      hasMouseMoved = true;
+    };
+    window.addEventListener("pointermove", handleGlobalPointerMove, { passive: true });
+
+    // Direct pointer event handlers on canvas
+    const handlePointerDown = (e: PointerEvent) => {
+      isDragging = true;
+      lastPointerX = e.clientX;
+      lastPointerY = e.clientY;
+      dragVelocityX = 0;
+      dragVelocityY = 0;
+      try {
+        canvas.setPointerCapture(e.pointerId);
+      } catch {}
+    };
+
+    const handlePointerMove = (e: PointerEvent) => {
+      if (!isDragging) return;
+      const dx = e.clientX - lastPointerX;
+      const dy = e.clientY - lastPointerY;
+      lastPointerX = e.clientX;
+      lastPointerY = e.clientY;
+
+      const sensitivity = 0.012;
+      angleY += dx * sensitivity;
+      angleX -= dy * sensitivity;
+
+      dragVelocityX = dx * sensitivity;
+      dragVelocityY = -dy * sensitivity;
+    };
+
+    const handlePointerUp = (e: PointerEvent) => {
+      if (!isDragging) return;
+      isDragging = false;
+      try {
+        canvas.releasePointerCapture(e.pointerId);
+      } catch {}
+    };
+
+    const handleMouseEnter = () => {
+      isHovered = true;
+    };
+
+    const handleMouseLeave = () => {
+      isHovered = false;
+    };
+
+    canvas.addEventListener("pointerdown", handlePointerDown);
+    canvas.addEventListener("pointermove", handlePointerMove);
+    canvas.addEventListener("pointerup", handlePointerUp);
+    canvas.addEventListener("pointercancel", handlePointerUp);
+    canvas.addEventListener("mouseenter", handleMouseEnter);
+    canvas.addEventListener("mouseleave", handleMouseLeave);
+
     let animId: number;
     let isVisible = true;
 
@@ -178,26 +256,62 @@ export function RotatingPolyhedron3D({
         return;
       }
 
-      angleX += speed.x;
-      angleY += speed.y;
-      angleZ += speed.z;
+      // Physics & Rotation update
+      if (isDragging) {
+        // Handled in real time by pointermove
+      } else if (Math.abs(dragVelocityX) > 0.0002 || Math.abs(dragVelocityY) > 0.0002) {
+        // Inertia fling momentum
+        angleY += dragVelocityX;
+        angleX += dragVelocityY;
+        dragVelocityX *= 0.94;
+        dragVelocityY *= 0.94;
+        angleZ += speed.z;
+      } else {
+        // Ambient natural rotation
+        angleX += speed.x + (isHovered ? speed.x * 0.4 : 0);
+        angleY += speed.y + (isHovered ? speed.y * 0.4 : 0);
+        angleZ += speed.z;
+      }
+
+      // Cursor-tracking tilt & parallax
+      if (hasMouseMoved && !isDragging) {
+        const rect = canvas.getBoundingClientRect();
+        const objCenterX = rect.left + rect.width / 2;
+        const objCenterY = rect.top + rect.height / 2;
+        const dx = (globalMouseX - objCenterX) / (window.innerWidth * 0.5);
+        const dy = (globalMouseY - objCenterY) / (window.innerHeight * 0.5);
+        const targetTiltX = Math.max(-0.55, Math.min(0.55, dy * 0.55));
+        const targetTiltY = Math.max(-0.55, Math.min(0.55, dx * 0.55));
+        tiltX += (targetTiltX - tiltX) * 0.06;
+        tiltY += (targetTiltY - tiltY) * 0.06;
+      } else if (!isDragging) {
+        tiltX += (0 - tiltX) * 0.04;
+        tiltY += (0 - tiltY) * 0.04;
+      }
+
+      const effectiveAngleX = angleX + tiltX;
+      const effectiveAngleY = angleY + tiltY;
+      const effectiveAngleZ = angleZ;
 
       ctx.save();
       ctx.scale(dpr, dpr);
       ctx.clearRect(0, 0, size, size);
 
-      const cx = size / 2;
-      const cy = size / 2;
+      // Subtle parallax shift of projection center based on mouse
+      const parallaxShiftX = tiltY * 10;
+      const parallaxShiftY = tiltX * 10;
+      const cx = size / 2 + parallaxShiftX;
+      const cy = size / 2 + parallaxShiftY;
       const cameraDistance = 3.4;
       const fov = 3.0;
       const radius = size * 0.44;
 
-      const cosX = Math.cos(angleX);
-      const sinX = Math.sin(angleX);
-      const cosY = Math.cos(angleY);
-      const sinY = Math.sin(angleY);
-      const cosZ = Math.cos(angleZ);
-      const sinZ = Math.sin(angleZ);
+      const cosX = Math.cos(effectiveAngleX);
+      const sinX = Math.sin(effectiveAngleX);
+      const cosY = Math.cos(effectiveAngleY);
+      const sinY = Math.sin(effectiveAngleY);
+      const cosZ = Math.cos(effectiveAngleZ);
+      const sinZ = Math.sin(effectiveAngleZ);
 
       // Rotate and project all vertices
       const projected = geometry.vertices.map(([vx, vy, vz]) => {
@@ -227,20 +341,20 @@ export function RotatingPolyhedron3D({
 
         // Draw ambient glow trail
         ctx.shadowColor = glowColor;
-        ctx.shadowBlur = 12;
+        ctx.shadowBlur = isHovered || isDragging ? 18 : 12;
 
         for (let i = 0; i < geometry.segments.length; i++) {
           const [i0, i1] = geometry.segments[i];
           const p0 = projected[i0];
           const p1 = projected[i1];
           const avgZ = (p0.z + p1.z) / 2;
-          const alpha = Math.max(0.15, Math.min(0.9, 0.5 + avgZ * 0.45));
+          const alpha = Math.max(0.18, Math.min(0.95, 0.52 + avgZ * 0.45));
 
           ctx.beginPath();
           ctx.moveTo(p0.x, p0.y);
           ctx.lineTo(p1.x, p1.y);
           ctx.strokeStyle = `rgba(251, 113, 133, ${alpha})`;
-          ctx.lineWidth = Math.max(1, 2.5 * p0.scale);
+          ctx.lineWidth = Math.max(1, 2.6 * p0.scale);
           ctx.stroke();
         }
 
@@ -260,7 +374,12 @@ export function RotatingPolyhedron3D({
       }
 
       // Render Polyhedron Faces (Sorted by average depth for painter's algorithm)
-      const lightDir = normalize([0.35, -0.65, 0.70]);
+      // Dynamic light source tilts slightly with cursor
+      const lightDir = normalize([
+        0.35 + tiltY * 0.4,
+        -0.65 + tiltX * 0.4,
+        0.70
+      ]);
 
       type FaceInfo = {
         face: number[];
@@ -309,7 +428,7 @@ export function RotatingPolyhedron3D({
         const isFront = nz > 0;
         if (isFront) {
           // Luminous specular reflection
-          const baseAlpha = 0.16 + 0.28 * lightDot;
+          const baseAlpha = (isHovered || isDragging ? 0.22 : 0.16) + 0.32 * lightDot;
           ctx.fillStyle = `rgba(244, 63, 94, ${baseAlpha})`;
           ctx.fill();
         } else {
@@ -320,15 +439,15 @@ export function RotatingPolyhedron3D({
 
         // Face edge stroke
         ctx.strokeStyle = isFront
-          ? `rgba(254, 205, 211, ${0.35 + 0.35 * lightDot})`
+          ? `rgba(254, 205, 211, ${0.38 + 0.38 * lightDot})`
           : "rgba(225, 29, 72, 0.14)";
-        ctx.lineWidth = isFront ? 1.1 : 0.8;
+        ctx.lineWidth = isFront ? (isHovered || isDragging ? 1.3 : 1.1) : 0.8;
         ctx.stroke();
       }
 
       // Draw glowing vertex nodes
       ctx.shadowColor = "#ffffff";
-      ctx.shadowBlur = 6;
+      ctx.shadowBlur = isHovered || isDragging ? 8 : 6;
       for (const pt of projected) {
         const nodeAlpha = Math.max(0.3, Math.min(1, 0.6 + pt.z * 0.45));
         ctx.beginPath();
@@ -345,20 +464,33 @@ export function RotatingPolyhedron3D({
 
     return () => {
       cancelAnimationFrame(animId);
+      window.removeEventListener("pointermove", handleGlobalPointerMove);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
+      canvas.removeEventListener("pointerdown", handlePointerDown);
+      canvas.removeEventListener("pointermove", handlePointerMove);
+      canvas.removeEventListener("pointerup", handlePointerUp);
+      canvas.removeEventListener("pointercancel", handlePointerUp);
+      canvas.removeEventListener("mouseenter", handleMouseEnter);
+      canvas.removeEventListener("mouseleave", handleMouseLeave);
     };
   }, [type, size, speed, glowColor]);
 
   return (
     <div
-      className="relative flex items-center justify-center transition-transform duration-500 hover:scale-110 cursor-pointer"
+      className="group relative flex flex-col items-center justify-center transition-all duration-300 hover:scale-110"
       style={{ width: size, height: size }}
     >
       <canvas
         ref={canvasRef}
-        className="block"
-        style={{ width: size, height: size }}
+        className="block cursor-grab active:cursor-grabbing touch-none select-none drop-shadow-[0_0_20px_rgba(244,63,94,0.30)] group-hover:drop-shadow-[0_0_30px_rgba(244,63,94,0.55)] transition-all"
+        style={{ width: size, height: size, touchAction: "none" }}
+        title="Klik &amp; geser untuk memutar objek 3D"
       />
+      {label && (
+        <span className="pointer-events-none absolute -bottom-3.5 opacity-0 group-hover:opacity-100 transition-all duration-200 apple-glass-pill px-2.5 py-0.5 text-[10px] font-bold text-rose-100 whitespace-nowrap shadow-md scale-90 group-hover:scale-100 border border-rose-400/30 bg-black/50 backdrop-blur-md">
+          {label}
+        </span>
+      )}
     </div>
   );
 }
