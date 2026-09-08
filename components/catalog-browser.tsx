@@ -287,8 +287,8 @@ export function CatalogBrowser({
           </Badge>
         </div>
 
-        {/* Prominent Collection Category Switcher */}
-        <div className="mb-4 flex flex-wrap gap-2 rounded-2xl bg-slate-100/90 p-1.5 ring-1 ring-slate-200/70">
+        {/* Prominent Collection Category Switcher (Apple Segmented Tab) */}
+        <div className="mb-4 inline-flex flex-wrap gap-1.5 rounded-full bg-slate-200/70 p-1.5 border border-slate-200/80 backdrop-blur-md">
           <button
             type="button"
             onClick={() => {
@@ -301,15 +301,15 @@ export function CatalogBrowser({
               triggerLoading();
             }}
             className={cn(
-              "flex items-center gap-2 rounded-xl px-4 py-2 text-xs sm:text-sm font-bold transition-all cursor-pointer",
+              "flex items-center gap-2 rounded-full px-4 py-2 text-xs sm:text-sm font-bold transition-all cursor-pointer",
               collectionType === "all"
-                ? "bg-red-800 text-white shadow-sm ring-1 ring-red-900"
-                : "text-slate-600 hover:text-slate-900 hover:bg-white/60",
+                ? "bg-gradient-to-r from-red-700 via-red-800 to-rose-900 text-white shadow-md shadow-red-950/20"
+                : "text-slate-600 hover:text-slate-900 hover:bg-white/70",
             )}
           >
             <Sparkles className="size-4" />
             <span>Semua Koleksi</span>
-            <span className={cn("rounded-full px-1.5 py-0.2 text-[10px]", collectionType === "all" ? "bg-red-950/40 text-white" : "bg-slate-200 text-slate-700")}>
+            <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-bold", collectionType === "all" ? "bg-white/20 text-white" : "bg-white text-slate-700 shadow-2xs")}>
               {books.length + theses.length}
             </span>
           </button>
@@ -325,15 +325,15 @@ export function CatalogBrowser({
               triggerLoading();
             }}
             className={cn(
-              "flex items-center gap-2 rounded-xl px-4 py-2 text-xs sm:text-sm font-bold transition-all cursor-pointer",
+              "flex items-center gap-2 rounded-full px-4 py-2 text-xs sm:text-sm font-bold transition-all cursor-pointer",
               collectionType === "books"
-                ? "bg-red-800 text-white shadow-sm ring-1 ring-red-900"
-                : "text-slate-600 hover:text-slate-900 hover:bg-white/60",
+                ? "bg-gradient-to-r from-red-700 via-red-800 to-rose-900 text-white shadow-md shadow-red-950/20"
+                : "text-slate-600 hover:text-slate-900 hover:bg-white/70",
             )}
           >
             <BookOpen className="size-4" />
             <span>E-Book &amp; Buku</span>
-            <span className={cn("rounded-full px-1.5 py-0.2 text-[10px]", collectionType === "books" ? "bg-red-950/40 text-white" : "bg-slate-200 text-slate-700")}>
+            <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-bold", collectionType === "books" ? "bg-white/20 text-white" : "bg-white text-slate-700 shadow-2xs")}>
               {books.length}
             </span>
           </button>
@@ -350,15 +350,15 @@ export function CatalogBrowser({
               triggerLoading();
             }}
             className={cn(
-              "flex items-center gap-2 rounded-xl px-4 py-2 text-xs sm:text-sm font-bold transition-all cursor-pointer",
+              "flex items-center gap-2 rounded-full px-4 py-2 text-xs sm:text-sm font-bold transition-all cursor-pointer",
               collectionType === "theses"
-                ? "bg-red-800 text-white shadow-sm ring-1 ring-red-900"
-                : "text-slate-600 hover:text-slate-900 hover:bg-white/60",
+                ? "bg-gradient-to-r from-red-700 via-red-800 to-rose-900 text-white shadow-md shadow-red-950/20"
+                : "text-slate-600 hover:text-slate-900 hover:bg-white/70",
             )}
           >
             <GraduationCap className="size-4" />
             <span>Skripsi Mahasiswa</span>
-            <span className={cn("rounded-full px-1.5 py-0.2 text-[10px]", collectionType === "theses" ? "bg-red-950/40 text-white" : "bg-slate-200 text-slate-700")}>
+            <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-bold", collectionType === "theses" ? "bg-white/20 text-white" : "bg-white text-slate-700 shadow-2xs")}>
               {theses.length}
             </span>
           </button>
@@ -372,7 +372,7 @@ export function CatalogBrowser({
               setQuery(event.target.value);
             }}
             placeholder="Cari judul buku, topik skripsi, nama penulis / mahasiswa, atau mata kuliah..."
-            className="h-12 rounded-2xl border-slate-200 bg-slate-50 pl-12 pr-12 text-base shadow-inner shadow-slate-900/3 focus-visible:border-red-600 focus-visible:ring-red-600/20 sm:h-14"
+            className="h-12 rounded-full border-slate-200/90 bg-white pl-12 pr-12 text-sm sm:text-base shadow-xs focus-visible:border-red-600 focus-visible:ring-2 focus-visible:ring-red-600/20 sm:h-14"
           />
           {hasQuery ? (
             <button
@@ -700,12 +700,12 @@ function CollectionRow({
     <Dialog>
       <div
         className={cn(
-          "flex flex-col gap-3 rounded-2xl bg-white p-3.5 sm:p-4 shadow-xs ring-1 transition hover:shadow-md sm:grid sm:items-center",
+          "apple-bento-card p-4 sm:p-5 flex flex-col gap-3.5 transition-all duration-300 sm:grid sm:items-center",
           isEbook
-            ? "ring-red-200/90 hover:ring-red-400"
+            ? "hover:border-red-400/80"
             : isBook
-              ? "ring-slate-200/80 hover:ring-red-300"
-              : "ring-slate-200/80 hover:ring-amber-300",
+              ? "hover:border-red-300/80"
+              : "hover:border-amber-300/80",
           isBook
             ? "sm:grid-cols-[minmax(0,2.5fr)_minmax(120px,1.2fr)_auto]"
             : "sm:grid-cols-[minmax(0,2.2fr)_5rem_minmax(12rem,1.2fr)_auto]",
@@ -720,7 +720,7 @@ function CollectionRow({
               size="md"
             />
           ) : (
-            <span className="flex size-14 sm:size-13 shrink-0 items-center justify-center rounded-2xl ring-1 shadow-xs bg-gradient-to-br from-red-950 via-slate-900 to-red-900 text-amber-300 ring-red-950">
+            <span className="flex size-14 sm:size-13 shrink-0 items-center justify-center rounded-2xl border border-white/10 shadow-md shadow-red-950/25 bg-gradient-to-br from-rose-950 via-slate-900 to-red-900 text-amber-300">
               <Icon className="size-6" />
             </span>
           )}
@@ -729,35 +729,23 @@ function CollectionRow({
             {/* Category / Type tags */}
             <div className="flex flex-wrap items-center gap-1.5 mb-0.5">
               {isEbook ? (
-                <Badge
-                  variant="outline"
-                  className="rounded-md border-red-200 bg-red-50 px-2 py-0.5 text-[10px] font-extrabold text-red-900"
-                >
+                <span className="rounded-full bg-gradient-to-r from-red-600 to-rose-600 px-2.5 py-0.5 text-[10px] font-extrabold text-white shadow-2xs">
                   ⚡ E-Book Digital
-                </Badge>
+                </span>
               ) : isBook ? (
-                <Badge
-                  variant="outline"
-                  className="rounded-md border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-semibold text-slate-700"
-                >
+                <span className="rounded-full bg-slate-100/90 border border-slate-200/70 px-2.5 py-0.5 text-[10px] font-bold text-slate-700 shadow-2xs">
                   Buku Fisik
-                </Badge>
+                </span>
               ) : (
-                <Badge
-                  variant="outline"
-                  className="rounded-md border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-900"
-                >
+                <span className="rounded-full bg-gradient-to-r from-amber-500/20 to-amber-500/10 border border-amber-300/70 px-2.5 py-0.5 text-[10px] font-bold text-amber-900 shadow-2xs">
                   🎓 Skripsi Mahasiswa
-                </Badge>
+                </span>
               )}
 
               {isBook && item.category ? (
-                <Badge
-                  variant="secondary"
-                  className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-700 truncate max-w-[180px]"
-                >
+                <span className="rounded-full bg-white/90 border border-slate-200/70 px-2.5 py-0.5 text-[10px] font-semibold text-slate-600 truncate max-w-[180px] shadow-2xs">
                   {item.category}
-                </Badge>
+                </span>
               ) : null}
 
               {!isBook && (

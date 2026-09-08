@@ -22,11 +22,11 @@ export function JournalShowcase() {
       <FadeIn>
         <div className="flex flex-col items-center justify-between gap-4 text-center sm:flex-row sm:text-left mb-8">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-2xs mb-3">
-              <Newspaper className="size-3.5 text-slate-500" />
+            <div className="inline-flex items-center gap-2 rounded-full border border-red-200/60 bg-gradient-to-r from-red-50 to-rose-50/60 px-3.5 py-1 text-xs font-bold text-red-900 shadow-2xs mb-3">
+              <Newspaper className="size-3.5 text-red-700" />
               <span>Publikasi Ilmiah Program Studi</span>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
+            <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
               Jurnal Ilmiah Pendidikan Matematika
             </h2>
             <p className="mt-2 text-xs sm:text-sm font-normal text-slate-600 max-w-2xl leading-relaxed">
@@ -35,11 +35,11 @@ export function JournalShowcase() {
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <div className="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3.5 py-1 text-xs font-semibold text-amber-900 shadow-2xs">
-              <Award className="size-4 text-amber-600" />
+            <div className="inline-flex items-center gap-2 rounded-full border border-amber-300/70 bg-gradient-to-r from-amber-100/80 via-amber-50 to-amber-100/50 px-4 py-1.5 text-xs font-bold text-amber-950 shadow-2xs">
+              <Award className="size-4 text-amber-700" />
               <span>
                 Keduanya Terakreditasi{" "}
-                <strong className="text-amber-800 font-bold">SINTA 3</strong>
+                <strong className="text-amber-900 font-extrabold">SINTA 3</strong>
               </span>
             </div>
           </div>
@@ -61,85 +61,91 @@ function JournalCard({ journal }: { journal: JournalInfo }) {
 
   return (
     <ScaleIn
-      whileHover={{ y: -3, transition: { type: "spring", stiffness: 400, damping: 25 } }}
+      whileHover={{ y: -4, transition: { type: "spring", stiffness: 350, damping: 25 } }}
       className="h-full"
     >
-      <div className="group relative flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white p-6 sm:p-7 shadow-xs transition-all duration-200 hover:border-slate-300 hover:shadow-md">
+      <div className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-slate-200/85 bg-gradient-to-b from-white via-[#fcfbfb] to-[#fbf4f4] p-6 sm:p-8 shadow-sm transition-all duration-300 hover:border-red-300/80 hover:shadow-xl hover:shadow-red-950/8">
+        {/* Subtle Apple ambient radial glow in top right */}
+        <div 
+          className="pointer-events-none absolute -right-16 -top-16 size-56 rounded-full bg-gradient-to-br from-red-500/10 via-rose-500/5 to-transparent blur-3xl transition-opacity duration-300 group-hover:opacity-100 opacity-60" 
+          aria-hidden="true" 
+        />
+
         {/* Top Header: Badge and Tag */}
-        <div className="flex items-center justify-between gap-3 mb-4">
-          <span className="inline-flex items-center gap-1.5 rounded-md bg-amber-50 border border-amber-200/80 px-2.5 py-1 text-xs font-bold text-amber-900 shadow-2xs">
+        <div className="relative z-10 flex items-center justify-between gap-3 mb-4">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-amber-500/15 via-amber-500/10 to-amber-500/5 border border-amber-300/70 px-3 py-1 text-xs font-extrabold text-amber-900 shadow-2xs">
             <Award className="size-3.5 text-amber-700" />
             {journal.accreditationBadge}
           </span>
-          <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+          <span className="rounded-full bg-slate-100/90 border border-slate-200/60 px-2.5 py-0.5 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
             {journal.tag}
           </span>
         </div>
 
         {/* Title */}
-        <div className="mb-3">
-          <h3 className={`text-xl sm:text-2xl font-bold tracking-tight text-slate-900 transition-colors duration-200 ${isEduMat ? "group-hover:text-red-800" : "group-hover:text-red-700"}`}>
+        <div className="relative z-10 mb-3">
+          <h3 className={`text-xl sm:text-2xl font-black tracking-tight text-slate-900 transition-colors duration-200 ${isEduMat ? "group-hover:text-red-800" : "group-hover:text-rose-800"}`}>
             {journal.title}
           </h3>
         </div>
 
         {/* Meta Chips: Frekuensi Terbit & Editor in Chief */}
-        <div className="mb-4 flex flex-wrap items-center gap-2">
-          <div className="inline-flex items-center gap-1.5 rounded-md bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700 border border-slate-200/50">
+        <div className="relative z-10 mb-4 flex flex-wrap items-center gap-2">
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-700 border border-slate-200/80 shadow-2xs">
             <Calendar className={`size-3.5 ${isEduMat ? "text-red-700" : "text-rose-700"}`} />
-            <span>Terbit: <strong className="text-slate-900 font-semibold">{journal.frequency}</strong></span>
+            <span>Terbit: <strong className="text-slate-900 font-bold">{journal.frequency}</strong></span>
           </div>
 
           {journal.editorInChief ? (
-            <div className="inline-flex items-center gap-1.5 rounded-md bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700 border border-slate-200/50">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1 text-xs font-medium text-slate-700 border border-slate-200/80 shadow-2xs">
               <span className="text-slate-500">Editor in Chief:</span>
-              <strong className="font-semibold text-slate-900">{journal.editorInChief}</strong>
+              <strong className="font-bold text-slate-900">{journal.editorInChief}</strong>
             </div>
           ) : null}
         </div>
 
         {/* Description Feature Box */}
-        <div className="mb-6 rounded-lg border border-slate-200/80 bg-slate-50/70 p-4 sm:p-5">
+        <div className="relative z-10 mb-6 rounded-2xl border border-slate-200/80 bg-white/80 p-4 sm:p-5 shadow-2xs backdrop-blur-xs">
           <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">
-            Profil & Ruang Lingkup
+            Profil &amp; Ruang Lingkup
           </p>
 
           <p className="text-xs sm:text-sm leading-relaxed text-slate-600 font-normal">
             {isEduMat ? (
               <>
-                Jurnal ilmiah berkala yang diterbitkan sejak <strong className="text-slate-900 font-semibold">tahun 2013</strong> oleh <strong className="text-slate-900 font-semibold">Program Studi Pendidikan Matematika FKIP ULM</strong>. Memuat artikel hasil penelitian dan kajian orisinal dosen, peneliti, guru, serta mahasiswa dalam lingkup inovasi pembelajaran matematika.
+                Jurnal ilmiah berkala yang diterbitkan sejak <strong className="text-slate-900 font-bold">tahun 2013</strong> oleh <strong className="text-slate-900 font-bold">Program Studi Pendidikan Matematika FKIP ULM</strong>. Memuat artikel hasil penelitian dan kajian orisinal dosen, peneliti, guru, serta mahasiswa dalam lingkup inovasi pembelajaran matematika.
               </>
             ) : (
               <>
-                Jurnal ilmiah berkala yang didirikan sejak <strong className="text-slate-900 font-semibold">tahun 2018</strong> oleh <strong className="text-slate-900 font-semibold">Program Studi Pendidikan Matematika FKIP ULM</strong>. Didedikasikan khusus sebagai wadah diseminasi artikel ilmiah hasil riset skripsi mahasiswa S1 bersama dosen pembimbing.
+                Jurnal ilmiah berkala yang didirikan sejak <strong className="text-slate-900 font-bold">tahun 2018</strong> oleh <strong className="text-slate-900 font-bold">Program Studi Pendidikan Matematika FKIP ULM</strong>. Didedikasikan khusus sebagai wadah diseminasi artikel ilmiah hasil riset skripsi mahasiswa S1 bersama dosen pembimbing.
               </>
             )}
           </p>
 
-          <div className="mt-3.5 pt-3 border-t border-slate-200 flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1 rounded-md bg-white px-2 py-0.5 text-[11px] font-semibold text-slate-700 shadow-2xs border border-slate-200">
+          <div className="mt-3.5 pt-3 border-t border-slate-150 flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800 border border-emerald-200/70 shadow-2xs">
               <Globe className="size-3 text-emerald-600" />
               Open Access (OJS)
             </span>
-            <span className="inline-flex items-center gap-1 rounded-md bg-white px-2 py-0.5 text-[11px] font-semibold text-slate-700 shadow-2xs border border-slate-200">
+            <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-0.5 text-[11px] font-bold text-blue-800 border border-blue-200/70 shadow-2xs">
               <CheckCircle2 className="size-3 text-blue-600" />
               Peer-Reviewed
             </span>
-            <span className="inline-flex items-center gap-1 rounded-md bg-white px-2 py-0.5 text-[11px] font-semibold text-slate-700 shadow-2xs border border-slate-200">
-              <GraduationCap className={`size-3 ${isEduMat ? "text-amber-600" : "text-blue-600"}`} />
+            <span className="inline-flex items-center gap-1 rounded-full bg-purple-50 px-2.5 py-0.5 text-[11px] font-bold text-purple-800 border border-purple-200/70 shadow-2xs">
+              <GraduationCap className={`size-3 ${isEduMat ? "text-purple-600" : "text-blue-600"}`} />
               {isEduMat ? "Riset Dosen & Peneliti" : "Diseminasi Skripsi S1"}
             </span>
           </div>
         </div>
 
         {/* Action Button */}
-        <div className="mt-auto pt-2">
+        <div className="relative z-10 mt-auto pt-2">
           <Button
             asChild
-            className={`w-full rounded-xl py-2.5 text-xs sm:text-sm font-bold text-white shadow-xs transition-colors duration-200 border-0 cursor-pointer ${
+            className={`w-full rounded-full py-3 text-xs sm:text-sm font-bold text-white shadow-md transition-all duration-300 border-0 cursor-pointer ${
               isEduMat
-                ? "bg-red-800 hover:bg-red-900"
-                : "bg-slate-900 hover:bg-slate-800"
+                ? "bg-gradient-to-r from-red-700 via-red-800 to-rose-900 hover:from-red-800 hover:to-rose-950 shadow-red-950/20 hover:shadow-red-950/35"
+                : "bg-gradient-to-r from-rose-700 via-red-800 to-red-950 hover:from-rose-800 hover:to-black shadow-red-950/20 hover:shadow-red-950/35"
             }`}
           >
             <a

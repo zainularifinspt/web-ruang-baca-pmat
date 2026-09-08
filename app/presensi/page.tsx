@@ -162,28 +162,28 @@ export default function AttendancePage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-950">
+    <div className="min-h-screen apple-mesh-body text-slate-950">
       <PublicNav />
       <main className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
         {/* Page Hero Banner */}
-        <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-red-900/40 bg-gradient-to-br from-[#7f1d1d] via-[#881337] to-[#991b1b] p-6 sm:p-8 text-white shadow-xl shadow-red-950/25 mb-8">
-          <div className="pointer-events-none absolute -right-20 -top-20 size-72 rounded-full bg-red-400/20 blur-3xl" />
-          <div className="pointer-events-none absolute -left-20 -bottom-20 size-72 rounded-full bg-amber-400/15 blur-3xl" />
+        <section className="relative overflow-hidden rounded-3xl border border-red-950/40 apple-mesh-hero-subtle p-6 sm:p-10 text-white shadow-xl shadow-red-950/20 mb-8">
+          <div className="pointer-events-none absolute -right-20 -top-20 size-80 rounded-full bg-rose-500/20 blur-3xl" />
+          <div className="pointer-events-none absolute -left-20 -bottom-20 size-80 rounded-full bg-amber-500/15 blur-3xl" />
           
           <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-2 max-w-2xl">
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs sm:text-sm font-bold text-white shadow-xs ring-1 ring-white/25 backdrop-blur">
+              <div className="apple-glass-pill inline-flex items-center gap-2 rounded-full px-3.5 py-1 text-xs sm:text-sm font-bold text-white shadow-xs">
                 <CalendarCheck className="size-3.5 text-amber-300" />
                 <span>Buku Tamu &amp; Presensi Harian</span>
               </div>
-              <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-white leading-tight">
+              <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white leading-tight">
                 Presensi Pengunjung Ruang Baca
               </h1>
-              <p className="text-xs sm:text-base leading-relaxed text-red-100 font-normal">
+              <p className="text-xs sm:text-base leading-relaxed text-red-100/90 font-normal">
                 Sistem pencatatan kehadiran digital sivitas akademika Jurusan Pendidikan Matematika FKIP Universitas Lambung Mangkurat.
               </p>
             </div>
-            <Button asChild variant="outline" className="rounded-xl border-white/30 bg-white/10 text-white hover:bg-white hover:text-red-950 shadow-xs backdrop-blur font-bold shrink-0 cursor-pointer">
+            <Button asChild variant="outline" className="apple-glass-pill rounded-full text-white hover:bg-white hover:text-red-950 shadow-xs font-bold shrink-0 cursor-pointer border-white/30">
               <Link href="/">
                 <ArrowLeft className="size-4 mr-1.5" />
                 Kembali ke Beranda
@@ -196,22 +196,22 @@ export default function AttendancePage() {
           <SuccessState record={submitted} onReset={resetForm} />
         ) : (
           <div className="mx-auto w-full max-w-5xl">
-            <Card className="overflow-hidden rounded-3xl border-slate-200 bg-white shadow-lg shadow-red-950/5 ring-1 ring-slate-200/80">
-              <CardContent className="p-0">
-                <div className="border-b border-red-900/30 bg-gradient-to-r from-red-800 via-rose-800 to-red-900 px-6 py-6 text-white sm:px-8">
+            <div className="overflow-hidden rounded-3xl border border-slate-200/85 bg-white shadow-xl shadow-red-950/5">
+              <div>
+                <div className="border-b border-red-900/30 bg-gradient-to-r from-red-800 via-rose-800 to-red-950 px-6 py-6 text-white sm:px-8">
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-center gap-4">
-                      <div className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-white/20 text-white shadow-xs ring-1 ring-white/25 backdrop-blur">
+                      <div className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-white/15 text-white shadow-xs border border-white/20 backdrop-blur-md">
                         <QrCode className="size-7 text-amber-300" />
                       </div>
                       <div>
                         <p className="text-xs font-bold uppercase tracking-wider text-red-200">
                           Formulir Presensi Cepat
                         </p>
-                        <h2 className="text-lg font-bold tracking-tight text-white sm:text-2xl">
+                        <h2 className="text-lg font-black tracking-tight text-white sm:text-2xl">
                           Catat Kunjungan Anda
                         </h2>
-                        <p className="mt-0.5 text-xs sm:text-sm text-red-100">
+                        <p className="mt-0.5 text-xs sm:text-sm text-red-100/90">
                           Ketik NIM atau NIP Anda. Data nama dan program studi akan terisi otomatis jika sudah tersimpan di sistem.
                         </p>
                       </div>
@@ -308,7 +308,7 @@ export default function AttendancePage() {
                   </Field>
 
                   <Button
-                    className="h-12 w-full rounded-xl bg-red-800 hover:bg-red-900 text-base font-bold text-white shadow-lg shadow-red-950/20 transition cursor-pointer disabled:opacity-50"
+                    className="h-13 w-full rounded-full bg-gradient-to-r from-red-700 via-red-800 to-rose-900 hover:from-red-800 hover:to-rose-950 text-base font-bold text-white shadow-lg shadow-red-950/25 transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer disabled:opacity-50 border-0"
                     disabled={!canSubmit || isSubmitting}
                     type="submit"
                   >
@@ -316,8 +316,8 @@ export default function AttendancePage() {
                     {isSubmitting ? "Menyimpan Presensi..." : "Simpan Presensi Kunjungan"}
                   </Button>
                 </form>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
         )}
       </main>

@@ -36,18 +36,18 @@ export default async function HomePage() {
   ]);
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
+    <div className="min-h-screen apple-mesh-body text-slate-900 antialiased">
       <PublicNav initialSearchItems={searchItems} />
       <main className="relative overflow-hidden">
-        {/* Editorial Academic Crimson Hero */}
-        <section className="relative overflow-hidden bg-gradient-to-b from-[#7f1d1d] via-[#881337] to-[#991b1b] text-white pb-24 pt-10 sm:pb-32 sm:pt-16 lg:pb-36 lg:pt-20">
+        {/* Apple & Gemini Deep Atmosphere Mesh Hero */}
+        <section className="relative overflow-hidden apple-mesh-hero text-white pb-24 pt-12 sm:pb-32 sm:pt-18 lg:pb-36 lg:pt-22">
           <MathBackdrop />
 
           <FadeInStagger>
             <div className="relative z-10 mx-auto max-w-4xl px-4 text-center sm:px-6">
               <FadeIn>
-                <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-1 text-xs font-semibold text-white shadow-2xs backdrop-blur-xs">
-                  <Image src="/ulm-logo.png" alt="Logo Universitas Lambung Mangkurat" width={18} height={18} className="size-4 object-contain" priority />
+                <div className="apple-glass-pill inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold text-white shadow-xs">
+                  <Image src="/ulm-logo.png" alt="Logo Universitas Lambung Mangkurat" width={18} height={18} className="size-4 object-contain drop-shadow-xs" priority />
                   <span>Jurusan Pendidikan Matematika FKIP ULM</span>
                 </div>
               </FadeIn>
@@ -57,7 +57,7 @@ export default async function HomePage() {
                 </h1>
               </FadeIn>
               <FadeIn>
-                <p className="mx-auto mt-4 max-w-2xl text-xs sm:text-base leading-relaxed text-red-100 font-normal">
+                <p className="mx-auto mt-4 max-w-2xl text-xs sm:text-base leading-relaxed text-red-100/90 font-normal">
                   Pusat literatur ilmiah dan referensi akademik Jurusan Pendidikan Matematika Universitas Lambung Mangkurat. Akses katalog buku, repositori skripsi, jurnal Scopus, dan presensi kunjungan.
                 </p>
               </FadeIn>
@@ -70,20 +70,21 @@ export default async function HomePage() {
           </FadeInStagger>
         </section>
 
-        {/* Quick Navigation Cards */}
+        {/* Quick Navigation Apple Bento Cards */}
         <section className="relative mx-auto -mt-12 sm:-mt-14 max-w-6xl px-4 pb-8 sm:px-6 sm:pb-12 z-20">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {/* Katalog Buku & E-Book Button */}
             <Link
               href="/katalog?tab=books"
-              className="group rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs transition-all duration-200 hover:-translate-y-1 hover:border-red-600 hover:shadow-lg hover:shadow-red-950/5 flex flex-col justify-between"
+              className="group apple-bento-card p-5.5 flex flex-col justify-between overflow-hidden"
             >
-              <div>
+              <div className="pointer-events-none absolute -right-12 -top-12 size-36 rounded-full bg-red-500/10 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="relative z-10">
                 <div className="flex items-center justify-between">
-                  <div className="flex size-11 items-center justify-center rounded-xl bg-red-50 text-red-800 border border-red-200/60">
+                  <div className="flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-red-500 via-red-600 to-rose-700 text-white shadow-md shadow-red-500/25 group-hover:scale-105 transition-transform">
                     <BookOpen className="size-5" />
                   </div>
-                  <span className="rounded-md bg-red-50 px-2 py-0.5 text-[11px] font-bold text-red-800 border border-red-200/50">
+                  <span className="rounded-full bg-red-50 px-2.5 py-0.5 text-[11px] font-bold text-red-800 border border-red-200/60 shadow-2xs">
                     E-Book &amp; Cetak
                   </span>
                 </div>
@@ -94,50 +95,52 @@ export default async function HomePage() {
                   Akses buku teks perkuliahan, modul ajar, dan koleksi e-book digital.
                 </p>
               </div>
-              <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-semibold text-red-700">
+              <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-red-700 group-hover:text-red-800">
                 <span>Buka Katalog Buku</span>
-                <span className="transition-transform group-hover:translate-x-1">→</span>
+                <span className="transition-transform group-hover:translate-x-1 text-base leading-none">→</span>
               </div>
             </Link>
 
             {/* Katalog Skripsi Button */}
             <Link
               href="/katalog?tab=theses"
-              className="group rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs transition-all duration-200 hover:-translate-y-1 hover:border-red-600 hover:shadow-lg hover:shadow-red-950/5 flex flex-col justify-between"
+              className="group apple-bento-card p-5.5 flex flex-col justify-between overflow-hidden"
             >
-              <div>
+              <div className="pointer-events-none absolute -right-12 -top-12 size-36 rounded-full bg-rose-500/10 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="relative z-10">
                 <div className="flex items-center justify-between">
-                  <div className="flex size-11 items-center justify-center rounded-xl bg-red-50 text-red-800 border border-red-200/60">
+                  <div className="flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-600 via-rose-700 to-red-900 text-white shadow-md shadow-rose-600/25 group-hover:scale-105 transition-transform">
                     <GraduationCap className="size-5" />
                   </div>
-                  <span className="rounded-md bg-red-50 px-2 py-0.5 text-[11px] font-bold text-red-800 border border-red-200/50">
+                  <span className="rounded-full bg-rose-50 px-2.5 py-0.5 text-[11px] font-bold text-rose-800 border border-rose-200/60 shadow-2xs">
                     Tugas Akhir S1
                   </span>
                 </div>
-                <h3 className="mt-4 text-base font-bold text-slate-900 group-hover:text-red-700 transition-colors">
+                <h3 className="mt-4 text-base font-bold text-slate-900 group-hover:text-rose-700 transition-colors">
                   Katalog Skripsi
                 </h3>
                 <p className="mt-1 text-xs leading-relaxed text-slate-600">
                   Koleksi repositori skripsi dan riset mahasiswa Pendidikan Matematika.
                 </p>
               </div>
-              <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-semibold text-red-700">
+              <div className="relative z-10 mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-rose-700 group-hover:text-rose-800">
                 <span>Telusuri Skripsi</span>
-                <span className="transition-transform group-hover:translate-x-1">→</span>
+                <span className="transition-transform group-hover:translate-x-1 text-base leading-none">→</span>
               </div>
             </Link>
 
             {/* Pencarian Scopus Button */}
             <Link
               href="/scopus"
-              className="group rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs transition-all duration-200 hover:-translate-y-1 hover:border-red-600 hover:shadow-lg hover:shadow-red-950/5 flex flex-col justify-between"
+              className="group apple-bento-card p-5.5 flex flex-col justify-between overflow-hidden"
             >
-              <div>
+              <div className="pointer-events-none absolute -right-12 -top-12 size-36 rounded-full bg-orange-500/10 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="relative z-10">
                 <div className="flex items-center justify-between">
-                  <div className="flex size-11 items-center justify-center rounded-xl bg-red-50 text-red-800 border border-red-200/60">
+                  <div className="flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-red-600 via-orange-600 to-amber-700 text-white shadow-md shadow-orange-600/25 group-hover:scale-105 transition-transform">
                     <Globe2 className="size-5" />
                   </div>
-                  <span className="rounded-md bg-red-50 px-2 py-0.5 text-[11px] font-bold text-red-800 border border-red-200/50">
+                  <span className="rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-bold text-amber-900 border border-amber-200/60 shadow-2xs">
                     Elsevier Scopus®
                   </span>
                 </div>
@@ -148,23 +151,24 @@ export default async function HomePage() {
                   Eksplorasi publikasi jurnal internasional bereputasi Q1–Q4 &amp; sitasi riset.
                 </p>
               </div>
-              <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-semibold text-red-700">
+              <div className="relative z-10 mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-red-700 group-hover:text-red-800">
                 <span>Buka Scopus Hub</span>
-                <span className="transition-transform group-hover:translate-x-1">→</span>
+                <span className="transition-transform group-hover:translate-x-1 text-base leading-none">→</span>
               </div>
             </Link>
 
             {/* Presensi Button */}
             <Link
               href="/presensi"
-              className="group rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs transition-all duration-200 hover:-translate-y-1 hover:border-red-600 hover:shadow-lg hover:shadow-red-950/5 flex flex-col justify-between"
+              className="group apple-bento-card p-5.5 flex flex-col justify-between overflow-hidden"
             >
-              <div>
+              <div className="pointer-events-none absolute -right-12 -top-12 size-36 rounded-full bg-red-500/10 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="relative z-10">
                 <div className="flex items-center justify-between">
-                  <div className="flex size-11 items-center justify-center rounded-xl bg-red-50 text-red-800 border border-red-200/60">
+                  <div className="flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 via-red-600 to-red-800 text-white shadow-md shadow-red-600/25 group-hover:scale-105 transition-transform">
                     <ScanLine className="size-5" />
                   </div>
-                  <span className="rounded-md bg-red-50 px-2 py-0.5 text-[11px] font-bold text-red-800 border border-red-200/50">
+                  <span className="rounded-full bg-red-50 px-2.5 py-0.5 text-[11px] font-bold text-red-800 border border-red-200/60 shadow-2xs">
                     Presensi Mandiri
                   </span>
                 </div>
@@ -175,9 +179,9 @@ export default async function HomePage() {
                   Pencatatan kunjungan mandiri mahasiswa, dosen, dan tamu ruang baca.
                 </p>
               </div>
-              <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-semibold text-red-700">
+              <div className="relative z-10 mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-red-700 group-hover:text-red-800">
                 <span>Catat Presensi</span>
-                <span className="transition-transform group-hover:translate-x-1">→</span>
+                <span className="transition-transform group-hover:translate-x-1 text-base leading-none">→</span>
               </div>
             </Link>
           </div>
@@ -215,8 +219,8 @@ function StatTile({
   description: string;
 }) {
   return (
-    <div className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-xs transition-all duration-200 hover:border-red-200 hover:shadow-sm">
-      <span className="flex size-12 shrink-0 items-center justify-center rounded-lg border bg-red-50 text-red-700 border-red-200/70">
+    <div className="apple-bento-card flex items-center gap-4 p-5 transition-all">
+      <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-red-500/10 via-rose-500/15 to-red-500/5 text-red-700 border border-red-200/60 shadow-2xs">
         <Icon className="size-5" />
       </span>
       <span className="min-w-0 text-left">
@@ -231,8 +235,12 @@ function StatTile({
 function MathBackdrop() {
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-      <div className="absolute -top-24 right-1/4 h-96 w-96 rounded-full bg-rose-500/15 blur-3xl" />
-      <div className="absolute bottom-0 left-1/4 h-80 w-80 rounded-full bg-amber-500/10 blur-3xl" />
+      {/* Top center ethereal spotlight */}
+      <div className="absolute -top-32 left-1/2 -translate-x-1/2 h-[500px] w-[800px] rounded-full bg-gradient-to-b from-rose-500/25 via-red-600/15 to-transparent blur-3xl" />
+      {/* Right warm ruby aura */}
+      <div className="absolute top-10 -right-20 h-96 w-96 rounded-full bg-rose-500/20 blur-3xl" />
+      {/* Left subtle amber halo */}
+      <div className="absolute bottom-10 -left-20 h-96 w-96 rounded-full bg-amber-500/15 blur-3xl" />
     </div>
   );
 }

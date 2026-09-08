@@ -103,7 +103,7 @@ export function RealtimeVisitorChart({
 
   if (isLoading) {
     return (
-      <div ref={sectionRef} className="rounded-[2.25rem] border border-white/40 bg-white/70 p-6 shadow-sm">
+      <div ref={sectionRef} className="apple-bento-card p-6 sm:p-8">
         <div className="h-5 w-40 animate-pulse rounded-full bg-slate-200/50" />
         <div className="mt-6 h-52 animate-pulse rounded-2xl bg-slate-100/40" />
       </div>
@@ -111,13 +111,17 @@ export function RealtimeVisitorChart({
   }
 
   return (
-    <section ref={sectionRef} className="rounded-[2.25rem] border border-white/40 bg-white/70 p-5 shadow-sm sm:p-7">
+    <section ref={sectionRef} className="apple-bento-card p-6 sm:p-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="text-base font-bold tracking-tight text-slate-950">Grafik Pengunjung</p>
-          <p className="mt-1 text-xs text-slate-500 font-medium">Realtime dari data presensi.</p>
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-red-50/80 px-2.5 py-0.5 text-[11px] font-bold text-red-800 border border-red-200/60 mb-1.5">
+            <Activity className="size-3 text-red-600" />
+            <span>Presensi Pengunjung</span>
+          </div>
+          <p className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">Grafik Kunjungan Harian</p>
+          <p className="mt-1 text-xs text-slate-500 font-normal">Pencatatan kehadiran digital per hari secara realtime.</p>
         </div>
-        <div className="w-fit rounded-full bg-white/60 px-3.5 py-1 text-xs font-bold text-slate-650 shadow-sm ring-1 ring-slate-200/30">
+        <div className="w-fit rounded-full bg-slate-100/90 border border-slate-200/70 px-3.5 py-1 text-xs font-bold text-slate-700 shadow-2xs">
           7 hari terakhir
         </div>
       </div>
@@ -127,21 +131,21 @@ export function RealtimeVisitorChart({
           {error}
         </div>
       ) : (
-        <div className="mt-6 grid gap-6 lg:grid-cols-[170px_1fr] lg:gap-8 lg:items-center">
+        <div className="mt-6 grid gap-6 lg:grid-cols-[180px_1fr] lg:gap-8 lg:items-center">
           <div>
-            <p className="text-xs font-bold tracking-wider text-slate-400 uppercase">Total Pengunjung</p>
-            <div className="mt-2.5 flex items-center gap-2">
-              <p className="text-4xl font-extrabold tracking-tight text-slate-950">
+            <p className="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Total Pengunjung</p>
+            <div className="mt-1.5 flex items-center gap-2">
+              <p className="text-3xl sm:text-4xl font-black tracking-tight text-slate-900">
                 {totalVisitors.toLocaleString("id-ID")}
               </p>
               {growth !== null ? (
-                <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-1 text-xs font-bold text-red-700 ring-1 ring-red-100">
+                <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-xs font-bold text-red-700 border border-red-200/60">
                   <TrendingUp className="size-3" />
                   {growth}%
                 </span>
               ) : null}
             </div>
-            <p className="mt-2 text-xs font-medium leading-5 text-slate-400">berdasarkan presensi 7 hari terakhir</p>
+            <p className="mt-1.5 text-xs font-normal leading-relaxed text-slate-500">Kunjungan tercatat selama sepekan ke belakang.</p>
           </div>
           <VisitorLine points={points} />
         </div>
@@ -174,9 +178,9 @@ function VisitorLine({ points }: { points: ChartPoint[] }) {
       >
         <defs>
           <linearGradient id="visitor-line" x1="0" x2="1" y1="0" y2="0">
-            <stop offset="0%" stopColor="#047857" />
-            <stop offset="52%" stopColor="#06b6d4" />
-            <stop offset="100%" stopColor="#7c3aed" />
+            <stop offset="0%" stopColor="#e11d48" />
+            <stop offset="60%" stopColor="#b91c1c" />
+            <stop offset="100%" stopColor="#f59e0b" />
           </linearGradient>
         </defs>
         {[0, 1, 2].map((lineIndex) => {
@@ -189,24 +193,24 @@ function VisitorLine({ points }: { points: ChartPoint[] }) {
               y1={y}
               y2={y}
               stroke="#e2e8f0"
-              strokeOpacity="0.6"
+              strokeOpacity="0.8"
               strokeWidth="1"
-              strokeDasharray="6 8"
+              strokeDasharray="4 6"
             />
           );
         })}
-        <path d={line} fill="none" stroke="url(#visitor-line)" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
+        <path d={line} fill="none" stroke="url(#visitor-line)" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" />
         {coordinates.map((point) => (
           <g key={point.label}>
             <text
               x={point.x}
               y={Math.max(18, point.y - 14)}
               textAnchor="middle"
-              className="fill-slate-950 font-bold text-[14px]"
+              className="fill-slate-900 font-extrabold text-[13px]"
             >
               {point.value}
             </text>
-            <circle cx={point.x} cy={point.y} r="7" fill="#06b6d4" stroke="white" strokeWidth="3" />
+            <circle cx={point.x} cy={point.y} r="6" fill="#e11d48" stroke="white" strokeWidth="2.5" />
             <text
               x={point.x}
               y={height - 10}

@@ -32,31 +32,33 @@ export function LandingSearchForm() {
     <div className="mx-auto w-full max-w-3xl">
       <form
         onSubmit={handleSubmit}
-        className="flex w-full items-center gap-2 rounded-xl border border-slate-200 bg-white p-1.5 sm:p-2 shadow-lg shadow-red-950/10 transition-all focus-within:border-red-700 focus-within:ring-4 focus-within:ring-red-500/10"
+        className="group relative flex w-full items-center gap-2 rounded-full border border-white/40 bg-white/95 p-1.5 sm:p-2 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.35),0_0_0_1px_rgba(255,255,255,0.4)] backdrop-blur-2xl transition-all duration-300 focus-within:shadow-[0_25px_60px_-10px_rgba(225,29,72,0.35),0_0_0_2px_rgba(244,63,94,0.5)] focus-within:border-white"
       >
-        <Search className="ml-2.5 sm:ml-3.5 size-4 sm:size-5 shrink-0 text-red-700" />
+        <div className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-full bg-red-50 text-red-700 ml-1">
+          <Search className="size-4 sm:size-5" />
+        </div>
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          className="h-10 sm:h-12 min-w-0 flex-1 border-0 bg-transparent text-xs sm:text-sm font-medium text-slate-900 outline-none placeholder:text-slate-400 px-1.5 sm:px-2"
-          placeholder="Cari buku, skripsi, pengarang, atau topik riset..."
+          className="h-10 sm:h-12 min-w-0 flex-1 border-0 bg-transparent text-xs sm:text-base font-semibold text-slate-900 outline-none placeholder:font-normal placeholder:text-slate-400 px-2"
+          placeholder="Cari buku teks, skripsi S1, pengarang, topik riset..."
         />
         <button
           type="submit"
-          className="inline-flex h-9 sm:h-11 shrink-0 items-center justify-center gap-1.5 sm:gap-2 rounded-lg bg-red-800 px-4 sm:px-6 text-xs sm:text-sm font-bold text-white shadow-xs transition-colors hover:bg-red-900 cursor-pointer"
+          className="inline-flex h-10 sm:h-12 shrink-0 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-red-600 via-rose-600 to-red-700 hover:from-red-500 hover:to-rose-500 px-6 sm:px-8 text-xs sm:text-sm font-extrabold text-white shadow-md shadow-red-600/30 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer border-0"
         >
           <span>Cari</span>
         </button>
       </form>
 
-      <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 text-xs">
-        <span className="text-red-200/80 font-medium mr-1 hidden sm:inline">Pencarian populer:</span>
+      <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-xs">
+        <span className="text-red-100/90 font-medium mr-1 hidden sm:inline">Pencarian populer:</span>
         {quickTags.map((tag) => (
           <button
             key={tag}
             type="button"
             onClick={() => handleTagClick(tag)}
-            className="rounded-full border border-white/20 bg-white/10 px-2.5 py-0.5 text-[11px] font-medium text-white transition-colors hover:bg-white/20 hover:border-white/40 cursor-pointer"
+            className="apple-glass-pill rounded-full px-3.5 py-1 text-xs font-semibold text-white transition-all hover:bg-white/25 hover:scale-105 active:scale-95 cursor-pointer shadow-xs"
           >
             {tag}
           </button>

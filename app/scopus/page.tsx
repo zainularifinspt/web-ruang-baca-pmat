@@ -26,35 +26,35 @@ export default async function ScopusPage() {
   const { items: searchItems } = await fetchPublicSearchItems();
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
+    <div className="min-h-screen apple-mesh-body text-slate-900 antialiased">
       <PublicNav initialSearchItems={searchItems} />
 
       <main className="relative overflow-hidden">
-        {/* Hero Section */}
-        <section className="relative overflow-hidden border-b border-red-950/20 bg-gradient-to-b from-[#7f1d1d] via-[#881337] to-[#991b1b] pt-12 pb-16 sm:pt-16 sm:pb-20 text-center text-white shadow-xl shadow-red-950/25">
+        {/* Hero Section with Apple/Gemini mesh atmosphere */}
+        <section className="relative overflow-hidden border-b border-red-950/30 apple-mesh-hero pt-12 pb-16 sm:pt-16 sm:pb-20 text-center text-white shadow-xl shadow-red-950/20">
           {/* Ambient light glow */}
-          <div className="pointer-events-none absolute -left-20 -top-20 size-80 rounded-full bg-red-400/20 blur-3xl" />
-          <div className="pointer-events-none absolute -right-20 bottom-0 size-80 rounded-full bg-amber-400/15 blur-3xl" />
+          <div className="pointer-events-none absolute -left-20 -top-20 size-80 rounded-full bg-rose-500/20 blur-3xl" />
+          <div className="pointer-events-none absolute -right-20 bottom-0 size-80 rounded-full bg-amber-500/15 blur-3xl" />
 
           <FadeInStagger className="relative z-10 mx-auto max-w-5xl px-4 sm:px-6">
             {/* Top Badges */}
             <FadeIn className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mb-4 sm:mb-5">
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/15 px-3.5 py-1 text-xs font-semibold text-white shadow-xs backdrop-blur">
+              <span className="apple-glass-pill inline-flex items-center gap-2 rounded-full px-3.5 py-1 text-xs font-semibold text-white shadow-xs">
                 <span className="relative flex size-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-300 opacity-75"></span>
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
                   <span className="relative inline-flex size-2 rounded-full bg-emerald-400"></span>
                 </span>
                 <Globe2 className="size-3.5 text-amber-300" />
                 Elsevier Scopus® Hub
               </span>
 
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/15 px-3.5 py-1 text-xs font-semibold text-white shadow-xs backdrop-blur">
+              <span className="apple-glass-pill inline-flex items-center gap-1.5 rounded-full px-3.5 py-1 text-xs font-semibold text-white shadow-xs">
                 <Image
                   src="/ulm-logo.png"
                   alt="Logo ULM"
                   width={16}
                   height={16}
-                  className="size-3.5 object-contain"
+                  className="size-3.5 object-contain drop-shadow-xs"
                   priority
                 />
                 Pendidikan Matematika FKIP ULM
@@ -70,7 +70,7 @@ export default async function ScopusPage() {
 
             {/* Subtitle */}
             <FadeIn>
-              <p className="mx-auto mt-3.5 sm:mt-5 max-w-2xl text-xs sm:text-base leading-relaxed text-red-100 font-normal">
+              <p className="mx-auto mt-3.5 sm:mt-5 max-w-2xl text-xs sm:text-base leading-relaxed text-red-100/90 font-normal">
                 Eksplorasi publikasi jurnal internasional bereputasi tinggi (Q1–Q4), sitasi global, dan referensi mutakhir
                 di bidang Pendidikan Matematika dan kajian riset Universitas Lambung Mangkurat.
               </p>
@@ -78,13 +78,13 @@ export default async function ScopusPage() {
 
             {/* Quick Feature Badges */}
             <FadeIn className="mt-5 flex flex-wrap items-center justify-center gap-2 text-xs">
-              <span className="inline-flex items-center rounded-lg bg-black/25 px-2.5 py-1 font-semibold text-red-100 ring-1 ring-white/15">
+              <span className="apple-glass-pill inline-flex items-center rounded-full px-3 py-1 font-semibold text-white/95">
                 🌐 Database Terindeks Elsevier
               </span>
-              <span className="inline-flex items-center rounded-lg bg-black/25 px-2.5 py-1 font-semibold text-red-100 ring-1 ring-white/15">
+              <span className="apple-glass-pill inline-flex items-center rounded-full px-3 py-1 font-semibold text-white/95">
                 📊 Data Sitasi &amp; Quartile
               </span>
-              <span className="inline-flex items-center rounded-lg bg-black/25 px-2.5 py-1 font-semibold text-red-100 ring-1 ring-white/15">
+              <span className="apple-glass-pill inline-flex items-center rounded-full px-3 py-1 font-semibold text-white/95">
                 🔓 Tautan DOI &amp; Open Access
               </span>
             </FadeIn>

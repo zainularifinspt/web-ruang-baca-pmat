@@ -148,7 +148,7 @@ export function ScopusSearchBrowser() {
           <Button
             type="submit"
             disabled={isPending}
-            className="h-12 sm:h-14 shrink-0 rounded-full bg-red-800 hover:bg-red-900 px-6 sm:px-8 text-xs sm:text-sm font-extrabold text-white shadow-md shadow-red-950/20 border-0 cursor-pointer transition-colors"
+            className="h-12 sm:h-14 shrink-0 rounded-full bg-gradient-to-r from-red-700 via-red-800 to-rose-900 hover:from-red-800 hover:to-rose-950 px-6 sm:px-8 text-xs sm:text-sm font-extrabold text-white shadow-md shadow-red-950/25 border-0 cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98]"
           >
             {isPending ? (
               <Loader2 className="size-4 animate-spin mr-1.5" />
@@ -463,23 +463,22 @@ function ArticleCard({
   const articleUrl = article.doiUrl || article.scopusUrl;
 
   return (
-    <div className="group relative flex flex-col justify-between rounded-[1.75rem] border border-slate-200/80 bg-white p-5 sm:p-6 shadow-xs ring-1 ring-slate-200/50 transition-all duration-200 hover:border-red-300 hover:shadow-lg hover:shadow-red-950/5">
+    <div className="group relative flex flex-col justify-between apple-bento-card p-5 sm:p-6 overflow-hidden transition-all duration-300 hover:border-red-300/80 hover:shadow-xl hover:shadow-red-950/8">
+      <div className="pointer-events-none absolute -right-12 -top-12 size-36 rounded-full bg-red-500/10 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      <div className="relative z-10">
         <div>
           {/* Top Badges */}
           <div className="mb-2.5 flex flex-wrap items-center gap-2">
-            <Badge
-              variant="outline"
-              className="rounded-full border-red-200 bg-red-50/80 px-2.5 py-0.5 text-[10px] font-bold text-red-900"
-            >
+            <span className="rounded-full bg-gradient-to-r from-red-600 to-rose-600 px-2.5 py-0.5 text-[10px] font-extrabold text-white shadow-2xs">
               Scopus Indexed
-            </Badge>
+            </span>
 
-            <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-semibold text-slate-600">
+            <span className="rounded-full bg-slate-100/90 border border-slate-200/70 px-2.5 py-0.5 text-[10px] font-bold text-slate-700 shadow-2xs">
               {article.aggregationType || "Journal"}
             </span>
 
             {article.openAccess ? (
-              <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 ring-1 ring-emerald-200">
+              <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-800 border border-emerald-200/70 shadow-2xs">
                 Open Access
               </span>
             ) : null}
@@ -490,7 +489,7 @@ function ArticleCard({
           </div>
 
           {/* Title */}
-          <h3 className="text-base sm:text-lg font-extrabold text-slate-900 group-hover:text-red-800 transition-colors leading-snug">
+          <h3 className="text-base sm:text-lg font-black text-slate-900 group-hover:text-red-800 transition-colors leading-snug">
             {articleUrl ? (
               <a
                 href={articleUrl}
@@ -527,7 +526,7 @@ function ArticleCard({
               {article.affiliations.slice(0, 2).map((aff) => (
                 <span
                   key={aff}
-                  className="rounded-md bg-slate-50 px-2 py-0.5 text-[10px] font-medium text-slate-500 border border-slate-100"
+                  className="rounded-full bg-slate-50 px-2.5 py-0.5 text-[10px] font-medium text-slate-500 border border-slate-200/60 shadow-2xs"
                 >
                   {aff}
                 </span>
@@ -539,7 +538,7 @@ function ArticleCard({
         {/* Bottom Actions Bar */}
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100/80 pt-3">
           {/* Citation Count Badge */}
-          <div className="flex items-center gap-1.5 rounded-full bg-amber-50/80 px-3 py-1 text-xs font-bold text-amber-900 ring-1 ring-amber-200/60">
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-amber-500/15 via-amber-500/10 to-amber-500/5 px-3 py-1 text-xs font-bold text-amber-950 border border-amber-300/70 shadow-2xs">
             <Star className="size-3.5 text-amber-600 fill-amber-500" />
             <span>{article.citedByCount} Sitasi Scopus</span>
           </div>
@@ -551,7 +550,7 @@ function ArticleCard({
                 href={articleUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group/btn inline-flex items-center gap-2 rounded-full bg-red-800 hover:bg-red-900 px-4 sm:px-5 py-2 text-xs sm:text-sm font-bold !text-white shadow-md shadow-red-950/20 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-red-950/30 active:translate-y-0 ring-2 ring-red-700/20 hover:ring-red-700/40 no-underline cursor-pointer"
+                className="group/btn inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-red-700 via-red-800 to-rose-900 hover:from-red-800 hover:to-rose-950 px-4 sm:px-5 py-2 text-xs sm:text-sm font-bold !text-white shadow-md shadow-red-950/20 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-red-950/30 active:translate-y-0 no-underline cursor-pointer border-0"
               >
                 <span className="!text-white font-black tracking-tight drop-shadow-xs">
                   Buka Artikel
@@ -562,5 +561,6 @@ function ArticleCard({
           ) : null}
         </div>
       </div>
+    </div>
   );
 }
