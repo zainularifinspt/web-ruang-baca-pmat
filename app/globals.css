@@ -174,10 +174,12 @@ a {
 /* User-requested elegant keynote title gradient */
 /* impeccable-disable gradient-text */
 .hero-title-gradient {
-  background: linear-gradient(180deg, #ffffff 0%, #fff1f2 40%, rgba(254, 205, 211, 0.9) 75%, rgba(251, 113, 133, 0.75) 100%);
+  background: linear-gradient(125deg, #ffffff 0%, #ffe4e6 26%, #fca5a5 50%, #fb7185 74%, #fde68a 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  color: transparent;
+  display: inline-block;
 }
 
 /* Apple & Gemini Aesthetic System */
@@ -199,21 +201,28 @@ a {
 }
 
 .apple-mesh-body {
-  background-color: #f8fafc;
+  background-color: #fbfcfd;
   background-image: 
-    /* Mathematical Micro-Dot Grid (Notebook & Precision Mesh) */
-    radial-gradient(circle, rgba(225, 29, 72, 0.085) 1.2px, transparent 1.2px),
-    /* Subtle Coordinate Grid Lines */
-    linear-gradient(to right, rgba(225, 29, 72, 0.02) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(225, 29, 72, 0.02) 1px, transparent 1px),
-    /* Ambient Mathematical Light Blooms */
-    radial-gradient(circle at 12% 16%, rgba(244, 63, 94, 0.04) 0%, transparent 45%),
-    radial-gradient(circle at 88% 50%, rgba(225, 29, 72, 0.035) 0%, transparent 50%),
-    radial-gradient(circle at 48% 90%, rgba(245, 158, 11, 0.025) 0%, transparent 45%);
+    /* Mathematical Precision Dot Grid (Clearly Visible 1.6px dots, 24px interval) */
+    radial-gradient(circle, rgba(225, 29, 72, 0.16) 1.5px, transparent 1.5px),
+    /* Minor Coordinate Grid Lines (24px) */
+    linear-gradient(to right, rgba(225, 29, 72, 0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(225, 29, 72, 0.045) 1px, transparent 1px),
+    /* Major Coordinate Axes (96px - 4x interval) */
+    linear-gradient(to right, rgba(225, 29, 72, 0.09) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(225, 29, 72, 0.09) 1px, transparent 1px),
+    /* Ambient Mathematical Color Blooms */
+    radial-gradient(circle at 10% 18%, rgba(244, 63, 94, 0.07) 0%, transparent 45%),
+    radial-gradient(circle at 90% 45%, rgba(225, 29, 72, 0.06) 0%, transparent 50%),
+    radial-gradient(circle at 35% 72%, rgba(245, 158, 11, 0.055) 0%, transparent 45%),
+    radial-gradient(circle at 80% 92%, rgba(244, 63, 94, 0.065) 0%, transparent 45%);
   background-size: 
-    28px 28px,
-    112px 112px,
-    112px 112px,
+    24px 24px,
+    24px 24px,
+    24px 24px,
+    96px 96px,
+    96px 96px,
+    100% 100%,
     100% 100%,
     100% 100%,
     100% 100%;

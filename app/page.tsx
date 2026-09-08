@@ -16,6 +16,7 @@ import {
   Users,
 } from "lucide-react";
 import { JournalShowcase } from "@/components/journal-showcase";
+import { LandingBodyBackdrop } from "@/components/landing-body-backdrop";
 import { LandingSearchForm } from "@/components/landing-search-form";
 import { MathGeometricBackdrop } from "@/components/math-geometric-backdrop";
 import { PublicNav } from "@/components/public-nav";
@@ -55,10 +56,10 @@ export default async function HomePage() {
                 </div>
               </FadeIn>
               <FadeIn>
-                <h1 className="mx-auto max-w-5xl text-4xl font-black tracking-[-0.04em] sm:text-6xl md:text-7xl lg:text-[5.5rem] leading-[1.04] sm:leading-[0.96] drop-shadow-[0_6px_28px_rgba(0,0,0,0.7)]">
-                  <span className="hero-title-gradient inline-block">
+                <h1 className="mx-auto max-w-5xl text-4xl font-black tracking-[-0.04em] sm:text-6xl md:text-7xl lg:text-[5.5rem] leading-[1.04] sm:leading-[0.96] drop-shadow-[0_6px_28px_rgba(0,0,0,0.75)]">
+                  <span className="hero-title-gradient block sm:inline-block">
                     Ruang Baca <br className="hidden sm:inline" />
-                    Pendidikan Matematika.
+                    Pendidikan Matematika
                   </span>
                 </h1>
               </FadeIn>
@@ -71,8 +72,12 @@ export default async function HomePage() {
           </FadeInStagger>
         </section>
 
-        {/* Quick Navigation Apple Bento Cards */}
-        <section className="relative mx-auto -mt-20 sm:-mt-24 max-w-6xl px-4 pb-8 sm:px-6 sm:pb-12 z-20">
+        {/* Lower Landing Page Section with Mathematical Graphic Backdrop */}
+        <div className="relative">
+          <LandingBodyBackdrop />
+
+          {/* Quick Navigation Apple Bento Cards */}
+          <section className="relative mx-auto -mt-20 sm:-mt-24 max-w-6xl px-4 pb-8 sm:px-6 sm:pb-12 z-20">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {/* Katalog Buku & E-Book Button */}
             <Link
@@ -196,12 +201,13 @@ export default async function HomePage() {
           <RealtimeVisitorChart initialRows={visitorRows} />
         </section>
 
-        <section className="relative mx-auto grid max-w-6xl gap-4 px-4 pb-16 pt-4 sm:grid-cols-2 sm:px-6 lg:grid-cols-4">
-          <StatTile icon={BookOpen} label="Total Buku" value={stats.bookCount} description="Koleksi buku terdata" />
-          <StatTile icon={GraduationCap} label="Total Skripsi" value={stats.thesisCount} description="Koleksi skripsi terdata" />
-          <StatTile icon={Users} label="Total Petugas" value={stats.staffCount} description="Pengelola ruang baca" />
-          <WebsiteVisitorStat initialCount={stats.todayWebsiteVisits} />
-        </section>
+          <section className="relative mx-auto grid max-w-6xl gap-4 px-4 pb-16 pt-4 sm:grid-cols-2 sm:px-6 lg:grid-cols-4 z-10">
+            <StatTile icon={BookOpen} label="Total Buku" value={stats.bookCount} description="Koleksi buku terdata" />
+            <StatTile icon={GraduationCap} label="Total Skripsi" value={stats.thesisCount} description="Koleksi skripsi terdata" />
+            <StatTile icon={Users} label="Total Petugas" value={stats.staffCount} description="Pengelola ruang baca" />
+            <WebsiteVisitorStat initialCount={stats.todayWebsiteVisits} />
+          </section>
+        </div>
       </main>
       <Footer />
     </div>
