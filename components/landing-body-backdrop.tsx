@@ -13,10 +13,10 @@ export function LandingBodyBackdrop() {
       aria-hidden="true"
     >
       {/* 1. Ambient Lighting Orbs to Enhance Frosted Glassmorphism Refraction */}
-      <div className="absolute top-24 left-[5%] size-[500px] rounded-full bg-rose-500/6 blur-[120px]" />
-      <div className="absolute top-[35%] right-[3%] size-[600px] rounded-full bg-red-600/5 blur-[140px]" />
-      <div className="absolute top-[65%] left-[10%] size-[550px] rounded-full bg-amber-500/5 blur-[130px]" />
-      <div className="absolute bottom-12 right-[8%] size-[450px] rounded-full bg-rose-500/6 blur-[110px]" />
+      <div className="absolute top-24 left-[5%] size-[500px] rounded-full bg-rose-500/6 blur-[120px] transform-gpu" />
+      <div className="absolute top-[35%] right-[3%] size-[600px] rounded-full bg-red-600/5 blur-[140px] transform-gpu" />
+      <div className="absolute top-[65%] left-[10%] size-[550px] rounded-full bg-amber-500/5 blur-[130px] transform-gpu" />
+      <div className="absolute bottom-12 right-[8%] size-[450px] rounded-full bg-rose-500/6 blur-[110px] transform-gpu" />
 
       {/* 2. Top-Left Flank: Trigonometric Unit Circle with Radian Rays & Coordinate Grid */}
       <div className="absolute top-12 -left-20 lg:left-2 w-[420px] h-[420px] opacity-[0.14] text-rose-900 transition-opacity">

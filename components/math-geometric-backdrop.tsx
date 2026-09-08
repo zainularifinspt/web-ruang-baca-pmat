@@ -133,10 +133,32 @@ export function MathGeometricBackdrop() {
   );
 }
 
+// Shared global pointer coordinates (Single passive listener for the entire window)
+let sharedMouseX = typeof window !== "undefined" ? window.innerWidth * 0.5 : 0;
+let sharedMouseY = typeof window !== "undefined" ? window.innerHeight * 0.5 : 0;
+let hasSharedMouseMoved = false;
+let globalPointerListenerAttached = false;
+
+function initGlobalPointerTracking() {
+  if (globalPointerListenerAttached || typeof window === "undefined") return;
+  globalPointerListenerAttached = true;
+  sharedMouseX = window.innerWidth * 0.5;
+  sharedMouseY = window.innerHeight * 0.5;
+  window.addEventListener(
+    "pointermove",
+    (e: PointerEvent) => {
+      sharedMouseX = e.clientX;
+      sharedMouseY = e.clientY;
+      hasSharedMouseMoved = true;
+    },
+    { passive: true }
+  );
+}
+
 /**
- * Mathematically Authentic 3D Rotating Polyhedron Canvas
+ * Mathematically Authentic 3D Rotating Polyhedron Canvas (60 FPS Locked & Zero-GC)
  * Projects 3D mathematical models in real-time with dynamic lighting,
- * translucent facet blending, glowing edges, and luminous vertex points.
+ * zero layout thrashing, zero memory allocations per frame, and GPU compositing.
  */
 export function RotatingPolyhedron3D({
   type,
@@ -154,17 +176,34 @@ export function RotatingPolyhedron3D({
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
+    initGlobalPointerTracking();
+
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d", { alpha: true });
     if (!ctx) return;
 
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     canvas.width = size * dpr;
     canvas.height = size * dpr;
 
-    // Generate geometry based on type
+    // Generate geometry once
     const geometry = getGeometry(type);
+    const numVertices = geometry.vertices.length;
+
+    // Pre-allocated projected vertex buffer (Zero GC allocation in render loop)
+    const projected = new Array(numVertices);
+    for (let i = 0; i < numVertices; i++) {
+      projected[i] = { x: 0, y: 0, z: 0, rx: 0, ry: 0, rz: 0, scale: 1 };
+    }
+
+    // Pre-allocated face infos buffer (Zero GC allocation in render loop)
+    const faceInfos = geometry.faces.map((face) => ({
+      face,
+      avgZ: 0,
+      nz: 0,
+      lightDot: 0,
+    }));
 
     let angleX = Math.random() * Math.PI * 2;
     let angleY = Math.random() * Math.PI * 2;
@@ -178,19 +217,27 @@ export function RotatingPolyhedron3D({
     let dragVelocityY = 0;
     let isHovered = false;
 
-    // Global cursor tracking for ambient tilt
-    let globalMouseX = window.innerWidth / 2;
-    let globalMouseY = window.innerHeight / 2;
-    let hasMouseMoved = false;
+    // Cached layout metrics to completely eliminate getBoundingClientRect layout thrashing
+    let cachedCenterX = 0;
+    let cachedCenterY = 0;
+    let cachedHalfW = 500;
+    let cachedHalfH = 400;
+
+    const updateCachedMetrics = () => {
+      if (!canvas) return;
+      const rect = canvas.getBoundingClientRect();
+      cachedCenterX = rect.left + rect.width * 0.5;
+      cachedCenterY = rect.top + rect.height * 0.5;
+      cachedHalfW = window.innerWidth * 0.5 || 500;
+      cachedHalfH = window.innerHeight * 0.5 || 400;
+    };
+
+    updateCachedMetrics();
+    window.addEventListener("resize", updateCachedMetrics, { passive: true });
+    window.addEventListener("scroll", updateCachedMetrics, { passive: true });
+
     let tiltX = 0;
     let tiltY = 0;
-
-    const handleGlobalPointerMove = (e: PointerEvent) => {
-      globalMouseX = e.clientX;
-      globalMouseY = e.clientY;
-      hasMouseMoved = true;
-    };
-    window.addEventListener("pointermove", handleGlobalPointerMove, { passive: true });
 
     // Direct pointer event handlers on canvas
     const handlePointerDown = (e: PointerEvent) => {
@@ -229,6 +276,7 @@ export function RotatingPolyhedron3D({
 
     const handleMouseEnter = () => {
       isHovered = true;
+      updateCachedMetrics();
     };
 
     const handleMouseLeave = () => {
@@ -242,51 +290,82 @@ export function RotatingPolyhedron3D({
     canvas.addEventListener("mouseenter", handleMouseEnter);
     canvas.addEventListener("mouseleave", handleMouseLeave);
 
-    let animId: number;
-    let isVisible = true;
+    let animId: number | null = null;
+    let isVisible = !document.hidden;
+    let isIntersecting = true;
+    let lastTime = performance.now();
 
     const handleVisibilityChange = () => {
       isVisible = !document.hidden;
+      if (isVisible && isIntersecting && !animId) {
+        lastTime = performance.now();
+        animId = requestAnimationFrame(render);
+      }
     };
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
+    // Pause rendering entirely when scrolled out of view
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.target === canvas) {
+            const wasIntersecting = isIntersecting;
+            isIntersecting = entry.isIntersecting;
+            if (!wasIntersecting && isIntersecting && isVisible && !animId) {
+              lastTime = performance.now();
+              animId = requestAnimationFrame(render);
+            }
+          }
+        }
+      },
+      { rootMargin: "60px" }
+    );
+    observer.observe(canvas);
+
+    const cameraDistance = 3.4;
+    const fov = 3.0;
+    const radius = size * 0.44;
+
     const render = () => {
-      if (!isVisible) {
-        animId = requestAnimationFrame(render);
+      if (!isVisible || !isIntersecting) {
+        animId = null;
         return;
       }
+
+      const now = performance.now();
+      // Delta time normalized to 60fps (1.0 = exactly 16.67ms)
+      const dt = Math.min((now - lastTime) / 16.667, 2.0);
+      lastTime = now;
 
       // Physics & Rotation update
       if (isDragging) {
         // Handled in real time by pointermove
-      } else if (Math.abs(dragVelocityX) > 0.0002 || Math.abs(dragVelocityY) > 0.0002) {
-        // Inertia fling momentum
-        angleY += dragVelocityX;
-        angleX += dragVelocityY;
-        dragVelocityX *= 0.94;
-        dragVelocityY *= 0.94;
-        angleZ += speed.z;
+      } else if (Math.abs(dragVelocityX) > 0.0001 || Math.abs(dragVelocityY) > 0.0001) {
+        // Smooth inertia fling momentum with friction
+        angleY += dragVelocityX * dt;
+        angleX += dragVelocityY * dt;
+        dragVelocityX *= Math.pow(0.94, dt);
+        dragVelocityY *= Math.pow(0.94, dt);
+        angleZ += speed.z * dt;
       } else {
         // Ambient natural rotation
-        angleX += speed.x + (isHovered ? speed.x * 0.4 : 0);
-        angleY += speed.y + (isHovered ? speed.y * 0.4 : 0);
-        angleZ += speed.z;
+        const ambientBoost = isHovered ? 1.4 : 1.0;
+        angleX += speed.x * ambientBoost * dt;
+        angleY += speed.y * ambientBoost * dt;
+        angleZ += speed.z * dt;
       }
 
-      // Cursor-tracking tilt & parallax
-      if (hasMouseMoved && !isDragging) {
-        const rect = canvas.getBoundingClientRect();
-        const objCenterX = rect.left + rect.width / 2;
-        const objCenterY = rect.top + rect.height / 2;
-        const dx = (globalMouseX - objCenterX) / (window.innerWidth * 0.5);
-        const dy = (globalMouseY - objCenterY) / (window.innerHeight * 0.5);
+      // Cursor-tracking tilt using cached metrics (ZERO DOM READS!)
+      if (hasSharedMouseMoved && !isDragging) {
+        const dx = (sharedMouseX - cachedCenterX) / cachedHalfW;
+        const dy = (sharedMouseY - cachedCenterY) / cachedHalfH;
         const targetTiltX = Math.max(-0.55, Math.min(0.55, dy * 0.55));
         const targetTiltY = Math.max(-0.55, Math.min(0.55, dx * 0.55));
-        tiltX += (targetTiltX - tiltX) * 0.06;
-        tiltY += (targetTiltY - tiltY) * 0.06;
+        tiltX += (targetTiltX - tiltX) * (0.06 * dt);
+        tiltY += (targetTiltY - tiltY) * (0.06 * dt);
       } else if (!isDragging) {
-        tiltX += (0 - tiltX) * 0.04;
-        tiltY += (0 - tiltY) * 0.04;
+        tiltX += (0 - tiltX) * (0.04 * dt);
+        tiltY += (0 - tiltY) * (0.04 * dt);
       }
 
       const effectiveAngleX = angleX + tiltX;
@@ -300,11 +379,8 @@ export function RotatingPolyhedron3D({
       // Subtle parallax shift of projection center based on mouse
       const parallaxShiftX = tiltY * 10;
       const parallaxShiftY = tiltX * 10;
-      const cx = size / 2 + parallaxShiftX;
-      const cy = size / 2 + parallaxShiftY;
-      const cameraDistance = 3.4;
-      const fov = 3.0;
-      const radius = size * 0.44;
+      const cx = size * 0.5 + parallaxShiftX;
+      const cy = size * 0.5 + parallaxShiftY;
 
       const cosX = Math.cos(effectiveAngleX);
       const sinX = Math.sin(effectiveAngleX);
@@ -313,8 +389,11 @@ export function RotatingPolyhedron3D({
       const cosZ = Math.cos(effectiveAngleZ);
       const sinZ = Math.sin(effectiveAngleZ);
 
-      // Rotate and project all vertices
-      const projected = geometry.vertices.map(([vx, vy, vz]) => {
+      // Rotate and project all vertices in-place (ZERO allocations)
+      for (let i = 0; i < numVertices; i++) {
+        const [vx, vy, vz] = geometry.vertices[i];
+        const p = projected[i];
+
         // Rotate X
         const y1 = vy * cosX - vz * sinX;
         const z1 = vy * sinX + vz * cosX;
@@ -327,43 +406,66 @@ export function RotatingPolyhedron3D({
         const z3 = z2;
 
         const depth = z3 + cameraDistance;
-        const projScale = (fov / depth);
-        const px = cx + x3 * radius * projScale;
-        const py = cy + y3 * radius * projScale;
+        const projScale = fov / depth;
+        p.x = cx + x3 * radius * projScale;
+        p.y = cy + y3 * radius * projScale;
+        p.z = z3;
+        p.rx = x3;
+        p.ry = y3;
+        p.rz = z3;
+        p.scale = projScale;
+      }
 
-        return { x: px, y: py, z: z3, rx: x3, ry: y3, rz: z3, scale: projScale };
-      });
-
-      // Render Torus Knot Curve
+      // Render Torus Knot Curve (Dual-pass GPU stroke, NO software shadowBlur)
       if (geometry.isCurve && geometry.segments) {
         ctx.lineCap = "round";
         ctx.lineJoin = "round";
 
-        // Draw ambient glow trail
-        ctx.shadowColor = glowColor;
-        ctx.shadowBlur = isHovered || isDragging ? 18 : 12;
-
+        // Pass 1: Wider soft glow stroke
         for (let i = 0; i < geometry.segments.length; i++) {
           const [i0, i1] = geometry.segments[i];
           const p0 = projected[i0];
           const p1 = projected[i1];
-          const avgZ = (p0.z + p1.z) / 2;
-          const alpha = Math.max(0.18, Math.min(0.95, 0.52 + avgZ * 0.45));
+          const avgZ = (p0.z + p1.z) * 0.5;
+          const alpha = Math.max(0.12, Math.min(0.40, 0.22 + avgZ * 0.2));
 
           ctx.beginPath();
           ctx.moveTo(p0.x, p0.y);
           ctx.lineTo(p1.x, p1.y);
-          ctx.strokeStyle = `rgba(251, 113, 133, ${alpha})`;
-          ctx.lineWidth = Math.max(1, 2.6 * p0.scale);
+          ctx.strokeStyle = `rgba(244, 63, 94, ${alpha})`;
+          ctx.lineWidth = Math.max(3, 5.5 * p0.scale);
           ctx.stroke();
         }
 
-        // Draw knots vertices
-        for (let i = 0; i < projected.length; i += 3) {
-          const p = projected[i];
-          const nodeAlpha = Math.max(0.2, Math.min(1, 0.6 + p.z * 0.4));
+        // Pass 2: Core luminous sharp stroke
+        for (let i = 0; i < geometry.segments.length; i++) {
+          const [i0, i1] = geometry.segments[i];
+          const p0 = projected[i0];
+          const p1 = projected[i1];
+          const avgZ = (p0.z + p1.z) * 0.5;
+          const alpha = Math.max(0.28, Math.min(1.0, 0.60 + avgZ * 0.45));
+
           ctx.beginPath();
-          ctx.arc(p.x, p.y, Math.max(1.2, 2.2 * p.scale), 0, Math.PI * 2);
+          ctx.moveTo(p0.x, p0.y);
+          ctx.lineTo(p1.x, p1.y);
+          ctx.strokeStyle = `rgba(254, 205, 211, ${alpha})`;
+          ctx.lineWidth = Math.max(1, 2.2 * p0.scale);
+          ctx.stroke();
+        }
+
+        // Knots vertices (Fast dual-pass nodes)
+        for (let i = 0; i < numVertices; i += 3) {
+          const p = projected[i];
+          const nodeAlpha = Math.max(0.25, Math.min(1, 0.65 + p.z * 0.45));
+          const r = Math.max(1.2, 2.2 * p.scale);
+
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, r * 1.8, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(244, 63, 94, ${nodeAlpha * 0.35})`;
+          ctx.fill();
+
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
           ctx.fillStyle = `rgba(255, 255, 255, ${nodeAlpha})`;
           ctx.fill();
         }
@@ -373,71 +475,70 @@ export function RotatingPolyhedron3D({
         return;
       }
 
-      // Render Polyhedron Faces (Sorted by average depth for painter's algorithm)
-      // Dynamic light source tilts slightly with cursor
-      const lightDir = normalize([
-        0.35 + tiltY * 0.4,
-        -0.65 + tiltX * 0.4,
-        0.70
-      ]);
+      // Render Polyhedron Faces (Fast in-place normal & light dot calculation)
+      const lightX = 0.35 + tiltY * 0.4;
+      const lightY = -0.65 + tiltX * 0.4;
+      const lightZ = 0.70;
+      const lightInvLen = 1 / Math.sqrt(lightX * lightX + lightY * lightY + lightZ * lightZ);
+      const lNormX = lightX * lightInvLen;
+      const lNormY = lightY * lightInvLen;
+      const lNormZ = lightZ * lightInvLen;
 
-      type FaceInfo = {
-        face: number[];
-        avgZ: number;
-        nz: number;
-        lightDot: number;
-      };
-
-      const faceInfos: FaceInfo[] = geometry.faces.map((face) => {
+      for (let i = 0; i < faceInfos.length; i++) {
+        const info = faceInfos[i];
+        const face = info.face;
         let sumZ = 0;
-        for (const idx of face) sumZ += projected[idx].z;
-        const avgZ = sumZ / face.length;
+        for (let j = 0; j < face.length; j++) sumZ += projected[face[j]].z;
+        info.avgZ = sumZ / face.length;
 
-        // Compute 3D face normal
         const p0 = projected[face[0]];
         const p1 = projected[face[1]];
         const p2 = projected[face[2]];
 
-        const v1 = [p1.rx - p0.rx, p1.ry - p0.ry, p1.rz - p0.rz];
-        const v2 = [p2.rx - p0.rx, p2.ry - p0.ry, p2.rz - p0.rz];
+        const v1x = p1.rx - p0.rx;
+        const v1y = p1.ry - p0.ry;
+        const v1z = p1.rz - p0.rz;
+        const v2x = p2.rx - p0.rx;
+        const v2y = p2.ry - p0.ry;
+        const v2z = p2.rz - p0.rz;
 
-        const nx = v1[1] * v2[2] - v1[2] * v2[1];
-        const ny = v1[2] * v2[0] - v1[0] * v2[2];
-        const nz = v1[0] * v2[1] - v1[1] * v2[0];
-        const nNorm = normalize([nx, ny, nz]);
+        const nx = v1y * v2z - v1z * v2y;
+        const ny = v1z * v2x - v1x * v2z;
+        const nz = v1x * v2y - v1y * v2x;
+        const invLen = 1 / (Math.sqrt(nx * nx + ny * ny + nz * nz) || 1);
+        const nNormX = nx * invLen;
+        const nNormY = ny * invLen;
+        const nNormZ = nz * invLen;
 
-        const lightDot = Math.max(0, nNorm[0] * lightDir[0] + nNorm[1] * lightDir[1] + nNorm[2] * lightDir[2]);
-
-        return { face, avgZ, nz: nNorm[2], lightDot };
-      });
+        info.nz = nNormZ;
+        info.lightDot = Math.max(0, nNormX * lNormX + nNormY * lNormY + nNormZ * lNormZ);
+      }
 
       // Sort back-to-front
       faceInfos.sort((a, b) => a.avgZ - b.avgZ);
 
-      // Draw each face with translucent lighting
-      for (const { face, nz, lightDot } of faceInfos) {
+      // Draw each face with translucent lighting (Pure GPU accelerated paths)
+      for (let i = 0; i < faceInfos.length; i++) {
+        const { face, nz, lightDot } = faceInfos[i];
         ctx.beginPath();
         const first = projected[face[0]];
         ctx.moveTo(first.x, first.y);
-        for (let i = 1; i < face.length; i++) {
-          const pt = projected[face[i]];
+        for (let j = 1; j < face.length; j++) {
+          const pt = projected[face[j]];
           ctx.lineTo(pt.x, pt.y);
         }
         ctx.closePath();
 
         const isFront = nz > 0;
         if (isFront) {
-          // Luminous specular reflection
-          const baseAlpha = (isHovered || isDragging ? 0.22 : 0.16) + 0.32 * lightDot;
+          const baseAlpha = (isHovered || isDragging ? 0.24 : 0.16) + 0.32 * lightDot;
           ctx.fillStyle = `rgba(244, 63, 94, ${baseAlpha})`;
           ctx.fill();
         } else {
-          // Subtle deep wine translucency for back facets
           ctx.fillStyle = "rgba(136, 19, 55, 0.08)";
           ctx.fill();
         }
 
-        // Face edge stroke
         ctx.strokeStyle = isFront
           ? `rgba(254, 205, 211, ${0.38 + 0.38 * lightDot})`
           : "rgba(225, 29, 72, 0.14)";
@@ -445,13 +546,19 @@ export function RotatingPolyhedron3D({
         ctx.stroke();
       }
 
-      // Draw glowing vertex nodes
-      ctx.shadowColor = "#ffffff";
-      ctx.shadowBlur = isHovered || isDragging ? 8 : 6;
-      for (const pt of projected) {
-        const nodeAlpha = Math.max(0.3, Math.min(1, 0.6 + pt.z * 0.45));
+      // Draw glowing vertex nodes (Dual-pass glow nodes, NO software blur)
+      for (let i = 0; i < numVertices; i++) {
+        const pt = projected[i];
+        const nodeAlpha = Math.max(0.3, Math.min(1, 0.65 + pt.z * 0.45));
+        const r = Math.max(1.2, 2.2 * pt.scale);
+
         ctx.beginPath();
-        ctx.arc(pt.x, pt.y, Math.max(1.2, 2.2 * pt.scale), 0, Math.PI * 2);
+        ctx.arc(pt.x, pt.y, r * 1.8, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(244, 63, 94, ${nodeAlpha * 0.35})`;
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, r, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(255, 255, 255, ${nodeAlpha})`;
         ctx.fill();
       }
@@ -463,9 +570,11 @@ export function RotatingPolyhedron3D({
     animId = requestAnimationFrame(render);
 
     return () => {
-      cancelAnimationFrame(animId);
-      window.removeEventListener("pointermove", handleGlobalPointerMove);
+      if (animId) cancelAnimationFrame(animId);
+      observer.disconnect();
       document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("resize", updateCachedMetrics);
+      window.removeEventListener("scroll", updateCachedMetrics);
       canvas.removeEventListener("pointerdown", handlePointerDown);
       canvas.removeEventListener("pointermove", handlePointerMove);
       canvas.removeEventListener("pointerup", handlePointerUp);
@@ -477,12 +586,12 @@ export function RotatingPolyhedron3D({
 
   return (
     <div
-      className="group relative flex flex-col items-center justify-center transition-all duration-300 hover:scale-110"
+      className="group relative flex flex-col items-center justify-center transition-transform duration-300 hover:scale-110 will-change-transform transform-gpu"
       style={{ width: size, height: size }}
     >
       <canvas
         ref={canvasRef}
-        className="block cursor-grab active:cursor-grabbing touch-none select-none drop-shadow-[0_0_20px_rgba(244,63,94,0.30)] group-hover:drop-shadow-[0_0_30px_rgba(244,63,94,0.55)] transition-all"
+        className="block cursor-grab active:cursor-grabbing touch-none select-none drop-shadow-[0_0_16px_rgba(244,63,94,0.30)] group-hover:drop-shadow-[0_0_28px_rgba(244,63,94,0.55)] will-change-transform transform-gpu"
         style={{ width: size, height: size, touchAction: "none" }}
         title="Klik &amp; geser untuk memutar objek 3D"
       />

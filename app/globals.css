@@ -369,19 +369,19 @@ a {
 
 @keyframes float-slow {
   0%, 100% {
-    transform: translateY(0px) rotate(0deg);
+    transform: translate3d(0, 0px, 0) rotate(0deg);
   }
   50% {
-    transform: translateY(-10px) rotate(2deg);
+    transform: translate3d(0, -10px, 0) rotate(2deg);
   }
 }
 
 @keyframes float-reverse {
   0%, 100% {
-    transform: translateY(0px) rotate(0deg);
+    transform: translate3d(0, 0px, 0) rotate(0deg);
   }
   50% {
-    transform: translateY(10px) rotate(-2deg);
+    transform: translate3d(0, 10px, 0) rotate(-2deg);
   }
 }
 

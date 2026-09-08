@@ -244,10 +244,10 @@ function PitchHeroBackdrop() {
       {/* Background red layer that fades smoothly to full transparency at the bottom */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden hero-fade-to-transparent pitch-red-hero bg-[#0b0103]">
         {/* Central Radiant Aurora Glow (Pitch Style) */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[800px] w-[1200px] rounded-full bg-gradient-to-b from-rose-500/40 via-red-600/30 to-transparent blur-3xl" />
-        <div className="absolute -top-32 left-1/2 -translate-x-1/2 h-[600px] w-[1000px] rounded-full bg-rose-600/25 blur-3xl" />
-        <div className="absolute -top-20 -right-20 h-96 w-96 rounded-full bg-rose-500/25 blur-3xl" />
-        <div className="absolute -bottom-20 -left-20 h-96 w-96 rounded-full bg-red-600/30 blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[800px] w-[1200px] rounded-full bg-gradient-to-b from-rose-500/40 via-red-600/30 to-transparent blur-3xl transform-gpu" />
+        <div className="absolute -top-32 left-1/2 -translate-x-1/2 h-[600px] w-[1000px] rounded-full bg-rose-600/25 blur-3xl transform-gpu" />
+        <div className="absolute -top-20 -right-20 h-96 w-96 rounded-full bg-rose-500/25 blur-3xl transform-gpu" />
+        <div className="absolute -bottom-20 -left-20 h-96 w-96 rounded-full bg-red-600/30 blur-3xl transform-gpu" />
       </div>
 
       {/* 3D Mathematical Geometric Shapes & Floating Glyphs */}
