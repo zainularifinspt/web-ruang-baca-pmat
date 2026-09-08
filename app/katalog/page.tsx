@@ -12,8 +12,12 @@ export default async function CatalogPage() {
   return (
     <div className="min-h-screen apple-mesh-body">
       <PublicNav />
-      <main className="mx-auto max-w-6xl space-y-5 sm:space-y-6 px-3.5 py-5 sm:px-6 sm:py-8">
-        <CatalogHero />
+
+      {/* Full-width Edge-to-Edge Hero Banner */}
+      <CatalogHero />
+
+      {/* Main Catalog Content */}
+      <main className="relative z-20 mx-auto max-w-6xl space-y-5 sm:space-y-6 px-3.5 -mt-8 sm:-mt-12 pb-14 sm:px-6">
         {error ? (
           <Alert className="border-amber-200 bg-amber-50 text-amber-950">
             <AlertTitle>Data belum dapat dimuat</AlertTitle>
@@ -28,19 +32,22 @@ export default async function CatalogPage() {
 
 function CatalogHero() {
   return (
-    <section className="relative overflow-hidden rounded-3xl border border-red-950/40 apple-mesh-hero-subtle p-6 sm:p-10 text-white shadow-xl shadow-red-950/20">
+    <section className="relative w-full overflow-hidden bg-[#0c0103] apple-mesh-hero pt-10 pb-20 sm:pt-14 sm:pb-28 text-white shadow-xl shadow-red-950/20">
       {/* Ambient glowing radial effects */}
-      <div className="pointer-events-none absolute -right-20 -top-20 size-80 rounded-full bg-rose-500/20 blur-3xl" />
-      <div className="pointer-events-none absolute -left-20 -bottom-20 size-80 rounded-full bg-amber-500/15 blur-3xl" />
+      <div className="pointer-events-none absolute -right-20 -top-20 size-96 rounded-full bg-rose-500/20 blur-3xl" />
+      <div className="pointer-events-none absolute -left-20 -bottom-20 size-96 rounded-full bg-amber-500/15 blur-3xl" />
+      <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-[600px] rounded-full bg-red-600/15 blur-3xl" />
 
-      <div className="relative z-10 max-w-4xl space-y-3.5">
+      <div className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6 space-y-3.5">
         <div className="apple-glass-pill inline-flex items-center gap-2 rounded-full px-3.5 py-1 text-xs sm:text-sm font-bold text-white shadow-xs">
           <LibraryBig className="size-3.5 text-amber-300" />
           <span>Koleksi Terpadu Ruang Baca PMat FKIP ULM</span>
         </div>
 
-        <h1 className="text-2xl font-black tracking-tight sm:text-4xl lg:text-5xl text-white leading-tight">
-          Katalog Buku, E-Book Digital &amp; Repositori Skripsi
+        <h1 className="text-2xl font-black tracking-tight sm:text-4xl lg:text-5xl leading-tight">
+          <span className="hero-title-gradient">
+            Katalog Buku, E-Book Digital &amp; Repositori Skripsi
+          </span>
         </h1>
 
         <p className="max-w-3xl text-xs sm:text-base leading-relaxed text-red-100/90 font-normal">
@@ -64,6 +71,9 @@ function CatalogHero() {
           </span>
         </div>
       </div>
+
+      {/* Smooth Bottom Scrim Fade Transition */}
+      <div className="absolute inset-x-0 bottom-0 h-24 sm:h-32 hero-scrim-fade pointer-events-none" />
     </section>
   );
 }

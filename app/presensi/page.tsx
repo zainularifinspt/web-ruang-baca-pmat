@@ -164,34 +164,43 @@ export default function AttendancePage() {
   return (
     <div className="min-h-screen apple-mesh-body text-slate-950">
       <PublicNav />
-      <main className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
-        {/* Page Hero Banner */}
-        <section className="relative overflow-hidden rounded-3xl border border-red-950/40 apple-mesh-hero-subtle p-6 sm:p-10 text-white shadow-xl shadow-red-950/20 mb-8">
-          <div className="pointer-events-none absolute -right-20 -top-20 size-80 rounded-full bg-rose-500/20 blur-3xl" />
-          <div className="pointer-events-none absolute -left-20 -bottom-20 size-80 rounded-full bg-amber-500/15 blur-3xl" />
-          
-          <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="space-y-2 max-w-2xl">
-              <div className="apple-glass-pill inline-flex items-center gap-2 rounded-full px-3.5 py-1 text-xs sm:text-sm font-bold text-white shadow-xs">
-                <CalendarCheck className="size-3.5 text-amber-300" />
-                <span>Buku Tamu &amp; Presensi Harian</span>
-              </div>
-              <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white leading-tight">
-                Presensi Pengunjung Ruang Baca
-              </h1>
-              <p className="text-xs sm:text-base leading-relaxed text-red-100/90 font-normal">
-                Sistem pencatatan kehadiran digital sivitas akademika Jurusan Pendidikan Matematika FKIP Universitas Lambung Mangkurat.
-              </p>
-            </div>
-            <Button asChild variant="outline" className="apple-glass-pill rounded-full text-white hover:bg-white hover:text-red-950 shadow-xs font-bold shrink-0 cursor-pointer border-white/30">
-              <Link href="/">
-                <ArrowLeft className="size-4 mr-1.5" />
-                Kembali ke Beranda
-              </Link>
-            </Button>
-          </div>
-        </section>
 
+      {/* Full-width Edge-to-Edge Hero Banner */}
+      <section className="relative w-full overflow-hidden bg-[#0c0103] apple-mesh-hero pt-10 pb-20 sm:pt-14 sm:pb-28 text-white shadow-xl shadow-red-950/20">
+        {/* Ambient glow blooms */}
+        <div className="pointer-events-none absolute -right-20 -top-20 size-96 rounded-full bg-rose-500/20 blur-3xl" />
+        <div className="pointer-events-none absolute -left-20 -bottom-20 size-96 rounded-full bg-amber-500/15 blur-3xl" />
+        <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-[600px] rounded-full bg-red-600/15 blur-3xl" />
+
+        <div className="relative z-10 mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-2.5 max-w-2xl">
+            <div className="apple-glass-pill inline-flex items-center gap-2 rounded-full px-3.5 py-1 text-xs sm:text-sm font-bold text-white shadow-xs">
+              <CalendarCheck className="size-3.5 text-amber-300" />
+              <span>Buku Tamu &amp; Presensi Harian</span>
+            </div>
+            <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight">
+              <span className="hero-title-gradient">
+                Presensi Pengunjung Ruang Baca
+              </span>
+            </h1>
+            <p className="text-xs sm:text-base leading-relaxed text-red-100/90 font-normal">
+              Sistem pencatatan kehadiran digital sivitas akademika Jurusan Pendidikan Matematika FKIP Universitas Lambung Mangkurat.
+            </p>
+          </div>
+          <Button asChild variant="outline" className="apple-glass-pill rounded-full text-white hover:bg-white hover:text-red-950 shadow-xs font-bold shrink-0 cursor-pointer border-white/30 self-start sm:self-auto">
+            <Link href="/">
+              <ArrowLeft className="size-4 mr-1.5" />
+              Kembali ke Beranda
+            </Link>
+          </Button>
+        </div>
+
+        {/* Smooth Bottom Scrim Fade Transition */}
+        <div className="absolute inset-x-0 bottom-0 h-24 sm:h-32 hero-scrim-fade pointer-events-none" />
+      </section>
+
+      {/* Main Form Content */}
+      <main className="relative z-20 mx-auto w-full max-w-5xl px-4 -mt-10 sm:-mt-14 pb-14 sm:px-6 lg:px-8">
         {submitted ? (
           <SuccessState record={submitted} onReset={resetForm} />
         ) : (

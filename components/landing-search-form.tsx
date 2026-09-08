@@ -49,14 +49,6 @@ export function LandingSearchForm() {
               autoComplete="off"
             />
           </div>
-
-          {/* Miniature Ecosystem Indicators in Card Top Right (Pitch Style) */}
-          <div className="hidden sm:flex items-center gap-1.5 shrink-0 pt-1">
-            <span className="inline-flex items-center gap-1 rounded-full bg-slate-100/80 px-2 py-0.5 text-[10px] font-bold text-slate-600 border border-slate-200/60 backdrop-blur-sm">
-              <BookOpen className="size-3 text-red-600" />
-              Ruang Baca
-            </span>
-          </div>
         </div>
 
         {/* Bottom Toolbar Row (Pitch Style: Category + Prompts on Left, Generate/Search on Right) */}
