@@ -32,7 +32,7 @@ export default async function CatalogPage() {
 
 function CatalogHero() {
   return (
-    <section className="relative w-full overflow-hidden pt-12 pb-28 sm:pt-16 sm:pb-36 lg:pb-44 text-white">
+    <section className="relative w-full overflow-hidden pt-12 pb-28 sm:pt-16 sm:pb-36 lg:pb-44 text-center text-white">
       {/* Background layer that fades smoothly to full transparency at the bottom */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden hero-fade-to-transparent apple-mesh-hero bg-[#0c0103]">
         {/* Ambient glowing radial effects */}
@@ -41,7 +41,7 @@ function CatalogHero() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-[650px] rounded-full bg-red-600/20 blur-3xl" />
       </div>
 
-      <div className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6 space-y-3.5">
+      <div className="relative z-10 mx-auto max-w-5xl px-4 sm:px-6 space-y-3.5 flex flex-col items-center">
         <div className="apple-glass-pill inline-flex items-center gap-2 rounded-full px-3.5 py-1 text-xs sm:text-sm font-bold text-white shadow-xs">
           <LibraryBig className="size-3.5 text-amber-300" />
           <span>Koleksi Terpadu Ruang Baca PMat FKIP ULM</span>
@@ -53,22 +53,22 @@ function CatalogHero() {
           </span>
         </h1>
 
-        <p className="max-w-3xl text-sm sm:text-base leading-relaxed text-rose-100/95 font-medium drop-shadow-sm">
+        <p className="mx-auto max-w-2xl text-sm sm:text-base leading-relaxed text-rose-100/95 font-medium drop-shadow-sm">
           Temukan buku teks matematika, baca dan unduh e-book perkuliahan digital via Google Drive,
           serta telusuri riset skripsi mahasiswa Jurusan Pendidikan Matematika.
         </p>
 
-        {/* Quick Highlights */}
-        <div className="flex flex-wrap items-center gap-2 pt-2 text-xs">
-          <span className="apple-glass-pill inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-semibold text-white/95">
+        {/* Quick Highlights Centered */}
+        <div className="flex flex-wrap items-center justify-center gap-2 pt-2 text-xs">
+          <span className="apple-glass-pill inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 font-semibold text-white/95 shadow-xs border border-white/20 bg-white/10 drop-shadow-xs">
             <BookMarked className="size-3.5 text-amber-300" />
             <span>Buku Fisik &amp; Rak</span>
           </span>
-          <span className="apple-glass-pill inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-semibold text-white/95">
+          <span className="apple-glass-pill inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 font-semibold text-white/95 shadow-xs border border-white/20 bg-white/10 drop-shadow-xs">
             <FileText className="size-3.5 text-rose-300" />
             <span>E-Book &amp; PDF Drive</span>
           </span>
-          <span className="apple-glass-pill inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-semibold text-white/95">
+          <span className="apple-glass-pill inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 font-semibold text-white/95 shadow-xs border border-white/20 bg-white/10 drop-shadow-xs">
             <GraduationCap className="size-3.5 text-amber-300" />
             <span>Skripsi Mahasiswa</span>
           </span>

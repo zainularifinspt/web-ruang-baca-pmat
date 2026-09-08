@@ -165,7 +165,7 @@ export default function AttendancePage() {
       <PublicNav />
 
       {/* Full-width Edge-to-Edge Hero Banner */}
-      <section className="relative w-full overflow-hidden pt-12 pb-28 sm:pt-16 sm:pb-36 lg:pb-44 text-white">
+      <section className="relative w-full overflow-hidden pt-12 pb-28 sm:pt-16 sm:pb-36 lg:pb-44 text-center text-white">
         {/* Background layer that fades smoothly to full transparency at the bottom */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden hero-fade-to-transparent apple-mesh-hero bg-[#0c0103]">
           {/* Ambient glow blooms */}
@@ -175,7 +175,7 @@ export default function AttendancePage() {
         </div>
 
         <div className="relative z-10 mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-          <div className="space-y-3 max-w-3xl">
+          <div className="space-y-3.5 max-w-3xl mx-auto flex flex-col items-center">
             <div className="apple-glass-pill inline-flex items-center gap-2 rounded-full px-3.5 py-1 text-xs sm:text-sm font-bold text-white shadow-xs">
               <CalendarCheck className="size-3.5 text-amber-300" />
               <span>Buku Tamu &amp; Presensi Harian</span>
@@ -185,7 +185,7 @@ export default function AttendancePage() {
                 Presensi Pengunjung Ruang Baca
               </span>
             </h1>
-            <p className="text-sm sm:text-base leading-relaxed text-rose-100/95 font-medium drop-shadow-sm">
+            <p className="mx-auto max-w-2xl text-sm sm:text-base leading-relaxed text-rose-100/95 font-medium drop-shadow-sm">
               Sistem pencatatan kehadiran digital sivitas akademika Jurusan Pendidikan Matematika FKIP Universitas Lambung Mangkurat.
             </p>
           </div>
