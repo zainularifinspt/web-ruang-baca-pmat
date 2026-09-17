@@ -1,8 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
-import type { ComponentType } from "react";
+import { Suspense, type ComponentType } from "react";
+import dynamic from "next/dynamic";
 import {
-  Award,
   BookOpen,
   Building2,
   Clock3,
@@ -19,28 +19,26 @@ import { LandingBodyBackdrop } from "@/components/landing-body-backdrop";
 import { LandingSearchForm } from "@/components/landing-search-form";
 import { MathGeometricBackdrop } from "@/components/math-geometric-backdrop";
 import { PublicNav } from "@/components/public-nav";
-import { RealtimeVisitorChart } from "@/components/realtime-visitor-chart";
 import { WebsiteVisitorStat } from "@/components/website-visitor-stat";
-import { Badge } from "@/components/ui/badge";
-import { FadeIn, FadeInStagger, ScaleIn } from "@/components/ui/framer";
+import { FadeIn, FadeInStagger } from "@/components/ui/framer";
 import {
   fetchPublicLandingStats,
-  fetchPublicSearchItems,
   fetchPublicVisitorRows,
 } from "@/lib/public-cache";
 
+const RealtimeVisitorChart = dynamic(
+  () => import("@/components/realtime-visitor-chart").then((mod) => mod.RealtimeVisitorChart),
+  {
+    loading: () => <VisitorChartSkeleton />,
+  }
+);
+
 export const revalidate = 300;
 
-export default async function HomePage() {
-  const [{ items: searchItems }, stats, visitorRows] = await Promise.all([
-    fetchPublicSearchItems(),
-    fetchPublicLandingStats(),
-    fetchPublicVisitorRows(),
-  ]);
-
+export default function HomePage() {
   return (
     <div className="min-h-screen apple-mesh-body text-slate-900 antialiased">
-      <PublicNav initialSearchItems={searchItems} />
+      <PublicNav />
       <main className="relative overflow-hidden">
         {/* Pitch-Style Glowing Red Hero with extended fade to transparent */}
         <section className="relative overflow-hidden text-white pb-36 pt-10 sm:pb-44 sm:pt-16 lg:pb-52 lg:pt-20">
@@ -77,141 +75,197 @@ export default async function HomePage() {
 
           {/* Quick Navigation Apple Bento Cards */}
           <section className="relative mx-auto -mt-20 sm:-mt-24 max-w-6xl px-4 pb-8 sm:px-6 sm:pb-12 z-20">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {/* Katalog Buku & E-Book Button */}
-            <Link
-              href="/katalog?tab=books"
-              className="group apple-bento-card p-5.5 flex flex-col justify-between overflow-hidden"
-            >
-              <div className="pointer-events-none absolute -right-12 -top-12 size-36 rounded-full bg-red-500/10 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <div className="relative z-10">
-                <div className="flex items-center justify-between">
-                  <div className="flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-red-500 via-red-600 to-rose-700 text-white shadow-md shadow-red-500/25 group-hover:scale-105 transition-transform">
-                    <BookOpen className="size-5" />
+            <h2 className="sr-only">Layanan dan Katalog Utama Ruang Baca</h2>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {/* Katalog Buku & E-Book Button */}
+              <Link
+                href="/katalog?tab=books"
+                className="group apple-bento-card p-5.5 flex flex-col justify-between overflow-hidden"
+              >
+                <div className="pointer-events-none absolute -right-12 -top-12 size-36 rounded-full bg-red-500/10 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between">
+                    <div className="flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-red-500 via-red-600 to-rose-700 text-white shadow-md shadow-red-500/25 group-hover:scale-105 transition-transform">
+                      <BookOpen className="size-5" />
+                    </div>
+                    <span className="rounded-full bg-red-50 px-2.5 py-0.5 text-[11px] font-bold text-red-800 border border-red-200/60 shadow-2xs">
+                      E-Book &amp; Cetak
+                    </span>
                   </div>
-                  <span className="rounded-full bg-red-50 px-2.5 py-0.5 text-[11px] font-bold text-red-800 border border-red-200/60 shadow-2xs">
-                    E-Book &amp; Cetak
-                  </span>
+                  <h2 className="mt-4 text-base font-bold text-slate-900 group-hover:text-red-700 transition-colors">
+                    Katalog Buku
+                  </h2>
+                  <p className="mt-1 text-xs leading-relaxed text-slate-650">
+                    Akses buku teks perkuliahan, modul ajar, dan koleksi e-book digital.
+                  </p>
                 </div>
-                <h3 className="mt-4 text-base font-bold text-slate-900 group-hover:text-red-700 transition-colors">
-                  Katalog Buku
-                </h3>
-                <p className="mt-1 text-xs leading-relaxed text-slate-600">
-                  Akses buku teks perkuliahan, modul ajar, dan koleksi e-book digital.
-                </p>
-              </div>
-              <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-red-700 group-hover:text-red-800">
-                <span>Buka Katalog Buku</span>
-                <span className="transition-transform group-hover:translate-x-1 text-base leading-none">→</span>
-              </div>
-            </Link>
+                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-red-700 group-hover:text-red-800">
+                  <span>Buka Katalog Buku</span>
+                  <span className="transition-transform group-hover:translate-x-1 text-base leading-none">→</span>
+                </div>
+              </Link>
 
-            {/* Katalog Skripsi Button */}
-            <Link
-              href="/katalog?tab=theses"
-              className="group apple-bento-card p-5.5 flex flex-col justify-between overflow-hidden"
-            >
-              <div className="pointer-events-none absolute -right-12 -top-12 size-36 rounded-full bg-rose-500/10 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <div className="relative z-10">
-                <div className="flex items-center justify-between">
-                  <div className="flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-600 via-rose-700 to-red-900 text-white shadow-md shadow-rose-600/25 group-hover:scale-105 transition-transform">
-                    <GraduationCap className="size-5" />
+              {/* Katalog Skripsi Button */}
+              <Link
+                href="/katalog?tab=theses"
+                className="group apple-bento-card p-5.5 flex flex-col justify-between overflow-hidden"
+              >
+                <div className="pointer-events-none absolute -right-12 -top-12 size-36 rounded-full bg-rose-500/10 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between">
+                    <div className="flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-600 via-rose-700 to-red-900 text-white shadow-md shadow-rose-600/25 group-hover:scale-105 transition-transform">
+                      <GraduationCap className="size-5" />
+                    </div>
+                    <span className="rounded-full bg-rose-50 px-2.5 py-0.5 text-[11px] font-bold text-rose-800 border border-rose-200/60 shadow-2xs">
+                      Tugas Akhir S1
+                    </span>
                   </div>
-                  <span className="rounded-full bg-rose-50 px-2.5 py-0.5 text-[11px] font-bold text-rose-800 border border-rose-200/60 shadow-2xs">
-                    Tugas Akhir S1
-                  </span>
+                  <h2 className="mt-4 text-base font-bold text-slate-900 group-hover:text-rose-700 transition-colors">
+                    Katalog Skripsi
+                  </h2>
+                  <p className="mt-1 text-xs leading-relaxed text-slate-650">
+                    Koleksi repositori skripsi dan riset mahasiswa Pendidikan Matematika.
+                  </p>
                 </div>
-                <h3 className="mt-4 text-base font-bold text-slate-900 group-hover:text-rose-700 transition-colors">
-                  Katalog Skripsi
-                </h3>
-                <p className="mt-1 text-xs leading-relaxed text-slate-600">
-                  Koleksi repositori skripsi dan riset mahasiswa Pendidikan Matematika.
-                </p>
-              </div>
-              <div className="relative z-10 mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-rose-700 group-hover:text-rose-800">
-                <span>Telusuri Skripsi</span>
-                <span className="transition-transform group-hover:translate-x-1 text-base leading-none">→</span>
-              </div>
-            </Link>
+                <div className="relative z-10 mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-rose-700 group-hover:text-rose-800">
+                  <span>Telusuri Skripsi</span>
+                  <span className="transition-transform group-hover:translate-x-1 text-base leading-none">→</span>
+                </div>
+              </Link>
 
-            {/* Pencarian Scopus Button */}
-            <Link
-              href="/scopus"
-              className="group apple-bento-card p-5.5 flex flex-col justify-between overflow-hidden"
-            >
-              <div className="pointer-events-none absolute -right-12 -top-12 size-36 rounded-full bg-orange-500/10 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <div className="relative z-10">
-                <div className="flex items-center justify-between">
-                  <div className="flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-red-600 via-orange-600 to-amber-700 text-white shadow-md shadow-orange-600/25 group-hover:scale-105 transition-transform">
-                    <Globe2 className="size-5" />
+              {/* Pencarian Scopus Button */}
+              <Link
+                href="/scopus"
+                className="group apple-bento-card p-5.5 flex flex-col justify-between overflow-hidden"
+              >
+                <div className="pointer-events-none absolute -right-12 -top-12 size-36 rounded-full bg-orange-500/10 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between">
+                    <div className="flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-red-600 via-orange-600 to-amber-700 text-white shadow-md shadow-orange-600/25 group-hover:scale-105 transition-transform">
+                      <Globe2 className="size-5" />
+                    </div>
+                    <span className="rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-bold text-amber-900 border border-amber-200/60 shadow-2xs">
+                      Elsevier Scopus®
+                    </span>
                   </div>
-                  <span className="rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-bold text-amber-900 border border-amber-200/60 shadow-2xs">
-                    Elsevier Scopus®
-                  </span>
+                  <h2 className="mt-4 text-base font-bold text-slate-900 group-hover:text-red-700 transition-colors">
+                    Pencarian Scopus
+                  </h2>
+                  <p className="mt-1 text-xs leading-relaxed text-slate-650">
+                    Eksplorasi publikasi jurnal internasional bereputasi Q1–Q4 &amp; sitasi riset.
+                  </p>
                 </div>
-                <h3 className="mt-4 text-base font-bold text-slate-900 group-hover:text-red-700 transition-colors">
-                  Pencarian Scopus
-                </h3>
-                <p className="mt-1 text-xs leading-relaxed text-slate-600">
-                  Eksplorasi publikasi jurnal internasional bereputasi Q1–Q4 &amp; sitasi riset.
-                </p>
-              </div>
-              <div className="relative z-10 mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-red-700 group-hover:text-red-800">
-                <span>Buka Scopus Hub</span>
-                <span className="transition-transform group-hover:translate-x-1 text-base leading-none">→</span>
-              </div>
-            </Link>
+                <div className="relative z-10 mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-red-700 group-hover:text-red-800">
+                  <span>Buka Scopus Hub</span>
+                  <span className="transition-transform group-hover:translate-x-1 text-base leading-none">→</span>
+                </div>
+              </Link>
 
-            {/* Presensi Button */}
-            <Link
-              href="/presensi"
-              className="group apple-bento-card p-5.5 flex flex-col justify-between overflow-hidden"
-            >
-              <div className="pointer-events-none absolute -right-12 -top-12 size-36 rounded-full bg-red-500/10 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <div className="relative z-10">
-                <div className="flex items-center justify-between">
-                  <div className="flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 via-red-600 to-red-800 text-white shadow-md shadow-red-600/25 group-hover:scale-105 transition-transform">
-                    <ScanLine className="size-5" />
+              {/* Presensi Button */}
+              <Link
+                href="/presensi"
+                className="group apple-bento-card p-5.5 flex flex-col justify-between overflow-hidden"
+              >
+                <div className="pointer-events-none absolute -right-12 -top-12 size-36 rounded-full bg-red-500/10 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between">
+                    <div className="flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 via-red-600 to-red-800 text-white shadow-md shadow-red-600/25 group-hover:scale-105 transition-transform">
+                      <ScanLine className="size-5" />
+                    </div>
+                    <span className="rounded-full bg-red-50 px-2.5 py-0.5 text-[11px] font-bold text-red-800 border border-red-200/60 shadow-2xs">
+                      Presensi Mandiri
+                    </span>
                   </div>
-                  <span className="rounded-full bg-red-50 px-2.5 py-0.5 text-[11px] font-bold text-red-800 border border-red-200/60 shadow-2xs">
-                    Presensi Mandiri
-                  </span>
+                  <h2 className="mt-4 text-base font-bold text-slate-900 group-hover:text-red-700 transition-colors">
+                    Presensi Pengunjung
+                  </h2>
+                  <p className="mt-1 text-xs leading-relaxed text-slate-650">
+                    Pencatatan kunjungan mandiri mahasiswa, dosen, dan tamu ruang baca.
+                  </p>
                 </div>
-                <h3 className="mt-4 text-base font-bold text-slate-900 group-hover:text-red-700 transition-colors">
-                  Presensi Pengunjung
-                </h3>
-                <p className="mt-1 text-xs leading-relaxed text-slate-600">
-                  Pencatatan kunjungan mandiri mahasiswa, dosen, dan tamu ruang baca.
-                </p>
-              </div>
-              <div className="relative z-10 mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-red-700 group-hover:text-red-800">
-                <span>Catat Presensi</span>
-                <span className="transition-transform group-hover:translate-x-1 text-base leading-none">→</span>
-              </div>
-            </Link>
-          </div>
-        </section>
-
-        {/* Showcase Jurnal Prodi Pendidikan Matematika */}
-        <JournalShowcase />
-
-        {/* Grafik Pengunjung */}
-        <section className="relative mx-auto max-w-6xl px-4 py-4 sm:px-6">
-          <RealtimeVisitorChart initialRows={visitorRows} />
-        </section>
-
-          <section className="relative mx-auto grid max-w-6xl gap-4 px-4 pb-16 pt-4 sm:grid-cols-2 sm:px-6 lg:grid-cols-4 z-10">
-            <StatTile icon={BookOpen} label="Total Buku" value={stats.bookCount} description="Koleksi buku terdata" />
-            <StatTile icon={GraduationCap} label="Total Skripsi" value={stats.thesisCount} description="Koleksi skripsi terdata" />
-            <StatTile icon={Users} label="Total Petugas" value={stats.staffCount} description="Pengelola ruang baca" />
-            <WebsiteVisitorStat initialCount={stats.todayWebsiteVisits} />
+                <div className="relative z-10 mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-red-700 group-hover:text-red-800">
+                  <span>Catat Presensi</span>
+                  <span className="transition-transform group-hover:translate-x-1 text-base leading-none">→</span>
+                </div>
+              </Link>
+            </div>
           </section>
+
+          {/* Showcase Jurnal Prodi Pendidikan Matematika */}
+          <JournalShowcase />
+
+          {/* Grafik Pengunjung (Async Streaming) */}
+          <section className="relative mx-auto max-w-6xl px-4 py-4 sm:px-6">
+            <Suspense fallback={<VisitorChartSkeleton />}>
+              <VisitorChartSection />
+            </Suspense>
+          </section>
+
+          {/* Statistik Publik (Async Streaming) */}
+          <Suspense fallback={<StatsSkeleton />}>
+            <StatsSection />
+          </Suspense>
         </div>
       </main>
       <Footer />
     </div>
   );
 }
+
+async function VisitorChartSection() {
+  const visitorRows = await fetchPublicVisitorRows();
+  return <RealtimeVisitorChart initialRows={visitorRows} />;
+}
+
+function VisitorChartSkeleton() {
+  return (
+    <div className="apple-bento-card p-6 sm:p-8 lg:p-10">
+      <div className="flex items-center justify-between">
+        <div className="space-y-2">
+          <div className="h-7 w-56 animate-pulse rounded-xl bg-slate-200/60" />
+          <div className="h-4 w-72 animate-pulse rounded-lg bg-slate-100/60" />
+        </div>
+        <div className="h-8 w-24 animate-pulse rounded-full bg-slate-200/50" />
+      </div>
+      <div className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4 sm:gap-4">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="h-24 animate-pulse rounded-2xl bg-slate-100/60" />
+        ))}
+      </div>
+      <div className="mt-6 h-72 sm:h-96 animate-pulse rounded-3xl bg-slate-100/40" />
+    </div>
+  );
+}
+
+async function StatsSection() {
+  const stats = await fetchPublicLandingStats();
+
+  return (
+    <section className="relative mx-auto grid max-w-6xl gap-4 px-4 pb-16 pt-4 sm:grid-cols-2 sm:px-6 lg:grid-cols-4 z-10" aria-label="Statistik Koleksi &amp; Pengunjung">
+      <StatTile icon={BookOpen} label="Total Buku" value={stats.bookCount} description="Koleksi buku terdata" />
+      <StatTile icon={GraduationCap} label="Total Skripsi" value={stats.thesisCount} description="Koleksi skripsi terdata" />
+      <StatTile icon={Users} label="Total Petugas" value={stats.staffCount} description="Pengelola ruang baca" />
+      <WebsiteVisitorStat initialCount={stats.todayWebsiteVisits} />
+    </section>
+  );
+}
+
+function StatsSkeleton() {
+  return (
+    <section className="relative mx-auto grid max-w-6xl gap-4 px-4 pb-16 pt-4 sm:grid-cols-2 sm:px-6 lg:grid-cols-4 z-10" aria-label="Statistik Koleksi &amp; Pengunjung">
+      {[1, 2, 3, 4].map((i) => (
+        <div key={i} className="apple-bento-card flex items-center gap-4 p-5 h-24 bg-white/70 animate-pulse">
+          <div className="size-12 rounded-2xl bg-slate-200/60" />
+          <div className="space-y-2 flex-1">
+            <div className="h-6 w-20 bg-slate-200/70 rounded" />
+            <div className="h-3.5 w-28 bg-slate-100/70 rounded" />
+          </div>
+        </div>
+      ))}
+    </section>
+  );
+}
+
 
 function StatTile({
   icon: Icon,
@@ -232,7 +286,7 @@ function StatTile({
       <span className="min-w-0 text-left">
         <span className="block text-2xl font-bold tracking-tight text-slate-900 tabular-nums">{value}</span>
         <span className="block text-xs font-semibold text-slate-700">{label}</span>
-        <span className="mt-0.5 block text-xs text-slate-500">{description}</span>
+        <span className="mt-0.5 block text-xs text-slate-600">{description}</span>
       </span>
     </div>
   );
@@ -310,7 +364,7 @@ function Footer() {
           </div>
         </div>
       </div>
-      <div className="border-t border-slate-800 px-4 py-5 text-center text-xs text-slate-500">
+      <div className="border-t border-slate-800 px-4 py-5 text-center text-xs text-slate-400">
         © 2026 Ruang Baca Jurusan Pendidikan Matematika ULM.
       </div>
     </footer>

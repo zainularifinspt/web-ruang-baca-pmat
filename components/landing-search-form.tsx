@@ -44,8 +44,9 @@ export function LandingSearchForm() {
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              className="w-full border-0 bg-transparent text-sm sm:text-base md:text-lg font-bold text-slate-900 outline-none placeholder:font-normal placeholder:text-slate-400 pt-1.5"
+              className="w-full border-0 bg-transparent text-sm sm:text-base md:text-lg font-bold text-slate-900 outline-none placeholder:font-normal placeholder:text-slate-500 pt-1.5"
               placeholder="Cari buku teks, repositori skripsi, publikasi Scopus..."
+              aria-label="Cari buku teks, repositori skripsi, publikasi Scopus"
               autoComplete="off"
             />
           </div>

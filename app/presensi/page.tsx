@@ -236,7 +236,7 @@ export default function AttendancePage() {
                         value={identifier}
                         onChange={(event) => handleIdentifierChange(event.target.value)}
                         placeholder="Contoh: 2311040007"
-                        className="h-12 rounded-xl border-slate-200 bg-slate-50/50 pl-11 text-base shadow-xs placeholder:text-slate-400 focus-visible:border-red-700 focus-visible:ring-red-700/20"
+                        className="h-12 rounded-xl border-slate-200 bg-slate-50/50 pl-11 text-base shadow-xs placeholder:text-slate-500 focus-visible:border-red-700 focus-visible:ring-red-700/20"
                       />
                     </div>
                     {matchedUser ? (
@@ -262,7 +262,7 @@ export default function AttendancePage() {
                         value={name}
                         onChange={(event) => setName(event.target.value)}
                         placeholder="Nama lengkap pengunjung"
-                        className="h-12 rounded-xl border-slate-200 bg-slate-50/50 shadow-xs placeholder:text-slate-400 focus-visible:border-red-700 focus-visible:ring-red-700/20"
+                        className="h-12 rounded-xl border-slate-200 bg-slate-50/50 shadow-xs placeholder:text-slate-500 focus-visible:border-red-700 focus-visible:ring-red-700/20"
                       />
                     </Field>
 
@@ -290,7 +290,7 @@ export default function AttendancePage() {
                       value={studyProgram}
                       onChange={(event) => setStudyProgram(event.target.value)}
                       placeholder="Contoh: Pendidikan Matematika"
-                      className="h-12 rounded-xl border-slate-200 bg-slate-50/50 shadow-xs placeholder:text-slate-400 focus-visible:border-red-700 focus-visible:ring-red-700/20"
+                      className="h-12 rounded-xl border-slate-200 bg-slate-50/50 shadow-xs placeholder:text-slate-500 focus-visible:border-red-700 focus-visible:ring-red-700/20"
                     />
                   </Field>
 
@@ -394,7 +394,7 @@ function SuccessState({
 function SummaryItem({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-100">
-      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">
+      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-600">
         {label}
       </p>
       <p className="mt-2 text-sm font-semibold leading-6 text-slate-950">{value}</p>

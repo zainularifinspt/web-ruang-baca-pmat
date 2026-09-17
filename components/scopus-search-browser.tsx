@@ -122,7 +122,7 @@ export function ScopusSearchBrowser() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Cari berdasarkan judul artikel di Scopus (contoh: realistic mathematics education, ethnomathematics)..."
-              className="h-12 sm:h-14 w-full rounded-full border border-slate-200/80 bg-white pl-12 pr-10 text-xs sm:text-base font-semibold text-slate-800 shadow-inner outline-none transition-all placeholder:font-normal placeholder:text-slate-400 focus:border-red-700 focus:ring-4 focus:ring-red-700/10"
+              className="h-12 sm:h-14 w-full rounded-full border border-slate-200/80 bg-white pl-12 pr-10 text-xs sm:text-base font-semibold text-slate-800 shadow-inner outline-none transition-all placeholder:font-normal placeholder:text-slate-500 focus:border-red-700 focus:ring-4 focus:ring-red-700/10"
             />
             {query ? (
               <button
@@ -484,7 +484,7 @@ function ArticleCard({
             ) : null}
 
             {article.year ? (
-              <span className="text-xs font-bold text-slate-400 ml-auto">{article.year}</span>
+              <span className="text-xs font-bold text-slate-600 ml-auto">{article.year}</span>
             ) : null}
           </div>
 

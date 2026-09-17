@@ -98,7 +98,7 @@ function JournalCard({ journal }: { journal: JournalInfo }) {
 
           {journal.editorInChief ? (
             <div className="inline-flex items-center gap-1.5 rounded-full bg-white/80 backdrop-blur-sm px-3 py-1 text-xs font-medium text-slate-700 border border-white/80 shadow-2xs">
-              <span className="text-slate-500">Editor in Chief:</span>
+              <span className="text-slate-600">Editor in Chief:</span>
               <strong className="font-bold text-slate-900">{journal.editorInChief}</strong>
             </div>
           ) : null}
@@ -106,7 +106,7 @@ function JournalCard({ journal }: { journal: JournalInfo }) {
 
         {/* Description Feature Box */}
         <div className="relative z-10 mb-6 rounded-2xl border border-white/80 bg-white/60 p-4 sm:p-5 shadow-2xs backdrop-blur-md">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-2">
             Profil &amp; Ruang Lingkup
           </p>
 

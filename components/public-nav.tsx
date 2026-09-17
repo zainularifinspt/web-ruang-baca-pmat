@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowRight,
   BookOpen,
@@ -163,7 +162,7 @@ function NavbarSearch({
           onFocus={() => setFocused(true)}
           onBlur={() => window.setTimeout(() => setFocused(false), 140)}
           placeholder="Cari buku atau skripsi..."
-          className="h-9.5 w-full rounded-lg border border-slate-200 bg-slate-50/80 pl-9 pr-9 text-xs sm:text-sm font-medium text-slate-800 shadow-2xs outline-none transition-colors duration-200 placeholder:text-slate-400 focus:border-slate-300 focus:bg-white focus:ring-2 focus:ring-slate-100"
+          className="h-9.5 w-full rounded-lg border border-slate-200 bg-slate-50/80 pl-9 pr-9 text-xs sm:text-sm font-medium text-slate-800 shadow-2xs outline-none transition-colors duration-200 placeholder:text-slate-500 focus:border-slate-300 focus:bg-white focus:ring-2 focus:ring-slate-100"
         />
         {query ? (
           <button
@@ -181,53 +180,46 @@ function NavbarSearch({
         ) : null}
       </div>
 
-      <AnimatePresence>
-        {isOpen ? (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.97, y: -6 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.97, y: -6 }}
-            transition={{ type: "spring", stiffness: 400, damping: 28 }}
-            className="nav-search-dropdown absolute left-0 right-0 top-full mt-2 origin-top overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg ring-1 ring-slate-950/5"
-            style={{ willChange: "transform, opacity" }}
-          >
-            <div className="border-b border-slate-100 px-4 py-2 text-xs font-semibold text-slate-500">
-              {results.length ? `${results.length} hasil cepat` : "Tidak ada hasil"}
-            </div>
-            <div className="grid max-h-80 overflow-auto p-2">
-              {results.length ? (
-                results.map((item) => (
-                  <Link
-                    key={`${item.type}-${item.id}`}
-                    href={item.href}
-                    onClick={() => {
-                      setQuery("");
-                      setDebouncedQuery("");
-                    }}
-                    className="group flex items-center gap-3 rounded-2xl p-2.5 transition-colors duration-200 hover:bg-yellow-50"
-                  >
-                    <SearchCover item={item} />
-                    <span className="min-w-0 flex-1">
-                      <span className="line-clamp-1 text-sm font-bold text-slate-900 transition-colors duration-200 group-hover:text-yellow-800">
-                        {item.title}
-                      </span>
-                      <span className="mt-1 flex items-center gap-2 text-xs text-slate-500">
-                        <span className="font-semibold text-slate-400">{item.type === "book" ? "Buku" : "Skripsi"}</span>
-                        <span className="size-1 rounded-full bg-slate-200" />
-                        <span className="line-clamp-1">{item.category}</span>
-                      </span>
+      {isOpen ? (
+        <div
+          className="nav-search-dropdown absolute left-0 right-0 top-full mt-2 origin-top overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg ring-1 ring-slate-950/5"
+        >
+          <div className="border-b border-slate-100 px-4 py-2 text-xs font-semibold text-slate-600">
+            {results.length ? `${results.length} hasil cepat` : "Tidak ada hasil"}
+          </div>
+          <div className="grid max-h-80 overflow-auto p-2">
+            {results.length ? (
+              results.map((item) => (
+                <Link
+                  key={`${item.type}-${item.id}`}
+                  href={item.href}
+                  onClick={() => {
+                    setQuery("");
+                    setDebouncedQuery("");
+                  }}
+                  className="group flex items-center gap-3 rounded-2xl p-2.5 transition-colors duration-200 hover:bg-yellow-50"
+                >
+                  <SearchCover item={item} />
+                  <span className="min-w-0 flex-1">
+                    <span className="line-clamp-1 text-sm font-bold text-slate-900 transition-colors duration-200 group-hover:text-yellow-800">
+                      {item.title}
                     </span>
-                  </Link>
-                ))
-              ) : (
-                <div className="px-3 py-7 text-center text-sm text-slate-500">
-                  Coba kata kunci judul, penulis, kategori, atau topik lain.
-                </div>
-              )}
-            </div>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
+                    <span className="mt-1 flex items-center gap-2 text-xs text-slate-600">
+                      <span className="font-semibold text-slate-600">{item.type === "book" ? "Buku" : "Skripsi"}</span>
+                      <span className="size-1 rounded-full bg-slate-200" />
+                      <span className="line-clamp-1">{item.category}</span>
+                    </span>
+                  </span>
+                </Link>
+              ))
+            ) : (
+              <div className="px-3 py-7 text-center text-sm text-slate-600">
+                Coba kata kunci judul, penulis, kategori, atau topik lain.
+              </div>
+            )}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -280,7 +272,7 @@ function NavLink({
     >
       <Icon className={cn(
         "size-3.5 transition-colors",
-        isHomeHero ? "text-white/70 group-hover:text-white" : "text-slate-400 group-hover:text-slate-900",
+        isHomeHero ? "text-white/70 group-hover:text-white" : "text-slate-500 group-hover:text-slate-900",
       )} />
       {label}
     </Link>
@@ -306,71 +298,64 @@ function MobileNav({ isHomeHero = false }: { isHomeHero?: boolean }) {
       >
         {isOpen ? <X className="size-5" /> : <Menu className="size-5" />}
       </Button>
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ type: "spring", stiffness: 350, damping: 28 }}
-            className="absolute left-0 right-0 top-full border-b border-slate-200/60 bg-white/95 p-4 shadow-xl backdrop-blur-2xl"
-            style={{ willChange: "transform, opacity" }}
-          >
-            <div className="flex flex-col gap-1.5">
-              <Link
-                href="/katalog"
-                onClick={() => setIsOpen(false)}
-                className="flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
-              >
-                <div className="flex size-8 items-center justify-center rounded-full bg-slate-100 text-slate-500">
-                  <Search className="size-4" />
-                </div>
-                Katalog & Pencarian
-              </Link>
-              <Link
-                href="/scopus"
-                onClick={() => setIsOpen(false)}
-                className="flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
-              >
-                <div className="flex size-8 items-center justify-center rounded-full bg-orange-100 text-orange-600">
-                  <Globe2 className="size-4" />
-                </div>
-                Pencarian Scopus
-              </Link>
-              <Link
-                href="/presensi"
-                onClick={() => setIsOpen(false)}
-                className="flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
-              >
-                <div className="flex size-8 items-center justify-center rounded-full bg-slate-100 text-slate-500">
-                  <ScanLine className="size-4" />
-                </div>
-                Presensi Pengunjung
-              </Link>
-              <Link
-                href="/tentang"
-                onClick={() => setIsOpen(false)}
-                className="flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
-              >
-                <div className="flex size-8 items-center justify-center rounded-full bg-slate-100 text-slate-500">
-                  <Info className="size-4" />
-                </div>
-                Tentang
-              </Link>
-              <Link
-                href="/login?redirectTo=/dashboard"
-                onClick={() => setIsOpen(false)}
-                className="flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
-              >
-                <div className="flex size-8 items-center justify-center rounded-full bg-slate-100 text-slate-500">
-                  <LogIn className="size-4" />
-                </div>
-                Login Admin
-              </Link>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {isOpen && (
+        <div
+          className="animate-mobile-nav absolute left-0 right-0 top-full border-b border-slate-200/60 bg-white/95 p-4 shadow-xl backdrop-blur-2xl"
+        >
+          <div className="flex flex-col gap-1.5">
+            <Link
+              href="/katalog"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-semibold text-slate-750 transition hover:bg-slate-100"
+            >
+              <div className="flex size-8 items-center justify-center rounded-full bg-slate-100 text-slate-600">
+                <Search className="size-4" />
+              </div>
+              Katalog &amp; Pencarian
+            </Link>
+            <Link
+              href="/scopus"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-semibold text-slate-750 transition hover:bg-slate-100"
+            >
+              <div className="flex size-8 items-center justify-center rounded-full bg-orange-100 text-orange-600">
+                <Globe2 className="size-4" />
+              </div>
+              Pencarian Scopus
+            </Link>
+            <Link
+              href="/presensi"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-semibold text-slate-750 transition hover:bg-slate-100"
+            >
+              <div className="flex size-8 items-center justify-center rounded-full bg-slate-100 text-slate-600">
+                <ScanLine className="size-4" />
+              </div>
+              Presensi Pengunjung
+            </Link>
+            <Link
+              href="/tentang"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-semibold text-slate-750 transition hover:bg-slate-100"
+            >
+              <div className="flex size-8 items-center justify-center rounded-full bg-slate-100 text-slate-600">
+                <Info className="size-4" />
+              </div>
+              Tentang
+            </Link>
+            <Link
+              href="/login?redirectTo=/dashboard"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-semibold text-slate-750 transition hover:bg-slate-100"
+            >
+              <div className="flex size-8 items-center justify-center rounded-full bg-slate-100 text-slate-600">
+                <LogIn className="size-4" />
+              </div>
+              Login Admin
+            </Link>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

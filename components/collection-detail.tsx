@@ -20,14 +20,23 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import dynamic from "next/dynamic";
 import { AvailabilityBadge } from "@/components/status-badge";
-import { ThesisPdfViewer } from "@/components/thesis-pdf-viewer";
-import { EbookPdfViewer } from "@/components/ebook-pdf-viewer";
 import { BookCover } from "@/components/book-cover";
 import { splitBookAuthors } from "@/lib/book-authors";
 import { getGoogleDriveDownloadUrl, getGoogleDriveDirectViewUrl } from "@/lib/google-drive";
 import { cn } from "@/lib/utils";
 import type { Book, Thesis } from "@/lib/types";
+
+const ThesisPdfViewer = dynamic(
+  () => import("@/components/thesis-pdf-viewer").then((mod) => mod.ThesisPdfViewer),
+  { ssr: false }
+);
+
+const EbookPdfViewer = dynamic(
+  () => import("@/components/ebook-pdf-viewer").then((mod) => mod.EbookPdfViewer),
+  { ssr: false }
+);
 
 type CollectionItem = Book | Thesis;
 
@@ -190,7 +199,7 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
                 size="lg"
                 className="shadow-xl"
               />
-              <p className="mt-2 text-center text-[11px] font-semibold text-slate-400">
+              <p className="mt-2 text-center text-[11px] font-semibold text-slate-600">
                 Cover Dokumen
               </p>
             </div>
@@ -348,7 +357,7 @@ function Info({
         {icon}
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-slate-400">
+        <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-slate-600">
           {label}
         </p>
         <div className="mt-0.5 sm:mt-1 break-words text-xs sm:text-sm md:text-base font-bold leading-snug text-slate-950">

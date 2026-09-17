@@ -56,7 +56,7 @@ export function MathGeometricBackdrop() {
       </svg>
 
       {/* 2. Top-Left: True 3D Rotating Icosahedron (Platonic Solid - 20 Triangles) */}
-      <div className="pointer-events-auto absolute top-8 left-3 sm:left-8 lg:left-14 opacity-65 sm:opacity-85 hover:opacity-100 transition-all duration-300">
+      <div className="pointer-events-auto hidden md:block absolute top-8 left-3 sm:left-8 lg:left-14 opacity-65 sm:opacity-85 hover:opacity-100 transition-all duration-300">
         <RotatingPolyhedron3D
           type="icosahedron"
           size={145}
@@ -67,7 +67,7 @@ export function MathGeometricBackdrop() {
       </div>
 
       {/* 3. Top-Right: True 3D Rotating Dodecahedron (Platonic Solid - 12 Pentagons) */}
-      <div className="pointer-events-auto absolute top-10 right-3 sm:right-8 lg:right-16 opacity-65 sm:opacity-85 hover:opacity-100 transition-all duration-300">
+      <div className="pointer-events-auto hidden md:block absolute top-10 right-3 sm:right-8 lg:right-16 opacity-65 sm:opacity-85 hover:opacity-100 transition-all duration-300">
         <RotatingPolyhedron3D
           type="dodecahedron"
           size={145}
@@ -177,13 +177,20 @@ export function RotatingPolyhedron3D({
 
   useEffect(() => {
     initGlobalPointerTracking();
+    const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+
+    // On mobile devices, completely skip 3D canvas initialization to eliminate CPU scripting
+    if (isMobile) {
+      return;
+    }
 
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d", { alpha: true });
     if (!ctx) return;
 
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    // Cap DPR to 1 on mobile to prevent GPU/CPU saturation and 9x pixel calculations
+    const dpr = isMobile ? 1 : Math.min(window.devicePixelRatio || 1, 1.5);
     canvas.width = size * dpr;
     canvas.height = size * dpr;
 
@@ -232,9 +239,16 @@ export function RotatingPolyhedron3D({
       cachedHalfH = window.innerHeight * 0.5 || 400;
     };
 
-    updateCachedMetrics();
+    // Defer metric read to next idle frame to avoid synchronous forced reflow during React hydration
+    if (typeof window !== "undefined") {
+      if ("requestIdleCallback" in window) {
+        window.requestIdleCallback(updateCachedMetrics);
+      } else {
+        setTimeout(updateCachedMetrics, 120);
+      }
+    }
+
     window.addEventListener("resize", updateCachedMetrics, { passive: true });
-    window.addEventListener("scroll", updateCachedMetrics, { passive: true });
 
     let tiltX = 0;
     let tiltY = 0;
@@ -326,6 +340,8 @@ export function RotatingPolyhedron3D({
     const fov = 3.0;
     const radius = size * 0.44;
 
+    let lastRenderTime = 0;
+
     const render = () => {
       if (!isVisible || !isIntersecting) {
         animId = null;
@@ -333,6 +349,13 @@ export function RotatingPolyhedron3D({
       }
 
       const now = performance.now();
+      // When not dragging or hovering, throttle to ~30fps to avoid taxing CPU
+      if (!isDragging && !isHovered && now - lastRenderTime < 32) {
+        animId = requestAnimationFrame(render);
+        return;
+      }
+      lastRenderTime = now;
+
       // Delta time normalized to 60fps (1.0 = exactly 16.67ms)
       const dt = Math.min((now - lastTime) / 16.667, 2.0);
       lastTime = now;
@@ -574,7 +597,6 @@ export function RotatingPolyhedron3D({
       observer.disconnect();
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("resize", updateCachedMetrics);
-      window.removeEventListener("scroll", updateCachedMetrics);
       canvas.removeEventListener("pointerdown", handlePointerDown);
       canvas.removeEventListener("pointermove", handlePointerMove);
       canvas.removeEventListener("pointerup", handlePointerUp);

@@ -47,7 +47,7 @@ export function WebsiteVisitorStat({ initialCount }: WebsiteVisitorStatProps) {
           {count.toLocaleString("id-ID")}
         </span>
         <span className="block text-xs font-semibold text-slate-700">Total Pengunjung</span>
-        <span className="mt-0.5 block text-xs text-slate-500">
+        <span className="mt-0.5 block text-xs text-slate-600">
           Total pengunjung website hari ini
         </span>
       </span>

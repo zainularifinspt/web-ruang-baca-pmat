@@ -11,7 +11,6 @@ import {
   Sparkles,
   BarChart3,
 } from "lucide-react";
-import { getSupabaseClient } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 
 type AttendanceRow = {
@@ -39,7 +38,7 @@ export function RealtimeVisitorChart({
 }) {
   const sectionRef = useRef<HTMLDivElement | null>(null);
   const [rows, setRows] = useState<AttendanceRow[]>(initialRows);
-  const [isVisible, setIsVisible] = useState(initialRows.length > 0);
+  const [isScrolledIntoView, setIsScrolledIntoView] = useState(false);
   const [isLoading, setIsLoading] = useState(initialRows.length === 0);
   const [error, setError] = useState<string | null>(null);
   const [timeRange, setTimeRange] = useState<7 | 14>(7);
@@ -64,17 +63,17 @@ export function RealtimeVisitorChart({
     if (!element) return;
 
     if (!("IntersectionObserver" in window)) {
-      const timer = globalThis.setTimeout(() => setIsVisible(true), 0);
+      const timer = globalThis.setTimeout(() => setIsScrolledIntoView(true), 1500);
       return () => globalThis.clearTimeout(timer);
     }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (!entry?.isIntersecting) return;
-        setIsVisible(true);
+        setIsScrolledIntoView(true);
         observer.disconnect();
       },
-      { rootMargin: "320px 0px" },
+      { rootMargin: "250px 0px" },
     );
 
     observer.observe(element);
@@ -82,33 +81,50 @@ export function RealtimeVisitorChart({
   }, []);
 
   useEffect(() => {
-    if (!isVisible) return;
+    if (!isScrolledIntoView) return;
 
+    // Only load if server did not already provide initialRows
     const loadTimer = window.setTimeout(() => {
-      void loadRows();
+      if (initialRows.length === 0) {
+        void loadRows();
+      }
     }, 0);
 
-    let supabase: ReturnType<typeof getSupabaseClient> | null = null;
+    let isCancelled = false;
+    let activeChannel: { unsubscribe?: () => void } | null = null;
 
-    try {
-      supabase = getSupabaseClient();
-    } catch {
-      window.clearTimeout(loadTimer);
-      return;
-    }
+    import("@/lib/supabase")
+      .then(({ getSupabaseClient }) => {
+        if (isCancelled) return;
+        const supabase = getSupabaseClient();
+        if (!supabase) return;
 
-    const channel = supabase
-      .channel("landing-attendance-realtime")
-      .on("postgres_changes", { event: "*", schema: "public", table: "attendance" }, () => {
-        void loadRows();
+        activeChannel = supabase
+          .channel("landing-attendance-realtime")
+          .on("postgres_changes", { event: "*", schema: "public", table: "attendance" }, () => {
+            void loadRows();
+          })
+          .subscribe() as unknown as { unsubscribe?: () => void };
       })
-      .subscribe();
+      .catch(() => {});
 
     return () => {
+      isCancelled = true;
       window.clearTimeout(loadTimer);
-      if (supabase) void supabase.removeChannel(channel);
+      if (activeChannel) {
+        import("@/lib/supabase")
+          .then(({ getSupabaseClient }) => {
+            try {
+              const supabase = getSupabaseClient();
+              if (supabase && activeChannel) {
+                void supabase.removeChannel(activeChannel as any);
+              }
+            } catch {}
+          })
+          .catch(() => {});
+      }
     };
-  }, [isVisible, loadRows]);
+  }, [isScrolledIntoView, initialRows.length, loadRows]);
 
   const points = useMemo(() => buildVisitorPoints(rows, timeRange), [rows, timeRange]);
   const totalVisitors = points.reduce((sum, point) => sum + point.value, 0);
@@ -276,7 +292,7 @@ export function RealtimeVisitorChart({
             {/* Total Visitors */}
             <div className="rounded-2xl border border-slate-200/80 bg-white/80 p-4 shadow-2xs backdrop-blur-md transition-all hover:bg-white hover:border-red-200">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold tracking-wider text-slate-500 uppercase">
+                <span className="text-[11px] font-bold tracking-wider text-slate-650 uppercase">
                   Total Pengunjung
                 </span>
                 <span className="flex size-7 items-center justify-center rounded-xl bg-red-50 text-red-700 border border-red-200/60">
@@ -301,7 +317,7 @@ export function RealtimeVisitorChart({
                   </span>
                 ) : null}
               </div>
-              <p className="mt-1 text-xs text-slate-500 font-normal">
+              <p className="mt-1 text-xs text-slate-600 font-normal">
                 {timeRange} hari terakhir
               </p>
             </div>
@@ -309,7 +325,7 @@ export function RealtimeVisitorChart({
             {/* Daily Average */}
             <div className="rounded-2xl border border-slate-200/80 bg-white/80 p-4 shadow-2xs backdrop-blur-md transition-all hover:bg-white hover:border-red-200">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold tracking-wider text-slate-500 uppercase">
+                <span className="text-[11px] font-bold tracking-wider text-slate-650 uppercase">
                   Rata-rata Harian
                 </span>
                 <span className="flex size-7 items-center justify-center rounded-xl bg-rose-50 text-rose-700 border border-rose-200/60">
@@ -320,9 +336,9 @@ export function RealtimeVisitorChart({
                 <span className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 tabular-nums">
                   {averageVisitors}
                 </span>
-                <span className="text-xs font-semibold text-slate-500">orang / hari</span>
+                <span className="text-xs font-semibold text-slate-600">orang / hari</span>
               </div>
-              <p className="mt-1 text-xs text-slate-500 font-normal">
+              <p className="mt-1 text-xs text-slate-600 font-normal">
                 Estimasi frekuensi presensi
               </p>
             </div>
@@ -330,7 +346,7 @@ export function RealtimeVisitorChart({
             {/* Peak Day */}
             <div className="rounded-2xl border border-slate-200/80 bg-white/80 p-4 shadow-2xs backdrop-blur-md transition-all hover:bg-white hover:border-red-200">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold tracking-wider text-slate-500 uppercase">
+                <span className="text-[11px] font-bold tracking-wider text-slate-650 uppercase">
                   Puncak Kunjungan
                 </span>
                 <span className="flex size-7 items-center justify-center rounded-xl bg-amber-50 text-amber-700 border border-amber-200/60">
@@ -341,9 +357,9 @@ export function RealtimeVisitorChart({
                 <span className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 tabular-nums">
                   {peakPoint.value}
                 </span>
-                <span className="text-xs font-semibold text-slate-500">orang</span>
+                <span className="text-xs font-semibold text-slate-600">orang</span>
               </div>
-              <p className="mt-1 text-xs text-slate-500 font-normal truncate" title={peakPoint.fullDate}>
+              <p className="mt-1 text-xs text-slate-600 font-normal truncate" title={peakPoint.fullDate}>
                 {peakPoint.value > 0 ? `Tertinggi pd ${peakPoint.label}` : "Belum ada rekor"}
               </p>
             </div>
@@ -351,7 +367,7 @@ export function RealtimeVisitorChart({
             {/* Today's Visits */}
             <div className="rounded-2xl border border-slate-200/80 bg-white/80 p-4 shadow-2xs backdrop-blur-md transition-all hover:bg-white hover:border-red-200">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold tracking-wider text-slate-500 uppercase">
+                <span className="text-[11px] font-bold tracking-wider text-slate-650 uppercase">
                   Hari Ini
                 </span>
                 <span className="flex size-7 items-center justify-center rounded-xl bg-blue-50 text-blue-700 border border-blue-200/60">
@@ -362,7 +378,7 @@ export function RealtimeVisitorChart({
                 <span className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 tabular-nums">
                   {todayPoint.value}
                 </span>
-                <span className="text-xs font-semibold text-slate-500">orang</span>
+                <span className="text-xs font-semibold text-slate-600">orang</span>
               </div>
               <p className="mt-1 text-xs text-emerald-700 font-semibold flex items-center gap-1">
                 <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse inline-block" />
@@ -521,7 +537,7 @@ function VisitorVisualization({
                 </span>
               )}
             </div>
-            <p className="mt-1 text-[10px] font-medium text-slate-400">
+            <p className="mt-1 text-[10px] font-medium text-slate-600">
               {totalVisitors > 0
                 ? `${Math.round((activeCoord.value / totalVisitors) * 100)}% dari total pekan`
                 : "0%"}
@@ -602,7 +618,7 @@ function VisitorVisualization({
                 x={paddingLeft - 14}
                 y={y + 4}
                 textAnchor="end"
-                className="fill-slate-400 text-[11px] font-semibold tabular-nums select-none"
+                className="fill-slate-500 text-[11px] font-semibold tabular-nums select-none"
               >
                 {tick}
               </text>
@@ -729,7 +745,7 @@ function VisitorVisualization({
                       x={point.x}
                       y={height - paddingBottom - 10}
                       textAnchor="middle"
-                      className="fill-slate-400 text-[10px] font-bold select-none"
+                      className="fill-slate-500 text-[10px] font-bold select-none"
                     >
                       0
                     </text>
@@ -753,7 +769,7 @@ function VisitorVisualization({
                     textAnchor="middle"
                     className={cn(
                       "text-[10px] select-none transition-colors duration-200",
-                      isHovered ? "fill-red-700 font-bold" : "fill-slate-400 font-medium",
+                      isHovered ? "fill-red-700 font-bold" : "fill-slate-500 font-medium",
                     )}
                   >
                     {point.label}
@@ -918,7 +934,7 @@ function VisitorVisualization({
                     textAnchor="middle"
                     className={cn(
                       "text-[10px] select-none transition-colors duration-200",
-                      isHovered ? "fill-red-700 font-bold" : "fill-slate-400 font-medium",
+                      isHovered ? "fill-red-700 font-bold" : "fill-slate-500 font-medium",
                     )}
                   >
                     {point.label}
@@ -932,7 +948,7 @@ function VisitorVisualization({
 
       {/* Empty State Notification */}
       {!points.some((point) => point.value > 0) ? (
-        <div className="mt-4 flex items-center justify-center gap-2 rounded-2xl border border-slate-200/60 bg-white/50 p-4 text-xs font-semibold text-slate-500">
+        <div className="mt-4 flex items-center justify-center gap-2 rounded-2xl border border-slate-200/60 bg-white/50 p-4 text-xs font-semibold text-slate-600">
           <Sparkles className="size-4 text-amber-500" />
           Belum ada data presensi yang tercatat untuk periode ini.
         </div>
