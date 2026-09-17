@@ -48,7 +48,13 @@ export async function GET(request: Request) {
     const result = await fetchAttendanceRows(limit, { search: search ?? undefined, visitorStatus, purpose });
     if (result.error) return NextResponse.json({ error: result.error }, { status: 500 });
 
-    return NextResponse.json({ rows: result.rows }, { status: 200 });
+    const headers = {
+      "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+      "CDN-Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+      "Vercel-CDN-Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+    };
+
+    return NextResponse.json({ rows: result.rows }, { status: 200, headers });
   } catch (err) {
     return NextResponse.json({ error: err instanceof Error ? err.message : 'Unknown error' }, { status: 500 });
   }

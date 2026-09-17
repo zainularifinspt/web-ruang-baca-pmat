@@ -59,7 +59,9 @@ export async function GET(request: Request) {
 
   const responseHeaders: Record<string, string> = {
     "Accept-Ranges": "bytes",
-    "Cache-Control": "private, no-store",
+    "Cache-Control": "public, max-age=86400, s-maxage=604800, stale-while-revalidate=86400",
+    "CDN-Cache-Control": "public, s-maxage=604800, stale-while-revalidate=86400",
+    "Vercel-CDN-Cache-Control": "public, s-maxage=604800, stale-while-revalidate=86400",
     "Content-Disposition": "inline",
     "Content-Type": "application/pdf",
     "Vary": "Range, X-PDF-Canvas-Reader",
