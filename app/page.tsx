@@ -20,7 +20,6 @@ import { LandingSearchForm } from "@/components/landing-search-form";
 import { MathGeometricBackdrop } from "@/components/math-geometric-backdrop";
 import { PublicNav } from "@/components/public-nav";
 import { WebsiteVisitorStat } from "@/components/website-visitor-stat";
-import { FadeIn, FadeInStagger } from "@/components/ui/framer";
 import {
   fetchPublicLandingStats,
   fetchPublicVisitorRows,
@@ -44,30 +43,26 @@ export default function HomePage() {
         <section className="relative overflow-hidden text-white pb-36 pt-10 sm:pb-44 sm:pt-16 lg:pb-52 lg:pt-20">
           <PitchHeroBackdrop />
 
-          <FadeInStagger>
-            <div className="relative z-10 mx-auto max-w-5xl px-4 text-center sm:px-6">
-              <FadeIn>
-                <div className="inline-flex items-center gap-2 rounded-full border border-rose-400/40 bg-rose-950/70 px-4 py-1.5 text-xs font-bold text-rose-100 shadow-md backdrop-blur-md mb-6 sm:mb-8">
-                  <Image src="/ulm-logo.png" alt="Logo Universitas Lambung Mangkurat" width={18} height={18} className="size-4 object-contain drop-shadow-xs" priority />
-                  <span>Jurusan Pendidikan Matematika FKIP ULM</span>
-                </div>
-              </FadeIn>
-              <FadeIn>
-                <h1 className="mx-auto max-w-5xl text-4xl font-black tracking-[-0.04em] sm:text-6xl md:text-7xl lg:text-[5.5rem] leading-[1.04] sm:leading-[0.96] drop-shadow-[0_6px_28px_rgba(0,0,0,0.75)]">
-                  <span className="hero-title-gradient block sm:inline-block">
-                    Ruang Baca <br className="hidden sm:inline" />
-                    Pendidikan Matematika
-                  </span>
-                </h1>
-              </FadeIn>
-
-              {/* Interactive Pitch-Style Prompt Search Card */}
-              <FadeIn className="mt-8 sm:mt-11">
-                <LandingSearchForm />
-              </FadeIn>
+          <div className="relative z-10 mx-auto max-w-5xl px-4 text-center sm:px-6">
+            <div className="inline-flex items-center gap-2 rounded-full border border-rose-400/40 bg-rose-950/70 px-4 py-1.5 text-xs font-bold text-rose-100 shadow-md backdrop-blur-md mb-6 sm:mb-8">
+              <Image src="/ulm-logo.png" alt="Logo Universitas Lambung Mangkurat" width={18} height={18} className="size-4 object-contain drop-shadow-xs" />
+              <span>Jurusan Pendidikan Matematika FKIP ULM</span>
             </div>
-          </FadeInStagger>
+
+            <h1 className="mx-auto max-w-5xl text-4xl font-black tracking-[-0.04em] sm:text-6xl md:text-7xl lg:text-[5.5rem] leading-[1.04] sm:leading-[0.96] drop-shadow-[0_6px_28px_rgba(0,0,0,0.75)]">
+              <span className="hero-title-gradient block sm:inline-block">
+                Ruang Baca <br className="hidden sm:inline" />
+                Pendidikan Matematika
+              </span>
+            </h1>
+
+            {/* Interactive Pitch-Style Prompt Search Card */}
+            <div className="mt-8 sm:mt-11">
+              <LandingSearchForm />
+            </div>
+          </div>
         </section>
+
 
         {/* Lower Landing Page Section with Mathematical Graphic Backdrop */}
         <div className="relative">

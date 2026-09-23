@@ -40,6 +40,8 @@ export function PublicNav({
 
   useEffect(() => {
     if (initialSearchItems.length) return;
+    // On mobile screens, NavbarSearch is not rendered, so avoid fetching catalog search items
+    if (typeof window !== "undefined" && window.innerWidth < 768) return;
 
     let ignore = false;
 
@@ -86,7 +88,7 @@ export function PublicNav({
               <BookOpen className="size-4.5 sm:size-5" />
             </div>
             <span className="flex size-8 sm:size-9 items-center justify-center rounded-full border border-white bg-white shadow-xs ring-1 ring-slate-200">
-              <Image src="/ulm-logo.png" alt="Logo Universitas Lambung Mangkurat" width={28} height={28} className="size-5 sm:size-6 object-contain" priority />
+              <Image src="/ulm-logo.png" alt="Logo Universitas Lambung Mangkurat" width={28} height={28} className="size-5 sm:size-6 object-contain" />
             </span>
           </div>
           <div className="min-w-0 flex-1">
@@ -132,7 +134,7 @@ function NavbarSearch({
   const [focused, setFocused] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => setDebouncedQuery(query.trim()), 220);
+    const timer = setTimeout(() => setDebouncedQuery(query.trim()), 300);
     return () => clearTimeout(timer);
   }, [query]);
 
