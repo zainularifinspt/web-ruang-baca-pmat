@@ -261,6 +261,7 @@ function ThesisDetail({ item }: { item: Thesis }) {
         <div className="mt-3">
           <ThesisPdfViewer
             pdfUrl={item.pdfUrl}
+            pdfR2={item.pdfR2}
             pdfFilename={item.pdfFilename}
             studentName={item.studentName}
           />

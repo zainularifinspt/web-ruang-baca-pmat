@@ -33,3 +33,21 @@ export function resolveThesisPdfUrl(pdfUrl?: string | null) {
 
   return `${supabaseUrl}/storage/v1/object/public/${THESIS_PDF_BUCKET}/${encodedPath}`;
 }
+
+export function isCloudflareWorkerOrR2Url(value?: string | null): boolean {
+  if (!value) return false;
+
+  try {
+    const url = new URL(value);
+    const host = url.hostname.toLowerCase();
+
+    return (
+      host === "ruangbaca-pdf.zainularifin9195.workers.dev" ||
+      host.endsWith(".workers.dev") ||
+      host.endsWith(".r2.dev") ||
+      host.endsWith(".r2.cloudflarestorage.com")
+    );
+  } catch {
+    return false;
+  }
+}

@@ -80,6 +80,7 @@ export type Thesis = CollectionBase & {
   pdfUrl?: string;
   pdfFilename?: string;
   pdfSize?: number;
+  pdfR2?: string;
 };
 
 export type Attendance = {

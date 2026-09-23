@@ -12,7 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { resolveThesisPdfUrl } from "@/lib/thesis-pdf";
+import { isCloudflareWorkerOrR2Url, resolveThesisPdfUrl } from "@/lib/thesis-pdf";
 import type { PDFDocumentLoadingTask, PDFDocumentProxy, PDFPageProxy, RenderTask } from "pdfjs-dist";
 
 const MIN_PDF_ZOOM = 0.75;
@@ -35,12 +35,14 @@ const pageRenderQueue: QueuedPageRender[] = [];
 
 type ThesisPdfViewerProps = {
   pdfUrl?: string;
+  pdfR2?: string;
   pdfFilename?: string;
   studentName?: string;
 };
 
-export function ThesisPdfViewer({ pdfUrl, studentName }: ThesisPdfViewerProps) {
-  const resolvedPdfUrl = resolveThesisPdfUrl(pdfUrl);
+export function ThesisPdfViewer({ pdfUrl, pdfR2, studentName }: ThesisPdfViewerProps) {
+  const chosenPdfUrl = (pdfR2 && pdfR2.trim()) ? pdfR2.trim() : pdfUrl;
+  const resolvedPdfUrl = resolveThesisPdfUrl(chosenPdfUrl);
   const [open, setOpen] = useState(false);
   const readerTitle = studentName ? `File Skripsi - ${studentName}` : "File Skripsi";
   const resolvedReaderPdfUrl = resolvedPdfUrl ? readerPdfUrl(resolvedPdfUrl) : "";
@@ -87,6 +89,26 @@ export function ThesisPdfViewer({ pdfUrl, studentName }: ThesisPdfViewerProps) {
 }
 
 function readerPdfUrl(value: string) {
+  if (!value) return "";
+
+  if (value.startsWith("/api/theses/pdf/proxy")) {
+    return value;
+  }
+
+  try {
+    const url = new URL(value);
+    const host = url.hostname.toLowerCase();
+
+    if (
+      host === "ruangbaca-pdf.zainularifin9195.workers.dev" ||
+      host.endsWith(".workers.dev") ||
+      host.endsWith(".r2.dev") ||
+      host.endsWith(".r2.cloudflarestorage.com")
+    ) {
+      return value;
+    }
+  } catch {}
+
   return `/api/theses/pdf/proxy?url=${encodeURIComponent(value)}`;
 }
 
@@ -249,11 +271,15 @@ function PdfCanvasReader({
         const { loadPdfJs } = await import("@/lib/pdfjs-browser");
         const pdfjs = await loadPdfJs();
 
+        const isDirectR2 = isCloudflareWorkerOrR2Url(pdfUrl);
+
         const documentOptions = {
           url: pdfUrl,
-          httpHeaders: {
-            "X-PDF-Canvas-Reader": "1",
-          },
+          httpHeaders: isDirectR2
+            ? {}
+            : {
+                "X-PDF-Canvas-Reader": "1",
+              },
           withCredentials: false,
           disableWorker: true,
           rangeChunkSize: PDF_RANGE_CHUNK_SIZE,

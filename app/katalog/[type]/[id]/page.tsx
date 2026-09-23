@@ -86,6 +86,7 @@ export default async function CollectionDetailPage({
                   <div className="mt-2">
                     <ThesisPdfViewer
                       pdfUrl={item.pdfUrl}
+                      pdfR2={item.pdfR2}
                       pdfFilename={item.pdfFilename}
                       studentName={item.studentName}
                     />

@@ -10,6 +10,7 @@ export type ThesisPdfMetadata = {
   url: string;
   filename?: string;
   size?: number;
+  pdfR2?: string;
 };
 
 type VerificationStore = {

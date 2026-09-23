@@ -33,4 +33,5 @@ export type ThesisFormValues = {
   pdfUrl: string;
   pdfFilename: string;
   pdfSize: number;
+  pdfR2?: string;
 };

@@ -33,6 +33,7 @@ export type GoogleSheetThesisCandidate = {
   supervisor1: string;
   supervisor2: string;
   pdfUrl: string;
+  pdfR2?: string;
 };
 
 const maxThesisPdfSize = 5 * 1024 * 1024;
@@ -157,6 +158,7 @@ export async function syncThesisFromGoogleSheets(
         pdfFilename: "",
         pdfSize: 0,
         verificationStatus: "approved",
+        pdfR2: candidate.pdfR2,
       };
 
       const result = await insertThesis(thesisPayload(thesisValues, inputBy, auth.user.id), {
@@ -188,20 +190,21 @@ export async function syncExistingThesisPdfUrlsFromGoogleSheets(): Promise<
       getExistingThesisPdfIdentityRows(),
     ]);
 
-    const pdfUrlsByIdentity = new Map<string, string>();
-    const pdfUrlsByName = new Map<string, string>();
+    const pdfUrlsByIdentity = new Map<string, { url: string; pdfR2?: string }>();
+    const pdfUrlsByName = new Map<string, { url: string; pdfR2?: string }>();
 
     for (const pdfRow of pdfRows) {
       if (!pdfRow.pdfUrl) continue;
 
       const normalizedName = normalizeIdentity(pdfRow.studentName);
       const normalizedNim = normalizeNim(pdfRow.studentNim);
+      const entry = { url: pdfRow.pdfUrl, pdfR2: pdfRow.pdfR2 };
 
       if (normalizedName && normalizedNim) {
-        pdfUrlsByIdentity.set(thesisIdentityKey(normalizedName, normalizedNim), pdfRow.pdfUrl);
+        pdfUrlsByIdentity.set(thesisIdentityKey(normalizedName, normalizedNim), entry);
       }
       if (normalizedName) {
-        pdfUrlsByName.set(normalizedName, pdfRow.pdfUrl);
+        pdfUrlsByName.set(normalizedName, entry);
       }
     }
 
@@ -210,13 +213,16 @@ export async function syncExistingThesisPdfUrlsFromGoogleSheets(): Promise<
       const studentNim = sheetText(row, ["NIM", "nim", "NIM/NIP", "nim_nip"]);
       const normalizedName = normalizeIdentity(studentName);
       const normalizedNim = normalizeNim(studentNim);
-      const publicPdfUrl = pdfRows[index]?.pdfUrl ?? "";
+      const pdfRow = pdfRows[index];
+      const publicPdfUrl = pdfRow?.pdfUrl ?? "";
 
       if (!normalizedName || !publicPdfUrl) continue;
+      const entry = { url: publicPdfUrl, pdfR2: pdfRow?.pdfR2 };
+
       if (normalizedNim) {
-        pdfUrlsByIdentity.set(thesisIdentityKey(normalizedName, normalizedNim), publicPdfUrl);
+        pdfUrlsByIdentity.set(thesisIdentityKey(normalizedName, normalizedNim), entry);
       }
-      pdfUrlsByName.set(normalizedName, publicPdfUrl);
+      pdfUrlsByName.set(normalizedName, entry);
     }
 
     let updatedCount = 0;
@@ -230,20 +236,24 @@ export async function syncExistingThesisPdfUrlsFromGoogleSheets(): Promise<
         continue;
       }
 
-      const publicPdfUrl = normalizedNim
+      const pdfEntry = normalizedNim
         ? pdfUrlsByIdentity.get(thesisIdentityKey(normalizedName, normalizedNim)) ?? pdfUrlsByName.get(normalizedName)
         : pdfUrlsByName.get(normalizedName);
-      if (!publicPdfUrl) {
+      if (!pdfEntry?.url) {
         skippedCount++;
         continue;
       }
 
+      const publicPdfUrl = pdfEntry.url;
+      const pdfR2 = pdfEntry.pdfR2;
+
       if ((thesis.pdf_url ?? "").trim() === publicPdfUrl) {
-        await writeThesisPdfOverrideFromId(thesis.id, { pdf_url: publicPdfUrl });
+        await writeThesisPdfOverrideFromId(thesis.id, { pdf_url: publicPdfUrl }, pdfR2);
         continue;
       }
 
       const result = await updateThesisRow(thesis.id, { pdf_url: publicPdfUrl });
+      await writeThesisPdfOverrideFromId(thesis.id, { pdf_url: publicPdfUrl }, pdfR2);
       if (result.ok) updatedCount++;
       else skippedCount++;
     }
@@ -252,7 +262,7 @@ export async function syncExistingThesisPdfUrlsFromGoogleSheets(): Promise<
 
     return {
       ok: true,
-      message: `${updatedCount} link PDF skripsi diperbarui dari kolom D Google Sheet PDF.`,
+      message: `${updatedCount} link PDF skripsi diperbarui (prioritas R2 / Tanpa Bab 4 / Total).`,
       count: updatedCount,
       skipped: skippedCount,
     };
@@ -292,7 +302,8 @@ async function getNewGoogleSheetThesisCandidates() {
     }
 
     seenNims.add(normalizedNim);
-    const publicPdfUrl = pdfRows[index]?.pdfUrl ?? "";
+    const pdfRow = pdfRows[index];
+    const publicPdfUrl = pdfRow?.pdfUrl ?? "";
     if (!publicPdfUrl) continue;
 
     const key = thesisIdentityKey(normalizedName, normalizedNim);
@@ -305,6 +316,7 @@ async function getNewGoogleSheetThesisCandidates() {
       supervisor1: sheetText(row, ["PEMBIMBING 1", "pembimbing 1"]) || "-",
       supervisor2: sheetText(row, ["PEMBIMBING 2", "pembimbing 2"]) || "-",
       pdfUrl: publicPdfUrl,
+      pdfR2: pdfRow?.pdfR2,
     });
   }
 
@@ -349,11 +361,41 @@ async function getGoogleSheetThesisPdfRows() {
   const dataRows = headerRow ? rows.slice(1) : rows;
   const columns = sheetColumnIndexes(headerRow);
 
-  return dataRows.map((row) => ({
-    pdfUrl: sheetColumnText(row, 3),
-    studentName: columns.name >= 0 ? sheetColumnText(row, columns.name) : guessPdfSheetStudentName(row),
-    studentNim: columns.nim >= 0 ? sheetColumnText(row, columns.nim) : guessPdfSheetStudentNim(row),
-  }));
+  return dataRows.map((row) => {
+    const rawPdfR2 =
+      columns.pdfR2 >= 0
+        ? sheetColumnText(row, columns.pdfR2)
+        : row && row.length > 4
+          ? sheetColumnText(row, 4)
+          : "";
+    const rawPdfTanpaBab4 =
+      columns.pdfTanpaBab4 >= 0
+        ? sheetColumnText(row, columns.pdfTanpaBab4)
+        : sheetColumnText(row, 3);
+    const rawPdfTotal =
+      columns.pdfTotal >= 0
+        ? sheetColumnText(row, columns.pdfTotal)
+        : sheetColumnText(row, 2);
+
+    const pdfR2 = rawPdfR2 ? rawPdfR2.trim() : undefined;
+    const pdfTanpaBab4 = rawPdfTanpaBab4 ? rawPdfTanpaBab4.trim() : undefined;
+    const pdfTotal = rawPdfTotal ? rawPdfTotal.trim() : undefined;
+
+    // Prioritas pemilihan URL PDF:
+    // 1. File PDF R2, jika tersedia
+    // 2. File PDF Tanpa Bab 4
+    // 3. File PDF Total
+    const selectedPdfUrl = (pdfR2 || pdfTanpaBab4 || pdfTotal || "").trim();
+
+    return {
+      pdfUrl: selectedPdfUrl,
+      pdfR2: pdfR2 || undefined,
+      pdfTanpaBab4: pdfTanpaBab4 || undefined,
+      pdfTotal: pdfTotal || undefined,
+      studentName: columns.name >= 0 ? sheetColumnText(row, columns.name) : guessPdfSheetStudentName(row),
+      studentNim: columns.nim >= 0 ? sheetColumnText(row, columns.nim) : guessPdfSheetStudentNim(row),
+    };
+  });
 }
 
 async function getExistingThesisIdentityRows(): Promise<Array<{ student_name?: string | null; student_nim?: string | null }>> {
@@ -434,6 +476,36 @@ function sheetColumnIndexes(row: unknown[] | undefined) {
   return {
     name: labels.findIndex((label) => ["nama", "nama mahasiswa", "student_name"].includes(label)),
     nim: labels.findIndex((label) => ["nim", "nim/nip", "student_nim"].includes(label)),
+    pdfR2: labels.findIndex((label) =>
+      [
+        "file pdf r2",
+        "file pdf r2 (cloudflare)",
+        "file pdf cloudflare",
+        "pdf r2",
+        "pdf_r2",
+        "r2",
+        "cloudflare",
+      ].includes(label),
+    ),
+    pdfTanpaBab4: labels.findIndex((label) =>
+      [
+        "file pdf tanpa bab 4",
+        "file pdf tanpa bab iv",
+        "pdf tanpa bab 4",
+        "pdf tanpa bab iv",
+        "tanpa bab 4",
+        "tanpa bab iv",
+      ].includes(label),
+    ),
+    pdfTotal: labels.findIndex((label) =>
+      [
+        "file pdf total",
+        "file pdf full",
+        "pdf total",
+        "pdf full",
+        "file skripsi pdf",
+      ].includes(label),
+    ),
   };
 }
 
@@ -748,7 +820,8 @@ function thesisPayload(values: ThesisFormValues, inputBy?: string, actorId?: str
     verification_status: values.verificationStatus,
   };
 
-  if (values.pdfUrl.trim()) payload.pdf_url = values.pdfUrl.trim();
+  const chosenPdfUrl = values.pdfR2?.trim() || values.pdfUrl.trim();
+  if (chosenPdfUrl) payload.pdf_url = chosenPdfUrl;
   if (values.pdfFilename.trim()) payload.pdf_filename = values.pdfFilename.trim();
   if (values.pdfSize > 0) payload.pdf_size = values.pdfSize;
 
@@ -864,12 +937,13 @@ async function writeThesisPdfOverrideFromPayload(data: unknown, payload: Mutatio
   await writeThesisPdfOverrideFromId(id, payload);
 }
 
-async function writeThesisPdfOverrideFromId(id: string, payload: MutationPayload) {
+async function writeThesisPdfOverrideFromId(id: string, payload: MutationPayload, pdfR2?: string) {
   const pdfUrl = typeof payload.pdf_url === "string" ? payload.pdf_url.trim() : "";
   if (!pdfUrl) return;
 
   await writeThesisPdfOverride(id, {
     url: pdfUrl,
+    pdfR2,
     filename: typeof payload.pdf_filename === "string" ? payload.pdf_filename : undefined,
     size: typeof payload.pdf_size === "number" ? payload.pdf_size : undefined,
   });

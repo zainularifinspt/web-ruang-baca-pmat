@@ -7,7 +7,7 @@ import type {
   Thesis,
   VerificationStatus,
 } from "@/lib/types";
-import { resolveThesisPdfUrl } from "@/lib/thesis-pdf";
+import { isCloudflareWorkerOrR2Url, resolveThesisPdfUrl } from "@/lib/thesis-pdf";
 import { fetchEbooksFromApi } from "@/lib/ebooks";
 
 type UnknownRow = Record<string, unknown>;
@@ -35,6 +35,7 @@ type ThesisPdfOverride = {
   url: string;
   filename?: string;
   size?: number;
+  pdfR2?: string;
 };
 
 type ProfileNameMap = Record<string, string>;
@@ -478,6 +479,19 @@ function mapThesisRow(
     "-",
   );
   const pdfUrl = optionalTextValue(row, ["pdf_url", "pdfUrl"]);
+  const rawPdfR2 =
+    optionalTextValue(row, ["pdf_r2", "pdfR2", "file_pdf_r2", "file pdf r2"]) ??
+    pdfOverride?.pdfR2;
+  const pdfR2 = rawPdfR2?.trim() || undefined;
+
+  const resolvedPdfUrl =
+    resolveThesisPdfUrl(pdfR2) ??
+    resolveThesisPdfUrl(pdfUrl) ??
+    resolveThesisPdfUrl(pdfOverride?.url);
+
+  const finalPdfR2 =
+    pdfR2 ??
+    (isCloudflareWorkerOrR2Url(resolvedPdfUrl) ? resolvedPdfUrl : undefined);
 
   return {
     ...mapBaseRow(row, verificationOverride, inputOverride, createdByName),
@@ -496,7 +510,8 @@ function mapThesisRow(
       ["access_note"],
       "Dokumen lengkap tersedia dalam bentuk fisik di Ruang Baca Program Studi Pendidikan Matematika.",
     ),
-    pdfUrl: resolveThesisPdfUrl(pdfUrl) ?? resolveThesisPdfUrl(pdfOverride?.url),
+    pdfUrl: resolvedPdfUrl,
+    pdfR2: finalPdfR2,
     pdfFilename: optionalTextValue(row, ["pdf_filename", "pdfFilename"]) ?? pdfOverride?.filename,
     pdfSize: optionalNumberValue(row, ["pdf_size", "pdfSize"]) ?? pdfOverride?.size,
     keywords: [topic],

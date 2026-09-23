@@ -18,6 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import type { BookFormValues, ThesisFormValues } from "@/lib/catalog-crud-types";
 import type { VerificationStatus } from "@/lib/types";
+import { isCloudflareWorkerOrR2Url } from "@/lib/thesis-pdf";
 
 type ImportType = "book" | "thesis";
 type ImportStatus = "ready" | "importing" | "success" | "error";
@@ -285,25 +286,49 @@ function normalizeImportRow(
 
   if (!type) return null;
 
-  return {
-    rowNumber,
-    type,
-    title: getText(record, ["title", "judul", "judul_skripsi", "judul skripsi"]),
-    data: record,
-    coverUrl: getText(record, ["cover_url", "cover_link", "cover_drive_url", "link_cover"]),
-    deprecatedCoverFilename: getText(record, ["cover_filename", "cover_file", "cover"]),
-    deprecatedPdfFilename: getText(record, ["pdf_filename", "pdf_file", "pdf"]),
-    pdfUrl: getText(record, [
+    const pdfR2 = getText(record, [
+      "file pdf r2",
+      "file_pdf_r2",
+      "pdf r2",
+      "pdf_r2",
+      "r2",
+      "cloudflare",
+    ]);
+    const pdfTanpaBab4 = getText(record, [
+      "file pdf tanpa bab 4",
+      "file pdf tanpa bab iv",
+      "file_pdf_tanpa_bab_4",
+      "pdf tanpa bab 4",
+      "pdf tanpa bab iv",
+      "tanpa bab 4",
+      "tanpa bab iv",
+    ]);
+    const pdfTotal = getText(record, [
+      "file pdf total",
+      "file_pdf_total",
+      "pdf total",
+      "pdf full",
+      "file skripsi pdf",
+      "file_skripsi_pdf",
       "pdf_url",
       "pdf_link",
       "pdf_drive_url",
       "link_pdf",
-      "file_skripsi_pdf",
-      "file skripsi pdf",
-    ]),
-    status: "ready",
-    message: "",
-  };
+    ]);
+    const rawPdfUrl = (pdfR2 || pdfTanpaBab4 || pdfTotal || "").trim();
+
+    return {
+      rowNumber,
+      type,
+      title: getText(record, ["title", "judul", "judul_skripsi", "judul skripsi"]),
+      data: record,
+      coverUrl: getText(record, ["cover_url", "cover_link", "cover_drive_url", "link_cover"]),
+      deprecatedCoverFilename: getText(record, ["cover_filename", "cover_file", "cover"]),
+      deprecatedPdfFilename: getText(record, ["pdf_filename", "pdf_file", "pdf"]),
+      pdfUrl: rawPdfUrl,
+      status: "ready",
+      message: "",
+    };
 }
 
 function validateImportRows(rows: ImportRow[]) {
@@ -387,6 +412,16 @@ function buildBookValues(row: ImportRow): BookFormValues {
 }
 
 function buildThesisValues(row: ImportRow): ThesisFormValues {
+  const pdfR2 = getText(row.data, [
+    "file pdf r2",
+    "file_pdf_r2",
+    "pdf r2",
+    "pdf_r2",
+    "r2",
+    "cloudflare",
+  ]);
+  const chosenUrl = (pdfR2 || row.pdfUrl || "").trim();
+
   return {
     title: getText(row.data, ["title", "judul", "judul_skripsi", "judul skripsi"]),
     studentName: getText(row.data, ["student_name", "nama_mahasiswa", "mahasiswa", "nama"]),
@@ -410,7 +445,8 @@ function buildThesisValues(row: ImportRow): ThesisFormValues {
     physicalLocation: getText(row.data, ["physical_location", "lokasi_fisik"], "Lemari Skripsi"),
     accessNote: getText(row.data, ["access_note", "catatan_akses"], defaultAccessNote),
     verificationStatus: verificationStatusValue(getText(row.data, ["verification_status", "status_verifikasi"], "approved")),
-    pdfUrl: resolvePdfUrl(row.pdfUrl),
+    pdfUrl: resolvePdfUrl(chosenUrl),
+    pdfR2: pdfR2 || (isCloudflareWorkerOrR2Url(chosenUrl) ? chosenUrl : undefined),
     pdfFilename: "",
     pdfSize: 0,
   };
@@ -423,7 +459,9 @@ function resolveCoverUrl(coverUrl: string) {
 
 function resolvePdfUrl(pdfUrl: string) {
   if (!pdfUrl) return "";
-  return toGoogleDrivePdfUrl(pdfUrl);
+  const trimmed = pdfUrl.trim();
+  if (isCloudflareWorkerOrR2Url(trimmed)) return trimmed;
+  return toGoogleDrivePdfUrl(trimmed);
 }
 
 function defaultThesisAbstract(record: Record<string, unknown>) {
