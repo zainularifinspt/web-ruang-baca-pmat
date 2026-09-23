@@ -49,9 +49,10 @@ export default function HomePage() {
               <span>Jurusan Pendidikan Matematika FKIP ULM</span>
             </div>
 
-            <h1 className="mx-auto max-w-5xl text-4xl font-black tracking-[-0.04em] sm:text-6xl md:text-7xl lg:text-[5.5rem] leading-[1.04] sm:leading-[0.96] drop-shadow-[0_6px_28px_rgba(0,0,0,0.75)]">
+            <h1 className="mx-auto max-w-5xl text-4xl font-black tracking-[-0.04em] sm:text-6xl md:text-7xl lg:text-[5.5rem] leading-[1.18] sm:leading-[1.14] lg:leading-[1.18] drop-shadow-[0_6px_28px_rgba(0,0,0,0.75)]">
               <span className="hero-title-gradient block sm:inline-block">
-                Ruang Baca <br className="hidden sm:inline" />
+                Ruang Baca
+                <br />
                 Pendidikan Matematika
               </span>
             </h1>
