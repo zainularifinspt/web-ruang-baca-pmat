@@ -2,11 +2,9 @@ import Image from "next/image";
 import {
   BookOpen,
   Calendar,
-  Download,
   ExternalLink,
   FileText,
   GraduationCap,
-  Layers3,
   MapPin,
   UserRound,
   UsersRound,
@@ -24,17 +22,12 @@ import dynamic from "next/dynamic";
 import { AvailabilityBadge } from "@/components/status-badge";
 import { BookCover } from "@/components/book-cover";
 import { splitBookAuthors } from "@/lib/book-authors";
-import { getGoogleDriveDownloadUrl, getGoogleDriveDirectViewUrl } from "@/lib/google-drive";
+import { getGoogleDriveDirectViewUrl } from "@/lib/google-drive";
 import { cn } from "@/lib/utils";
 import type { Book, Thesis } from "@/lib/types";
 
 const ThesisPdfViewer = dynamic(
   () => import("@/components/thesis-pdf-viewer").then((mod) => mod.ThesisPdfViewer),
-  { ssr: false }
-);
-
-const EbookPdfViewer = dynamic(
-  () => import("@/components/ebook-pdf-viewer").then((mod) => mod.EbookPdfViewer),
   { ssr: false }
 );
 
@@ -62,22 +55,22 @@ export function CollectionDetail({
 export function CollectionDetailContent({ item }: { item: CollectionItem }) {
   const isBook = item.type === "book";
   const isEbook = isBook && (item.isEbook || Boolean(item.pdfUrl));
-  const downloadUrl = isBook && item.pdfUrl ? getGoogleDriveDownloadUrl(item.pdfUrl) : undefined;
   const directDriveUrl = isBook && item.pdfUrl ? getGoogleDriveDirectViewUrl(item.pdfUrl) : undefined;
+  const pdfViewUrl = directDriveUrl || item.pdfUrl || undefined;
 
   return (
     <DialogContent
       className={cn(
-        "flex flex-col overflow-y-auto overflow-x-hidden rounded-[2rem] sm:rounded-[2.25rem] border border-orange-100/60 bg-gradient-to-b from-orange-50/70 via-white to-slate-50 p-0 shadow-[0_24px_50px_rgba(234,88,12,0.12)] backdrop-blur-2xl md:grid md:grid-rows-[auto_minmax(0,1fr)] md:overflow-hidden [&>button]:right-4 sm:[&>button]:right-5 [&>button]:top-4 sm:[&>button]:top-5 [&>button]:rounded-full [&>button]:bg-white/90 [&>button]:p-2 [&>button]:shadow-md [&>button]:shadow-slate-900/10 [&>button]:backdrop-blur-xl [&>button]:transition-all [&>button]:hover:scale-105",
+        "flex flex-col overflow-y-auto overflow-x-hidden rounded-[2rem] sm:rounded-[2.25rem] border border-orange-100/60 bg-gradient-to-b from-orange-50/70 via-white to-slate-50 p-0 shadow-[0_24px_50px_rgba(234,88,12,0.12)] backdrop-blur-2xl [&>button]:right-4 sm:[&>button]:right-5 [&>button]:top-4 sm:[&>button]:top-5 [&>button]:rounded-full [&>button]:bg-white/90 [&>button]:p-2 [&>button]:shadow-md [&>button]:shadow-slate-900/10 [&>button]:backdrop-blur-xl [&>button]:transition-all [&>button]:hover:scale-105",
         isEbook
-          ? "w-[96vw] max-w-[1580px] h-[92vh] sm:h-[95vh] max-h-[95vh]"
-          : "w-[95vw] max-w-5xl sm:w-[calc(100%-2rem)] max-h-[92vh]",
+          ? "w-[94vw] max-w-lg sm:max-w-xl max-h-[90vh]"
+          : "w-[95vw] max-w-5xl sm:w-[calc(100%-2rem)] max-h-[92vh] md:grid md:grid-rows-[auto_minmax(0,1fr)] md:overflow-hidden",
       )}
     >
       {/* Header */}
-      <div className="relative shrink-0 overflow-hidden border-b border-orange-100/60 bg-[linear-gradient(135deg,rgba(255,247,237,0.96),rgba(254,242,242,0.8),rgba(255,255,255,0.95))] px-4 pb-5 pt-4 pr-12 sm:px-8 sm:pb-7 sm:pt-6 sm:pr-16">
+      <div className="relative shrink-0 overflow-hidden border-b border-orange-100/60 bg-[linear-gradient(135deg,rgba(255,247,237,0.96),rgba(254,242,242,0.8),rgba(255,255,255,0.95))] px-5 pb-4 pt-5 pr-12 sm:px-7 sm:pb-5 sm:pt-6 sm:pr-14">
         <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-orange-200 to-transparent" />
-        <DialogHeader className="relative space-y-2.5 sm:space-y-3">
+        <DialogHeader className="relative space-y-2">
           <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
             <Badge className="rounded-full border border-orange-200 bg-white/90 px-3 py-1 sm:px-3.5 sm:py-1.5 text-xs sm:text-sm font-bold text-orange-950 shadow-xs backdrop-blur-md">
               {isEbook ? (
@@ -103,55 +96,69 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
             ) : null}
           </div>
 
-          <DialogTitle className="max-w-4xl text-balance text-lg font-extrabold leading-tight tracking-tight text-slate-900 sm:text-2xl md:text-3xl">
+          <DialogTitle className="max-w-4xl text-balance text-lg font-extrabold leading-tight tracking-tight text-slate-900 sm:text-xl md:text-2xl">
             {item.title}
           </DialogTitle>
-
-          {isEbook && downloadUrl ? (
-            <div className="flex flex-wrap items-center gap-2 pt-1">
-              <Button
-                asChild
-                size="sm"
-                className="h-8 sm:h-9 rounded-xl bg-gradient-to-r from-red-600 via-yellow-600 to-orange-600 px-3.5 sm:px-4 text-xs font-bold text-white shadow-md hover:brightness-110 active:scale-95 border-0 gap-1.5 cursor-pointer"
-              >
-                <a href={downloadUrl} target="_blank" rel="noopener noreferrer" download>
-                  <Download className="size-3.5 sm:size-4" />
-                  Download PDF
-                </a>
-              </Button>
-              {directDriveUrl ? (
-                <Button
-                  asChild
-                  variant="outline"
-                  size="sm"
-                  className="h-8 sm:h-9 rounded-xl border-slate-200 bg-white/80 px-3 sm:px-3.5 text-xs font-semibold text-slate-700 shadow-xs hover:bg-white hover:text-slate-900 active:scale-95 gap-1.5 cursor-pointer"
-                >
-                  <a href={directDriveUrl} target="_blank" rel="noopener noreferrer">
-                    <ExternalLink className="size-3.5" />
-                    Buka di Drive
-                  </a>
-                </Button>
-              ) : null}
-            </div>
-          ) : null}
         </DialogHeader>
       </div>
 
       {/* Body Content */}
-      <div className="relative min-h-0 space-y-3.5 sm:space-y-5 bg-slate-50/50 p-3 sm:p-7 md:overflow-y-auto">
-        {/* Info Grid */}
+      <div
+        className={cn(
+          "relative min-h-0 bg-slate-50/50 p-4 sm:p-6",
+          !isEbook && "space-y-3.5 sm:space-y-5 sm:p-7 md:overflow-y-auto",
+        )}
+      >
+        {/* Info Grid / Ebook Layout */}
         {isEbook ? (
-          <div className="grid gap-2.5 sm:gap-4 grid-cols-1 sm:grid-cols-2">
-            <Info
-              icon={<UserRound />}
-              label="Penulis"
-              value={<AuthorLines author={item.author} />}
-            />
-            <Info
-              icon={<BookOpen />}
-              label="Kategori / Mata Kuliah"
-              value={item.category || "-"}
-            />
+          <div className="flex flex-col sm:flex-row items-center sm:items-stretch gap-5 sm:gap-6">
+            {/* Foto Cover Buku */}
+            <div className="flex flex-col items-center justify-center shrink-0">
+              <BookCover
+                coverUrl={item.coverUrl}
+                title={item.title}
+                author={item.author}
+                category={item.category}
+                size="lg"
+                className="shadow-xl ring-1 ring-slate-900/10 transition-transform duration-300 hover:scale-[1.02]"
+              />
+            </div>
+
+            {/* Detail Info & Tombol Lihat PDF */}
+            <div className="flex flex-1 flex-col justify-between w-full space-y-3 sm:space-y-4">
+              <div className="space-y-2.5 sm:space-y-3">
+                <Info
+                  icon={<UserRound />}
+                  label="Penulis"
+                  value={<AuthorLines author={item.author} />}
+                />
+                <Info
+                  icon={<BookOpen />}
+                  label="Kategori / Mata Kuliah"
+                  value={item.category || "-"}
+                />
+              </div>
+
+              {pdfViewUrl ? (
+                <Button
+                  asChild
+                  className="w-full h-11 sm:h-12 rounded-2xl bg-gradient-to-r from-red-600 via-rose-600 to-orange-600 px-5 text-sm sm:text-base font-bold text-white shadow-md shadow-red-500/20 hover:brightness-110 active:scale-[0.98] border-0 gap-2 cursor-pointer transition-all"
+                >
+                  <a
+                    href={pdfViewUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <ExternalLink className="size-4 sm:size-4.5" />
+                    <span>Lihat PDF</span>
+                  </a>
+                </Button>
+              ) : (
+                <div className="rounded-2xl border border-dashed border-slate-300 bg-white/60 p-3 text-center text-xs font-semibold text-slate-500">
+                  File PDF belum tersedia
+                </div>
+              )}
+            </div>
           </div>
         ) : isBook ? (
           <div className="grid gap-4 md:grid-cols-4">
@@ -186,34 +193,6 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
             </div>
           </div>
         )}
-
-        {/* Ebook Google Drive Viewer Panel */}
-        {isEbook && item.pdfUrl ? (
-          <div className="grid gap-6 lg:grid-cols-12 items-start pt-1">
-            <div className="hidden lg:flex lg:col-span-3 flex-col items-center">
-              <BookCover
-                coverUrl={item.coverUrl}
-                title={item.title}
-                author={item.author}
-                category={item.category}
-                size="lg"
-                className="shadow-xl"
-              />
-              <p className="mt-2 text-center text-[11px] font-semibold text-slate-600">
-                Cover Dokumen
-              </p>
-            </div>
-
-            <div className="lg:col-span-9 w-full">
-              <EbookPdfViewer
-                pdfUrl={item.pdfUrl}
-                title={item.title}
-                author={item.author}
-                category={item.category}
-              />
-            </div>
-          </div>
-        ) : null}
 
         {/* Physical Book Details */}
         {isBook && !isEbook ? (
