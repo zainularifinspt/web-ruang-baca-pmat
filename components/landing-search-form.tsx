@@ -53,9 +53,9 @@ export function LandingSearchForm() {
         </div>
 
         {/* Bottom Toolbar Row (Pitch Style: Category + Prompts on Left, Generate/Search on Right) */}
-        <div className="mt-4 sm:mt-5 pt-3.5 border-t border-slate-150/70 flex flex-wrap items-center justify-between gap-3">
+        <div className="mt-4 sm:mt-5 pt-3.5 border-t border-slate-150/70 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-3">
           {/* Left: Category Selector Tabs */}
-          <div className="flex flex-wrap items-center gap-1 sm:gap-1.5">
+          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-1 sm:gap-1.5 w-full sm:w-auto">
             <button
               type="button"
               onClick={() => setCategory("all")}
@@ -105,14 +105,16 @@ export function LandingSearchForm() {
             </button>
           </div>
 
-          {/* Right: Submit Button (Pitch-style Generate Button with Arrow) */}
-          <button
-            type="submit"
-            className="inline-flex h-10 sm:h-11 items-center justify-center gap-1.5 rounded-2xl bg-gradient-to-r from-red-600 via-rose-600 to-red-700 hover:from-red-500 hover:to-rose-500 px-6 sm:px-7 text-xs sm:text-sm font-extrabold text-white shadow-md shadow-red-600/30 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer border-0"
-          >
-            <span>Cari</span>
-            <ArrowUpRight className="size-4 stroke-[2.5]" />
-          </button>
+          {/* Right: Submit Button (Centered on mobile, right on desktop) */}
+          <div className="w-full sm:w-auto flex justify-center">
+            <button
+              type="submit"
+              className="inline-flex h-10 sm:h-11 items-center justify-center gap-1.5 rounded-2xl bg-gradient-to-r from-red-600 via-rose-600 to-red-700 hover:from-red-500 hover:to-rose-500 px-7 sm:px-7 text-xs sm:text-sm font-extrabold text-white shadow-md shadow-red-600/30 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer border-0"
+            >
+              <span>Cari</span>
+              <ArrowUpRight className="size-4 stroke-[2.5]" />
+            </button>
+          </div>
         </div>
       </form>
 

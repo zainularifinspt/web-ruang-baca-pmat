@@ -288,7 +288,7 @@ export function CatalogBrowser({
         </div>
 
         {/* Prominent Collection Category Switcher (Apple Segmented Tab) */}
-        <div className="mb-4 inline-flex flex-wrap gap-1.5 rounded-full bg-slate-200/70 p-1.5 border border-slate-200/80 backdrop-blur-md">
+        <div className="mb-4 flex flex-col sm:inline-flex sm:flex-row w-full sm:w-auto gap-1.5 rounded-2xl sm:rounded-full bg-slate-200/70 p-1.5 border border-slate-200/80 backdrop-blur-md">
           <button
             type="button"
             onClick={() => {
@@ -301,14 +301,16 @@ export function CatalogBrowser({
               triggerLoading();
             }}
             className={cn(
-              "flex items-center gap-2 rounded-full px-4 py-2 text-xs sm:text-sm font-bold transition-all cursor-pointer",
+              "flex w-full sm:w-auto items-center justify-between sm:justify-center gap-2.5 rounded-xl sm:rounded-full px-4 py-2.5 sm:py-2 text-xs sm:text-sm font-bold transition-all cursor-pointer",
               collectionType === "all"
                 ? "bg-gradient-to-r from-red-700 via-red-800 to-rose-900 text-white shadow-md shadow-red-950/20"
                 : "text-slate-600 hover:text-slate-900 hover:bg-white/70",
             )}
           >
-            <Layers className="size-4" />
-            <span>Semua Koleksi</span>
+            <div className="flex items-center gap-2">
+              <Layers className="size-4 shrink-0" />
+              <span>Semua Koleksi</span>
+            </div>
             <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-bold", collectionType === "all" ? "bg-white/20 text-white" : "bg-white text-slate-700 shadow-2xs")}>
               {books.length + theses.length}
             </span>
@@ -325,14 +327,16 @@ export function CatalogBrowser({
               triggerLoading();
             }}
             className={cn(
-              "flex items-center gap-2 rounded-full px-4 py-2 text-xs sm:text-sm font-bold transition-all cursor-pointer",
+              "flex w-full sm:w-auto items-center justify-between sm:justify-center gap-2.5 rounded-xl sm:rounded-full px-4 py-2.5 sm:py-2 text-xs sm:text-sm font-bold transition-all cursor-pointer",
               collectionType === "books"
                 ? "bg-gradient-to-r from-red-700 via-red-800 to-rose-900 text-white shadow-md shadow-red-950/20"
                 : "text-slate-600 hover:text-slate-900 hover:bg-white/70",
             )}
           >
-            <BookOpen className="size-4" />
-            <span>E-Book &amp; Buku</span>
+            <div className="flex items-center gap-2">
+              <BookOpen className="size-4 shrink-0" />
+              <span>E-Book &amp; Buku</span>
+            </div>
             <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-bold", collectionType === "books" ? "bg-white/20 text-white" : "bg-white text-slate-700 shadow-2xs")}>
               {books.length}
             </span>
@@ -350,14 +354,16 @@ export function CatalogBrowser({
               triggerLoading();
             }}
             className={cn(
-              "flex items-center gap-2 rounded-full px-4 py-2 text-xs sm:text-sm font-bold transition-all cursor-pointer",
+              "flex w-full sm:w-auto items-center justify-between sm:justify-center gap-2.5 rounded-xl sm:rounded-full px-4 py-2.5 sm:py-2 text-xs sm:text-sm font-bold transition-all cursor-pointer",
               collectionType === "theses"
                 ? "bg-gradient-to-r from-red-700 via-red-800 to-rose-900 text-white shadow-md shadow-red-950/20"
                 : "text-slate-600 hover:text-slate-900 hover:bg-white/70",
             )}
           >
-            <GraduationCap className="size-4" />
-            <span>Skripsi Mahasiswa</span>
+            <div className="flex items-center gap-2">
+              <GraduationCap className="size-4 shrink-0" />
+              <span>Skripsi Mahasiswa</span>
+            </div>
             <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-bold", collectionType === "theses" ? "bg-white/20 text-white" : "bg-white text-slate-700 shadow-2xs")}>
               {theses.length}
             </span>

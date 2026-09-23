@@ -114,8 +114,8 @@ export function ScopusSearchBrowser() {
     <div className="relative z-20 mx-auto max-w-6xl px-4 -mt-12 sm:-mt-16 pb-12 sm:pb-16 sm:px-6">
       {/* Search Bar & Controls */}
       <div className="rounded-[2.25rem] border border-white/70 bg-white/90 p-4 sm:p-6 shadow-xl shadow-red-950/5 ring-1 ring-slate-200/80 backdrop-blur-xl mb-6">
-        <form onSubmit={handleSearchSubmit} className="relative flex items-center gap-2">
-          <div className="relative flex-1">
+        <form onSubmit={handleSearchSubmit} className="relative flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-2">
+          <div className="relative w-full flex-1">
             <Search className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-red-700/70" />
             <input
               type="text"
@@ -137,7 +137,7 @@ export function ScopusSearchBrowser() {
                     fetchResults("", sort, 1, searchField);
                   }
                 }}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 cursor-pointer"
                 aria-label="Hapus pencarian"
               >
                 <X className="size-4" />
@@ -148,7 +148,7 @@ export function ScopusSearchBrowser() {
           <Button
             type="submit"
             disabled={isPending}
-            className="h-12 sm:h-14 shrink-0 rounded-full bg-gradient-to-r from-red-700 via-red-800 to-rose-900 hover:from-red-800 hover:to-rose-950 px-6 sm:px-8 text-xs sm:text-sm font-extrabold text-white shadow-md shadow-red-950/25 border-0 cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98]"
+            className="h-12 sm:h-14 w-full sm:w-auto shrink-0 rounded-full bg-gradient-to-r from-red-700 via-red-800 to-rose-900 hover:from-red-800 hover:to-rose-950 px-6 sm:px-8 text-xs sm:text-sm font-extrabold text-white shadow-md shadow-red-950/25 border-0 cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center"
           >
             {isPending ? (
               <Loader2 className="size-4 animate-spin mr-1.5" />
