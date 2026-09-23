@@ -61,10 +61,10 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
   return (
     <DialogContent
       className={cn(
-        "p-0 transition-all duration-200",
-        "[&>button]:right-4 sm:[&>button]:right-5 [&>button]:top-4 sm:[&>button]:top-5 [&>button]:rounded-full [&>button]:p-2 [&>button]:bg-slate-100/80 [&>button]:text-slate-500 [&>button]:hover:bg-slate-200 [&>button]:hover:text-slate-800 [&>button]:transition-colors [&>button]:z-20",
+        "p-0 transition-all duration-300",
+        "[&>button]:right-4 sm:[&>button]:right-5 [&>button]:top-4 sm:[&>button]:top-5 [&>button]:rounded-full [&>button]:p-2 [&>button]:bg-white/80 [&>button]:border [&>button]:border-white/80 [&>button]:text-slate-600 [&>button]:shadow-md [&>button]:backdrop-blur-xl [&>button]:hover:scale-110 [&>button]:hover:bg-white [&>button]:transition-all [&>button]:z-20",
         isEbook
-          ? "w-[92vw] max-w-2xl rounded-3xl overflow-hidden max-h-[92vh] overflow-y-auto sm:overflow-hidden scrollbar-none [&::-webkit-scrollbar]:hidden border border-slate-200/90 bg-white/95 backdrop-blur-2xl shadow-2xl"
+          ? "w-[94vw] max-w-2xl rounded-[2rem] overflow-hidden max-h-[92vh] overflow-y-auto sm:overflow-hidden scrollbar-none [&::-webkit-scrollbar]:hidden border border-white/80 bg-[linear-gradient(135deg,rgba(255,255,255,0.92)_0%,rgba(255,242,242,0.78)_40%,rgba(255,248,242,0.88)_100%)] shadow-[0_28px_70px_-10px_rgba(225,29,72,0.18),0_12px_28px_-4px_rgba(0,0,0,0.06),inset_0_1px_1px_rgba(255,255,255,0.95)] backdrop-blur-3xl"
           : "w-[95vw] max-w-5xl sm:w-[calc(100%-2rem)] max-h-[92vh] rounded-[2rem] sm:rounded-[2.25rem] border border-orange-100/60 bg-gradient-to-b from-orange-50/70 via-white to-slate-50 shadow-[0_24px_50px_rgba(234,88,12,0.12)] backdrop-blur-2xl overflow-y-auto md:grid md:grid-rows-[auto_minmax(0,1fr)] md:overflow-hidden",
       )}
     >
@@ -75,12 +75,15 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
           </DialogHeader>
 
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-7">
-            {/* Tangible Book Presentation */}
-            <div className="relative shrink-0">
-              <div className="relative overflow-hidden rounded-xl bg-slate-100 shadow-[0_16px_36px_-6px_rgba(0,0,0,0.22),0_4px_12px_rgba(0,0,0,0.08)] ring-1 ring-black/5">
-                {/* Book spine lighting illusion */}
-                <div className="pointer-events-none absolute inset-y-0 left-0 w-2.5 z-10 bg-gradient-to-r from-black/25 via-black/10 to-transparent" />
-                <div className="pointer-events-none absolute inset-y-0 left-2.5 w-px z-10 bg-white/20" />
+            {/* 3D Floating Book Presentation */}
+            <div className="relative shrink-0 group">
+              {/* Soft atmospheric depth shadow beneath the book */}
+              <div className="pointer-events-none absolute -bottom-3 inset-x-3 h-5 bg-rose-950/20 blur-lg rounded-full -z-10" />
+
+              <div className="relative overflow-hidden rounded-xl bg-slate-100 shadow-[0_20px_40px_-8px_rgba(0,0,0,0.28),0_8px_16px_-4px_rgba(0,0,0,0.12)] ring-1 ring-white/80 transition-transform duration-300 group-hover:scale-[1.02] group-hover:-translate-y-1">
+                {/* Physical book spine lighting illusion */}
+                <div className="pointer-events-none absolute inset-y-0 left-0 w-3 z-10 bg-gradient-to-r from-black/30 via-black/10 to-transparent" />
+                <div className="pointer-events-none absolute inset-y-0 left-3 w-px z-10 bg-white/25" />
 
                 {/* Cover image */}
                 {item.coverUrl ? (
@@ -104,10 +107,10 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
             {/* Book Metadata & Action */}
             <div className="flex flex-1 flex-col justify-between self-stretch min-w-0 text-left">
               <div>
-                {/* Badge & Category Tag */}
+                {/* 3D Glass Badge */}
                 <div className="flex flex-wrap items-center gap-2 mb-2.5">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-800 border border-rose-100/80">
-                    <BookOpen className="size-3 text-rose-600" />
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-rose-900 bg-white/90 border border-white shadow-[0_2px_8px_rgba(225,29,72,0.08),inset_0_1px_0_rgba(255,255,255,0.95)] backdrop-blur-md">
+                    <BookOpen className="size-3.5 text-rose-600" />
                     E-Book Digital
                   </span>
                   {item.category ? (
@@ -118,38 +121,58 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
                 </div>
 
                 {/* Title */}
-                <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight leading-snug">
+                <h2 className="text-xl sm:text-2xl font-black text-slate-950 tracking-tight leading-snug">
                   {item.title}
                 </h2>
 
-                {/* Authors */}
-                <div className="mt-3 text-sm text-slate-600">
-                  <span className="text-slate-400">Penulis: </span>
-                  <span className="font-semibold text-slate-800">
-                    {splitBookAuthors(item.author).join(", ") || "-"}
-                  </span>
-                </div>
-
-                {/* Mata Kuliah */}
-                {item.category ? (
-                  <div className="mt-1.5 text-sm text-slate-600">
-                    <span className="text-slate-400">Mata Kuliah: </span>
-                    <span className="font-medium text-slate-700">{item.category}</span>
+                {/* 3D Glass Metadata Card */}
+                <div className="mt-3.5 rounded-2xl border border-white/80 bg-white/60 p-3.5 sm:p-4 shadow-[0_4px_16px_rgba(0,0,0,0.03),inset_0_1px_1px_rgba(255,255,255,0.9)] backdrop-blur-xl space-y-2.5">
+                  {/* Author */}
+                  <div className="flex items-center gap-2.5 text-sm">
+                    <span className="flex size-6 shrink-0 items-center justify-center rounded-lg bg-rose-50 text-rose-700 border border-rose-100/80 shadow-2xs">
+                      <UserRound className="size-3.5" />
+                    </span>
+                    <span className="text-slate-400 text-xs font-bold uppercase tracking-wider shrink-0">Penulis:</span>
+                    <span className="font-bold text-slate-900 truncate">
+                      {splitBookAuthors(item.author).join(", ") || "-"}
+                    </span>
                   </div>
-                ) : null}
+
+                  {/* Course / Category */}
+                  {item.category ? (
+                    <div className="flex items-center gap-2.5 text-sm">
+                      <span className="flex size-6 shrink-0 items-center justify-center rounded-lg bg-orange-50 text-orange-700 border border-orange-100/80 shadow-2xs">
+                        <BookOpen className="size-3.5" />
+                      </span>
+                      <span className="text-slate-400 text-xs font-bold uppercase tracking-wider shrink-0">Mata Kuliah:</span>
+                      <span className="font-semibold text-rose-950 truncate">{item.category}</span>
+                    </div>
+                  ) : null}
+                </div>
               </div>
 
-              {/* Action Button */}
-              <div className="mt-6 pt-5 border-t border-slate-100">
+              {/* 3D High-Contrast Glass CTA Button */}
+              <div className="mt-5 pt-4 border-t border-slate-200/50">
                 {pdfViewUrl ? (
                   <a
                     href={pdfViewUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-6 h-11 rounded-xl bg-red-700 hover:bg-red-800 text-white font-semibold text-sm shadow-sm transition-all duration-150 hover:shadow active:scale-[0.99] cursor-pointer no-underline"
+                    style={{ color: "#ffffff", textDecoration: "none" }}
+                    className="group relative flex w-full sm:w-auto items-center justify-center gap-2.5 px-7 h-12 rounded-2xl bg-gradient-to-r from-red-600 via-rose-600 to-orange-500 font-extrabold text-white !text-white shadow-[0_12px_28px_-4px_rgba(225,29,72,0.45),inset_0_1px_1px_rgba(255,255,255,0.5),inset_0_-2px_4px_rgba(0,0,0,0.2)] border border-white/30 transition-all duration-200 hover:brightness-110 hover:-translate-y-0.5 hover:shadow-[0_16px_36px_-4px_rgba(225,29,72,0.55)] active:translate-y-0 active:scale-[0.98] cursor-pointer"
                   >
-                    <ExternalLink className="size-4 text-white" />
-                    <span>Lihat PDF</span>
+                    <span
+                      className="flex size-7 items-center justify-center rounded-xl bg-white/25 backdrop-blur-md shadow-xs transition-transform group-hover:scale-110"
+                      style={{ color: "#ffffff" }}
+                    >
+                      <ExternalLink className="size-4" style={{ color: "#ffffff", stroke: "#ffffff" }} />
+                    </span>
+                    <span
+                      className="text-sm sm:text-base font-black tracking-wide drop-shadow-[0_1px_2px_rgba(0,0,0,0.45)]"
+                      style={{ color: "#ffffff" }}
+                    >
+                      Lihat PDF
+                    </span>
                   </a>
                 ) : (
                   <p className="text-xs text-slate-400">File PDF belum tersedia untuk koleksi ini.</p>

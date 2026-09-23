@@ -80,9 +80,11 @@ html {
   contain-intrinsic-size: 1px 620px;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+@layer base {
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
 }
 
 .pdf-reader-scroll {
