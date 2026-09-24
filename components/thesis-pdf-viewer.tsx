@@ -91,7 +91,23 @@ export function ThesisPdfViewer({ pdfUrl, pdfR2, studentName }: ThesisPdfViewerP
 function readerPdfUrl(value: string) {
   if (!value) return "";
 
+  // Jika URL berupa proxy, periksa target di dalamnya
   if (value.startsWith("/api/theses/pdf/proxy")) {
+    try {
+      const parsed = new URL(value, "http://localhost");
+      const target = parsed.searchParams.get("url");
+      if (target) {
+        const targetUrl = new URL(target);
+        const targetHost = targetUrl.hostname.toLowerCase();
+        if (
+          targetHost.endsWith(".workers.dev") ||
+          targetHost.endsWith(".r2.dev") ||
+          targetHost.endsWith(".r2.cloudflarestorage.com")
+        ) {
+          return target;
+        }
+      }
+    } catch {}
     return value;
   }
 

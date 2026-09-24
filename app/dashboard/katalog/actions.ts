@@ -10,6 +10,11 @@ import {
   writeThesisVerificationOverride,
 } from "@/lib/catalog-verification-store";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
+import {
+  clearThesisSheetPdfCache,
+  fetchThesisSheetPdfMap,
+  findThesisPdfInMap,
+} from "@/lib/thesis-sheet-pdf";
 import type {
   BookFormValues,
   CatalogActionResult,
@@ -184,75 +189,25 @@ export async function syncExistingThesisPdfUrlsFromGoogleSheets(): Promise<
   if (!auth.ok) return failure(auth.message);
 
   try {
-    const [sheetRows, pdfRows, existingTheses] = await Promise.all([
-      getGoogleSheetThesisRows(thesisMetadataSheetUrl),
-      getGoogleSheetThesisPdfRows(),
+    const [sheetPdfMap, existingTheses] = await Promise.all([
+      fetchThesisSheetPdfMap({ forceFresh: true }),
       getExistingThesisPdfIdentityRows(),
     ]);
-
-    const pdfUrlsByIdentity = new Map<string, { url: string; pdfR2?: string }>();
-    const pdfUrlsByName = new Map<string, { url: string; pdfR2?: string }>();
-
-    for (const pdfRow of pdfRows) {
-      if (!pdfRow.pdfUrl) continue;
-
-      const normalizedName = normalizeIdentity(pdfRow.studentName);
-      const normalizedNim = normalizeNim(pdfRow.studentNim);
-      const entry = { url: pdfRow.pdfUrl, pdfR2: pdfRow.pdfR2 };
-
-      if (normalizedName && normalizedNim) {
-        pdfUrlsByIdentity.set(thesisIdentityKey(normalizedName, normalizedNim), entry);
-      }
-      if (normalizedName) {
-        pdfUrlsByName.set(normalizedName, entry);
-      }
-    }
-
-    for (const [index, row] of sheetRows.entries()) {
-      const studentName = sheetText(row, ["NAMA", "nama"]);
-      const studentNim = sheetText(row, ["NIM", "nim", "NIM/NIP", "nim_nip"]);
-      const normalizedName = normalizeIdentity(studentName);
-      const normalizedNim = normalizeNim(studentNim);
-      const pdfRow = pdfRows[index];
-      const publicPdfUrl = pdfRow?.pdfUrl ?? "";
-
-      if (!normalizedName || !publicPdfUrl) continue;
-      const entry = { url: publicPdfUrl, pdfR2: pdfRow?.pdfR2 };
-
-      if (normalizedNim) {
-        pdfUrlsByIdentity.set(thesisIdentityKey(normalizedName, normalizedNim), entry);
-      }
-      pdfUrlsByName.set(normalizedName, entry);
-    }
 
     let updatedCount = 0;
     let skippedCount = 0;
 
     for (const thesis of existingTheses) {
-      const normalizedName = normalizeIdentity(thesis.student_name);
-      const normalizedNim = normalizeNim(thesis.student_nim);
-      if (!normalizedName) {
+      const pdfEntry = findThesisPdfInMap(sheetPdfMap, thesis.student_nim, thesis.student_name);
+      if (!pdfEntry?.pdfUrl) {
         skippedCount++;
         continue;
       }
 
-      const pdfEntry = normalizedNim
-        ? pdfUrlsByIdentity.get(thesisIdentityKey(normalizedName, normalizedNim)) ?? pdfUrlsByName.get(normalizedName)
-        : pdfUrlsByName.get(normalizedName);
-      if (!pdfEntry?.url) {
-        skippedCount++;
-        continue;
-      }
-
-      const publicPdfUrl = pdfEntry.url;
+      const publicPdfUrl = pdfEntry.pdfUrl;
       const pdfR2 = pdfEntry.pdfR2;
 
-      if ((thesis.pdf_url ?? "").trim() === publicPdfUrl) {
-        await writeThesisPdfOverrideFromId(thesis.id, { pdf_url: publicPdfUrl }, pdfR2);
-        continue;
-      }
-
-      const result = await updateThesisRow(thesis.id, { pdf_url: publicPdfUrl });
+      const result = await updateThesisRow(thesis.id, { pdf_url: publicPdfUrl, pdf_r2: pdfR2 });
       await writeThesisPdfOverrideFromId(thesis.id, { pdf_url: publicPdfUrl }, pdfR2);
       if (result.ok) updatedCount++;
       else skippedCount++;
@@ -272,9 +227,9 @@ export async function syncExistingThesisPdfUrlsFromGoogleSheets(): Promise<
 }
 
 async function getNewGoogleSheetThesisCandidates() {
-  const [sheetRows, pdfRows, existingTheses] = await Promise.all([
+  const [sheetRows, sheetPdfMap, existingTheses] = await Promise.all([
     getGoogleSheetThesisRows(thesisMetadataSheetUrl),
-    getGoogleSheetThesisPdfRows(),
+    fetchThesisSheetPdfMap({ forceFresh: true }),
     getExistingThesisIdentityRows(),
   ]);
 
@@ -288,7 +243,7 @@ async function getNewGoogleSheetThesisCandidates() {
   const seenNims = new Set<string>();
   const candidates: GoogleSheetThesisCandidate[] = [];
 
-  for (const [index, row] of sheetRows.entries()) {
+  for (const row of sheetRows) {
     const title = sheetText(row, ["JUDUL SKRIPSI", "judul skripsi", "judul"]);
     const studentName = sheetText(row, ["NAMA", "nama"]);
     const studentNim = sheetText(row, ["NIM", "nim", "NIM/NIP", "nim_nip"]);
@@ -302,7 +257,7 @@ async function getNewGoogleSheetThesisCandidates() {
     }
 
     seenNims.add(normalizedNim);
-    const pdfRow = pdfRows[index];
+    const pdfRow = findThesisPdfInMap(sheetPdfMap, studentNim, studentName);
     const publicPdfUrl = pdfRow?.pdfUrl ?? "";
     if (!publicPdfUrl) continue;
 
@@ -701,9 +656,10 @@ async function updateBookRow(id: string, payload: MutationPayload) {
 }
 
 async function insertThesis(payload: MutationPayload, options?: InsertCatalogOptions) {
+  const dbPayload = omitPayloadKeys(payload, ["pdf_r2"]);
   const { data, error } = await createSupabaseAdminClient()
     .from("theses")
-    .insert(payload)
+    .insert(dbPayload)
     .select("id")
     .single();
   if (!error) {
@@ -721,7 +677,7 @@ async function insertThesis(payload: MutationPayload, options?: InsertCatalogOpt
     return failure(error.message);
   }
 
-  let fallbackPayload = { ...payload };
+  let fallbackPayload = { ...dbPayload };
   if (isMissingInputAuditColumn(error.message)) {
     fallbackPayload = omitPayloadKeys(fallbackPayload, ["created_by", "input_by", "input_source"]);
   }
@@ -749,7 +705,8 @@ async function insertThesis(payload: MutationPayload, options?: InsertCatalogOpt
 }
 
 async function updateThesisRow(id: string, payload: MutationPayload) {
-  const { error } = await createSupabaseAdminClient().from("theses").update(payload).eq("id", id);
+  const dbPayload = omitPayloadKeys(payload, ["pdf_r2"]);
+  const { error } = await createSupabaseAdminClient().from("theses").update(dbPayload).eq("id", id);
   if (!error) {
     if (typeof payload.verification_status === "string") {
       await writeThesisVerificationOverride(id, payload.verification_status as VerificationStatus);
@@ -763,7 +720,7 @@ async function updateThesisRow(id: string, payload: MutationPayload) {
     isMissingStudentNimColumn(error.message) ||
     isMissingVerificationColumn(error.message)
   ) {
-    let fallbackPayload = { ...payload };
+    let fallbackPayload = { ...dbPayload };
     if (isMissingThesisPdfColumn(error.message)) {
       fallbackPayload = omitPayloadKeys(fallbackPayload, ["pdf_url", "pdf_filename", "pdf_size"]);
     }
@@ -822,6 +779,7 @@ function thesisPayload(values: ThesisFormValues, inputBy?: string, actorId?: str
 
   const chosenPdfUrl = values.pdfR2?.trim() || values.pdfUrl.trim();
   if (chosenPdfUrl) payload.pdf_url = chosenPdfUrl;
+  if (values.pdfR2?.trim()) payload.pdf_r2 = values.pdfR2.trim();
   if (values.pdfFilename.trim()) payload.pdf_filename = values.pdfFilename.trim();
   if (values.pdfSize > 0) payload.pdf_size = values.pdfSize;
 
@@ -862,8 +820,10 @@ function validateThesis(values: ThesisFormValues) {
 }
 
 function revalidateCatalogPaths() {
+  clearThesisSheetPdfCache();
   revalidateTag("public-catalog", "max");
   revalidateTag("public-landing", "max");
+  revalidateTag("thesis-pdf-sheet", "max");
   revalidatePath("/");
   revalidatePath("/katalog");
   revalidatePath("/dashboard/katalog");
@@ -934,16 +894,18 @@ async function writeThesisPdfOverrideFromPayload(data: unknown, payload: Mutatio
   const id = textId(data);
   if (!id) return;
 
-  await writeThesisPdfOverrideFromId(id, payload);
+  const pdfR2 = typeof payload.pdf_r2 === "string" ? payload.pdf_r2.trim() : undefined;
+  await writeThesisPdfOverrideFromId(id, payload, pdfR2);
 }
 
 async function writeThesisPdfOverrideFromId(id: string, payload: MutationPayload, pdfR2?: string) {
   const pdfUrl = typeof payload.pdf_url === "string" ? payload.pdf_url.trim() : "";
-  if (!pdfUrl) return;
+  const resolvedPdfR2 = pdfR2 ?? (typeof payload.pdf_r2 === "string" ? payload.pdf_r2.trim() : undefined);
+  if (!pdfUrl && !resolvedPdfR2) return;
 
   await writeThesisPdfOverride(id, {
     url: pdfUrl,
-    pdfR2,
+    pdfR2: resolvedPdfR2,
     filename: typeof payload.pdf_filename === "string" ? payload.pdf_filename : undefined,
     size: typeof payload.pdf_size === "number" ? payload.pdf_size : undefined,
   });

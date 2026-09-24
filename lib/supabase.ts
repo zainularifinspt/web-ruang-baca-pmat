@@ -9,6 +9,12 @@ import type {
 } from "@/lib/types";
 import { isCloudflareWorkerOrR2Url, resolveThesisPdfUrl } from "@/lib/thesis-pdf";
 import { fetchEbooksFromApi } from "@/lib/ebooks";
+import {
+  fetchThesisSheetPdfMap,
+  findThesisPdfInMap,
+  type SheetThesisPdfInfo,
+  type ThesisSheetPdfMap,
+} from "@/lib/thesis-sheet-pdf";
 
 type UnknownRow = Record<string, unknown>;
 
@@ -173,7 +179,7 @@ export async function fetchCatalogData(options: CatalogFetchOptions = {}): Promi
     offset: options.offset,
     select: publicOnly ? undefined : "*",
   };
-  const [booksResult, thesesResult, { ebooks }] = await Promise.all([
+  const [booksResult, thesesResult, { ebooks }, sheetPdfMap] = await Promise.all([
     fetchTableRows("books", {
       ...tableOptions,
       select: publicOnly ? publicBookFields : "*",
@@ -187,6 +193,19 @@ export async function fetchCatalogData(options: CatalogFetchOptions = {}): Promi
         : "*",
     }),
     fetchEbooksFromApi(),
+    includePdfMetadata
+      ? fetchThesisSheetPdfMap().catch(() => ({
+          byNim: new Map(),
+          byIdentity: new Map(),
+          byName: new Map(),
+          list: [],
+        }))
+      : Promise.resolve({
+          byNim: new Map(),
+          byIdentity: new Map(),
+          byName: new Map(),
+          list: [],
+        }),
   ]);
   const bookVerificationOverrides = await getBookVerificationOverrides();
   const thesisVerificationOverrides = await getThesisVerificationOverrides();
@@ -217,6 +236,11 @@ export async function fetchCatalogData(options: CatalogFetchOptions = {}): Promi
       inputOverrides[`thesis:${textValue(row, ["id"])}`],
       createdByName(row, profileNamesById),
       thesisPdfOverrides[textValue(row, ["id"])],
+      findThesisPdfInMap(
+        sheetPdfMap,
+        optionalTextValue(row, ["student_nim", "studentNim", "nim"]),
+        textValue(row, ["student_name"]),
+      ),
     ),
   );
 
@@ -252,7 +276,21 @@ export async function fetchCollectionById(type: string, id: string, options: Cat
   const thesisVerificationOverrides =
     table === "theses" ? await getThesisVerificationOverrides() : {};
   const inputOverrides = await getCatalogInputOverrides();
-  const thesisPdfOverrides = table === "theses" ? await getThesisPdfOverrides() : {};
+  const [thesisPdfOverrides, sheetPdfMap]: [
+    Record<string, ThesisPdfOverride>,
+    ThesisSheetPdfMap,
+  ] =
+    table === "theses"
+      ? await Promise.all([
+          getThesisPdfOverrides(),
+          fetchThesisSheetPdfMap().catch(() => ({
+            byNim: new Map(),
+            byIdentity: new Map(),
+            byName: new Map(),
+            list: [],
+          })),
+        ])
+      : [{} as Record<string, ThesisPdfOverride>, { byNim: new Map(), byIdentity: new Map(), byName: new Map(), list: [] }];
   const profileNamesById = await getProfileNamesForRows(rows);
   const mappedRows =
     table === "books"
@@ -271,6 +309,11 @@ export async function fetchCollectionById(type: string, id: string, options: Cat
             inputOverrides[`thesis:${textValue(row, ["id"])}`],
             createdByName(row, profileNamesById),
             thesisPdfOverrides[textValue(row, ["id"])],
+            findThesisPdfInMap(
+              sheetPdfMap,
+              optionalTextValue(row, ["student_nim", "studentNim", "nim"]),
+              textValue(row, ["student_name"]),
+            ),
           ),
         );
 
@@ -317,10 +360,18 @@ export async function fetchBookById(id: string, options: CatalogFetchOptions = {
 
 export async function fetchThesisById(id: string, options: CatalogFetchOptions = {}) {
   const { row, error } = await fetchTableRowById("theses", id);
-  const thesisVerificationOverrides = await getThesisVerificationOverrides();
-  const inputOverrides = await getCatalogInputOverrides();
-  const thesisPdfOverrides = await getThesisPdfOverrides();
-  const profileNamesById = await getProfileNamesForRows(row ? [row] : []);
+  const [thesisVerificationOverrides, inputOverrides, thesisPdfOverrides, profileNamesById, sheetPdfMap] = await Promise.all([
+    getThesisVerificationOverrides(),
+    getCatalogInputOverrides(),
+    getThesisPdfOverrides(),
+    getProfileNamesForRows(row ? [row] : []),
+    fetchThesisSheetPdfMap().catch(() => ({
+      byNim: new Map(),
+      byIdentity: new Map(),
+      byName: new Map(),
+      list: [],
+    })),
+  ]);
   const thesis = row
     ? mapThesisRow(
         row,
@@ -328,6 +379,11 @@ export async function fetchThesisById(id: string, options: CatalogFetchOptions =
         inputOverrides[`thesis:${textValue(row, ["id"])}`],
         createdByName(row, profileNamesById),
         thesisPdfOverrides[textValue(row, ["id"])],
+        findThesisPdfInMap(
+          sheetPdfMap,
+          optionalTextValue(row, ["student_nim", "studentNim", "nim"]),
+          textValue(row, ["student_name"]),
+        ),
       )
     : null;
 
@@ -471,6 +527,7 @@ function mapThesisRow(
   inputOverride?: CatalogInputOverride,
   createdByName?: string,
   pdfOverride?: ThesisPdfOverride,
+  sheetPdfInfo?: SheetThesisPdfInfo,
 ): Thesis {
   const topic = textValue(row, ["topic"], "Skripsi");
   const physicalLocation = textValue(
@@ -478,26 +535,41 @@ function mapThesisRow(
     ["physical_location"],
     "-",
   );
-  const pdfUrl = optionalTextValue(row, ["pdf_url", "pdfUrl"]);
+
+  const studentName = textValue(row, ["student_name"]);
+  const studentNim = optionalTextValue(row, ["student_nim", "studentNim", "nim"]);
+
+  // 1. Ambil URL R2 dari spreadsheet, kolom database, atau override verifikasi
+  const sheetPdfR2 = sheetPdfInfo?.pdfR2?.trim();
   const rawPdfR2 =
-    optionalTextValue(row, ["pdf_r2", "pdfR2", "file_pdf_r2", "file pdf r2"]) ??
+    sheetPdfR2 ||
+    optionalTextValue(row, ["pdf_r2", "pdfR2", "file_pdf_r2", "file pdf r2"]) ||
     pdfOverride?.pdfR2;
   const pdfR2 = rawPdfR2?.trim() || undefined;
 
-  const resolvedPdfUrl =
-    resolveThesisPdfUrl(pdfR2) ??
-    resolveThesisPdfUrl(pdfUrl) ??
-    resolveThesisPdfUrl(pdfOverride?.url);
+  // 2. Ambil URL Fallback sesuai urutan prioritas:
+  //    - File PDF Tanpa Bab 4 dari spreadsheet
+  //    - File PDF Total dari spreadsheet
+  //    - pdf_url dari database / override
+  const fallbackDriveUrl =
+    sheetPdfInfo?.pdfTanpaBab4?.trim() ||
+    sheetPdfInfo?.pdfTotal?.trim() ||
+    optionalTextValue(row, ["pdf_url", "pdfUrl"])?.trim() ||
+    pdfOverride?.url?.trim();
+
+  // 3. Tentukan URL PDF akhir (Prioritas: pdfR2 > File PDF Tanpa Bab 4 > File PDF Total)
+  const chosenPdfUrl = pdfR2 || fallbackDriveUrl;
+  const resolvedPdfUrl = resolveThesisPdfUrl(chosenPdfUrl);
 
   const finalPdfR2 =
-    pdfR2 ??
+    pdfR2 ||
     (isCloudflareWorkerOrR2Url(resolvedPdfUrl) ? resolvedPdfUrl : undefined);
 
   return {
     ...mapBaseRow(row, verificationOverride, inputOverride, createdByName),
     type: "thesis",
-    studentName: textValue(row, ["student_name"]),
-    studentNim: optionalTextValue(row, ["student_nim", "studentNim", "nim"]),
+    studentName,
+    studentNim,
     topic,
     supervisor1: textValue(row, ["supervisor_1"]),
     supervisor2: textValue(row, ["supervisor_2"]),

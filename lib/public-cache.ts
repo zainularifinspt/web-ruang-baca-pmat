@@ -33,10 +33,10 @@ export const fetchPublicCatalogData = unstable_cache(
       includeInputMetadata: false,
     });
   },
-  ["public-catalog-data-v2"],
+  ["public-catalog-data-v3"],
   {
     revalidate: PUBLIC_REVALIDATE_SECONDS,
-    tags: ["public-catalog"],
+    tags: ["public-catalog", "thesis-pdf-sheet"],
   },
 );
 

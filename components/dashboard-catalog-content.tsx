@@ -141,7 +141,7 @@ function UpdateThesisPdfLinksButton() {
       disabled={isPending}
     >
       <RefreshCw className={cn("mr-2 size-4", isPending && "animate-spin")} />
-      {isPending ? "Memperbarui..." : "Update PDF kolom D"}
+      {isPending ? "Memperbarui..." : "Update Link PDF (R2 / Drive)"}
     </Button>
   );
 }

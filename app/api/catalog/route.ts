@@ -21,7 +21,7 @@ export async function GET(request: Request) {
     visibility,
     limit: limit || undefined,
     offset,
-    includePdfMetadata: !isPublic,
+    includePdfMetadata: true,
     includeInputMetadata: !isPublic,
   });
   const headers = isPublic ? PUBLIC_CACHE_HEADERS : PRIVATE_NO_STORE_HEADERS;
