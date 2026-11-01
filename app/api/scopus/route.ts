@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { searchScopusArticles } from "@/lib/scopus";
+import { ScopusQueryError, searchScopusArticles } from "@/lib/scopus";
 
 export const dynamic = "force-dynamic";
 
@@ -7,6 +7,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const query = searchParams.get("q") ?? "";
+    const queryMode = searchParams.get("queryMode") === "advanced" ? "advanced" : "basic";
     const sort = (searchParams.get("sort") ?? "relevance") as
       | "relevance"
       | "newest"
@@ -18,6 +19,7 @@ export async function GET(request: NextRequest) {
     const language = searchParams.get("language") ?? undefined;
     const docType = searchParams.get("docType") ?? undefined;
     const openAccessOnly = searchParams.get("openAccess") === "true";
+    const isExport = searchParams.get("purpose") === "export";
     const apiKey = searchParams.get("apiKey") || request.headers.get("x-scopus-api-key") || undefined;
     const searchField = (searchParams.get("searchField") ?? "title") as
       | "title"
@@ -26,6 +28,7 @@ export async function GET(request: NextRequest) {
 
     const result = await searchScopusArticles({
       query,
+      queryMode,
       sort,
       page: isNaN(page) ? 1 : page,
       pageSize: isNaN(pageSize) ? 25 : pageSize,
@@ -36,13 +39,13 @@ export async function GET(request: NextRequest) {
       openAccessOnly,
       apiKey: apiKey || undefined,
       searchField,
+      allowDemo: !isExport,
+      signal: request.signal,
     });
 
     return NextResponse.json(result, {
       headers: {
-        "Cache-Control": "public, s-maxage=1800, stale-while-revalidate=86400",
-        "CDN-Cache-Control": "public, s-maxage=1800, stale-while-revalidate=86400",
-        "Vercel-CDN-Cache-Control": "public, s-maxage=1800, stale-while-revalidate=86400",
+        "Cache-Control": "private, no-store",
       },
     });
   } catch (error) {
@@ -57,7 +60,7 @@ export async function GET(request: NextRequest) {
         isDemo: true,
         error: error instanceof Error ? error.message : "Gagal memproses pencarian Scopus.",
       },
-      { status: 500 },
+      { status: error instanceof ScopusQueryError ? 400 : 503, headers: { "Cache-Control": "no-store" } },
     );
   }
 }

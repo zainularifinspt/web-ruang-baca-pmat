@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState } from "react";
 import {
   BookOpen,
   ChevronLeft,
@@ -19,10 +19,16 @@ import {
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ScopusArticle, ScopusSearchResponse } from "@/lib/scopus";
+import type { ScopusArticle, ScopusSearchResponse } from "@/lib/scopus";
+import { scopusSearchIdentity } from "@/lib/scopus-export";
+import { ScopusAdvancedQuery } from "@/components/scopus-advanced-query";
+import { ScopusExportPanel } from "@/components/scopus-export-panel";
 
 export function ScopusSearchBrowser() {
   const [query, setQuery] = useState("");
+  const [queryMode, setQueryMode] = useState<"basic" | "advanced">("basic");
+  const [advancedQuery, setAdvancedQuery] = useState("");
+  const [submittedMode, setSubmittedMode] = useState<"basic" | "advanced">("basic");
   const [sort, setSort] = useState<"relevance" | "newest" | "citations">("relevance");
   const [page, setPage] = useState(1);
 
@@ -35,8 +41,18 @@ export function ScopusSearchBrowser() {
   const [showFilters, setShowFilters] = useState(false);
 
   const [data, setData] = useState<ScopusSearchResponse | null>(null);
-  const [isPending, startTransition] = useTransition();
-  const [hasSearched, setHasSearched] = useState(false);
+  const [isPending, setIsPending] = useState(false);
+  const [submittedQuery, setSubmittedQuery] = useState<string | null>(null);
+  const [revision, setRevision] = useState(0);
+  const [searchError, setSearchError] = useState("");
+  const [isExporting, setIsExporting] = useState(false);
+  const [selection, setSelection] = useState<{ key: string; articles: Record<string, ScopusArticle> }>({ key: "", articles: {} });
+  const hasSearched = submittedQuery !== null;
+  const effectiveFilters = submittedMode === "advanced" ? { searchField: "all", year: "all", language: "all", docType: "all", openAccessOnly: false } : { searchField, year, language, docType, openAccessOnly };
+  const searchIdentity = scopusSearchIdentity({ query: submittedQuery, queryMode: submittedMode, ...effectiveFilters });
+  const selected = selection.key === searchIdentity ? selection.articles : {};
+  const currentYear = new Date().getFullYear();
+  const requestKey = JSON.stringify({ query: submittedQuery, queryMode: submittedMode, sort, page, ...effectiveFilters, revision });
 
   const hasActiveFilters =
     year !== "all" ||
@@ -47,43 +63,82 @@ export function ScopusSearchBrowser() {
 
   function fetchResults(
     searchQuery: string,
-    sortMode: string,
+    sortMode: "relevance" | "newest" | "citations",
     pageNum: number,
     fieldMode: "title" | "all" | "author" = searchField,
+    mode: "basic" | "advanced" = "basic",
   ) {
-    const params = new URLSearchParams();
-    if (searchQuery.trim()) params.set("q", searchQuery.trim());
-    if (year !== "all") params.set("year", year);
-    if (language !== "all") params.set("language", language);
-    if (docType !== "all") params.set("docType", docType);
-    if (openAccessOnly) params.set("openAccess", "true");
-    params.set("searchField", fieldMode);
-
-    params.set("sort", sortMode);
-    params.set("page", pageNum.toString());
-    params.set("pageSize", "25");
-
-    setHasSearched(true);
-
-    startTransition(async () => {
-      try {
-        const response = await fetch(`/api/scopus?${params.toString()}`);
-        if (!response.ok) throw new Error("Gagal memuat artikel Scopus");
-        const json: ScopusSearchResponse = await response.json();
-        setData(json);
-      } catch {
-        toast.error("Gagal memuat data dari Scopus API");
-      }
-    });
+    if (scopusSearchIdentity({ query: searchQuery.trim(), queryMode: mode, searchField: fieldMode, year, language, docType, openAccessOnly }) !== searchIdentity) resetSelection();
+    setSubmittedQuery(searchQuery.trim());
+    setSubmittedMode(mode);
+    setSort(sortMode);
+    setPage(pageNum);
+    if (mode === "basic") setSearchField(fieldMode);
+    setRevision((value) => value + 1);
   }
 
   useEffect(() => {
-    // Only re-fetch if user has already searched or selected an active filter
-    if (hasSearched || hasActiveFilters) {
-      fetchResults(query, sort, page, searchField);
+    const options = JSON.parse(requestKey);
+    if (options.query === null) return;
+    const controller = new AbortController();
+    const params = new URLSearchParams({
+      q: options.query,
+      queryMode: options.queryMode,
+      sort: options.sort,
+      page: String(options.page),
+      pageSize: "25",
+      searchField: options.searchField,
+      year: options.year,
+      language: options.language,
+      docType: options.docType,
+      openAccess: String(options.openAccessOnly),
+    });
+    async function load() {
+      setIsPending(true);
+      setSearchError("");
+      try {
+        const response = await fetch(`/api/scopus?${params}`, { signal: controller.signal, cache: "no-store" });
+        const json = await response.json();
+        if (!response.ok) throw new Error(json.error || "Gagal memuat artikel Scopus. Silakan coba lagi.");
+        if (!controller.signal.aborted) setData(json);
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          setData(null);
+          setSearchError(error instanceof Error ? error.message : "Gagal memuat artikel Scopus. Silakan coba lagi.");
+        }
+      } finally {
+        if (!controller.signal.aborted) setIsPending(false);
+      }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sort, page, year, language, docType, openAccessOnly, searchField]);
+    void load();
+    return () => controller.abort();
+  }, [requestKey]);
+
+  function resetSelection() {
+    setSelection({ key: "", articles: {} });
+  }
+
+  function toggleArticle(article: ScopusArticle) {
+    setSelection((previous) => {
+      const articles = previous.key === searchIdentity ? { ...previous.articles } : {};
+      if (articles[article.id]) delete articles[article.id];
+      else articles[article.id] = article;
+      return { key: searchIdentity, articles };
+    });
+  }
+
+  function togglePage() {
+    if (!data || data.isDemo) return;
+    const allSelected = data.articles.every((article) => selected[article.id]);
+    setSelection((previous) => {
+      const articles = previous.key === searchIdentity ? { ...previous.articles } : {};
+      for (const article of data.articles) {
+        if (allSelected) delete articles[article.id];
+        else articles[article.id] = article;
+      }
+      return { key: searchIdentity, articles };
+    });
+  }
 
   function handleSearchSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -96,6 +151,7 @@ export function ScopusSearchBrowser() {
   }
 
   function handleResetFilters() {
+    resetSelection();
     setYear("all");
     setLanguage("all");
     setDocType("all");
@@ -104,7 +160,8 @@ export function ScopusSearchBrowser() {
     setSort("relevance");
     setPage(1);
     if (!query.trim()) {
-      setHasSearched(false);
+      setSubmittedQuery(null);
+      setIsPending(false);
       setData(null);
     }
   }
@@ -113,12 +170,23 @@ export function ScopusSearchBrowser() {
   return (
     <div className="relative z-20 mx-auto max-w-6xl px-4 -mt-12 sm:-mt-16 pb-12 sm:pb-16 sm:px-6">
       {/* Search Bar & Controls */}
-      <div className="rounded-[2.25rem] border border-white/70 bg-white/90 p-4 sm:p-6 shadow-xl shadow-red-950/5 ring-1 ring-slate-200/80 backdrop-blur-xl mb-6">
-        <form onSubmit={handleSearchSubmit} className="relative flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-2">
+      <fieldset disabled={isExporting} className="min-w-0 rounded-[2.25rem] border border-white/70 bg-white/90 p-4 sm:p-6 shadow-xl shadow-red-950/5 ring-1 ring-slate-200/80 backdrop-blur-xl mb-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="inline-flex rounded-xl bg-slate-100 p-1" aria-label="Mode pencarian">
+            {(["basic", "advanced"] as const).map((mode) => <button key={mode} type="button" aria-pressed={queryMode === mode} onClick={() => {
+              setQueryMode(mode);
+              if (mode === "advanced" && !advancedQuery) setAdvancedQuery(data?.search?.executedQuery ?? "");
+            }} className={`min-h-9 rounded-lg px-3.5 text-xs font-bold transition-colors focus-visible:outline-2 focus-visible:outline-red-800 sm:text-sm ${queryMode === mode ? "bg-white text-red-900 shadow-sm" : "text-slate-600 hover:text-slate-900"}`}>{mode === "basic" ? "Pencarian biasa" : "Advanced query"}</button>)}
+          </div>
+          <span className="hidden text-xs text-slate-500 sm:block">{queryMode === "advanced" ? "Susun strategi pencarian literatur Anda" : "Temukan artikel dari kata kunci"}</span>
+        </div>
+        {queryMode === "advanced" ? <ScopusAdvancedQuery value={advancedQuery} onChange={setAdvancedQuery} onSearch={() => fetchResults(advancedQuery, sort, 1, "all", "advanced")} isPending={isPending} /> : <>
+        <form onSubmit={handleSearchSubmit} className="relative mt-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-2">
           <div className="relative w-full flex-1">
             <Search className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-red-700/70" />
             <input
               type="text"
+              aria-label="Kata kunci pencarian Scopus"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Cari berdasarkan judul artikel di Scopus (contoh: realistic mathematics education, ethnomathematics)..."
@@ -128,10 +196,12 @@ export function ScopusSearchBrowser() {
               <button
                 type="button"
                 onClick={() => {
+                  resetSelection();
                   setQuery("");
                   setPage(1);
                   if (!hasActiveFilters) {
-                    setHasSearched(false);
+                    setSubmittedQuery(null);
+                    setIsPending(false);
                     setData(null);
                   } else {
                     fetchResults("", sort, 1, searchField);
@@ -210,12 +280,10 @@ export function ScopusSearchBrowser() {
                 <select
                   value={searchField}
                   onChange={(e) => {
+                    resetSelection();
                     const val = e.target.value as "title" | "all" | "author";
                     setSearchField(val);
                     setPage(1);
-                    if (query.trim()) {
-                      fetchResults(query, sort, 1, val);
-                    }
                   }}
                   className="w-full rounded-xl border border-slate-200 bg-white p-2 font-semibold text-slate-800 outline-none focus:border-red-600"
                 >
@@ -231,21 +299,16 @@ export function ScopusSearchBrowser() {
                 <select
                   value={year}
                   onChange={(e) => {
+                    resetSelection();
                     setYear(e.target.value);
                     setPage(1);
                   }}
                   className="w-full rounded-xl border border-slate-200 bg-white p-2 font-semibold text-slate-800 outline-none focus:border-red-600"
                 >
                   <option value="all">Semua Tahun</option>
-                  <option value="last3">3 Tahun Terakhir (2023 - 2026)</option>
-                  <option value="last5">5 Tahun Terakhir (2021 - 2026)</option>
-                  <option value="2026">2026</option>
-                  <option value="2025">2025</option>
-                  <option value="2024">2024</option>
-                  <option value="2023">2023</option>
-                  <option value="2022">2022</option>
-                  <option value="2021">2021</option>
-                  <option value="2020">2020</option>
+                  <option value="last3">3 Tahun Terakhir ({currentYear - 2}–{currentYear})</option>
+                  <option value="last5">5 Tahun Terakhir ({currentYear - 4}–{currentYear})</option>
+                  {Array.from({ length: Math.max(1, currentYear - 2019) }, (_, index) => currentYear - index).map((value) => <option key={value} value={value}>{value}</option>)}
                 </select>
               </div>
 
@@ -255,6 +318,7 @@ export function ScopusSearchBrowser() {
                 <select
                   value={language}
                   onChange={(e) => {
+                    resetSelection();
                     setLanguage(e.target.value);
                     setPage(1);
                   }}
@@ -272,6 +336,7 @@ export function ScopusSearchBrowser() {
                 <select
                   value={docType}
                   onChange={(e) => {
+                    resetSelection();
                     setDocType(e.target.value);
                     setPage(1);
                   }}
@@ -293,6 +358,7 @@ export function ScopusSearchBrowser() {
                     type="checkbox"
                     checked={openAccessOnly}
                     onChange={(e) => {
+                      resetSelection();
                       setOpenAccessOnly(e.target.checked);
                       setPage(1);
                     }}
@@ -304,7 +370,15 @@ export function ScopusSearchBrowser() {
             </div>
           </div>
         ) : null}
-      </div>
+        </>}
+      </fieldset>
+
+      {!isPending && data?.isDemo && (
+        <div role="status" className="mb-5 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm leading-relaxed text-amber-950">
+          <p className="font-bold">Mode simulasi — ekspor penelitian dinonaktifkan</p>
+          <p className="mt-1">{data.message || "Scopus belum terhubung. Artikel berikut merupakan data contoh."} Hubungkan Scopus lalu ulangi pencarian untuk mengekspor hasil asli.</p>
+        </div>
+      )}
 
       {/* Meta Filter Bar (Result Count & Sort) */}
       {hasSearched ? (
@@ -314,11 +388,11 @@ export function ScopusSearchBrowser() {
             <span>
               {isPending
                 ? "Sedang mencari artikel Scopus..."
-                : `Ditemukan ${data?.totalResults?.toLocaleString("id-ID") ?? 0} publikasi internasional`}
+                : searchError ? "Pencarian belum berhasil" : `Ditemukan ${data?.totalResults?.toLocaleString("id-ID") ?? 0} publikasi${data?.isDemo ? " simulasi" : " internasional"}`}
             </span>
             {!isPending ? (
               <Badge variant="outline" className="text-[11px] font-bold border-red-200 text-red-900 bg-red-50/80">
-                {searchField === "title"
+                {submittedMode === "advanced" ? "Advanced query" : searchField === "title"
                   ? "Pencarian Judul"
                   : searchField === "author"
                   ? "Pencarian Penulis"
@@ -332,6 +406,7 @@ export function ScopusSearchBrowser() {
               <span>Urutkan:</span>
               <select
                 value={sort}
+                disabled={isExporting}
                 onChange={(e) => {
                   setSort(e.target.value as "relevance" | "newest" | "citations");
                   setPage(1);
@@ -347,6 +422,20 @@ export function ScopusSearchBrowser() {
         </div>
       ) : null}
 
+      {!searchError && hasSearched && data && data.articles.length > 0 && (
+        <div hidden={isPending}>
+        <ScopusExportPanel
+          key={searchIdentity}
+          data={data}
+          selected={Object.values(selected)}
+          allOnPageSelected={data.articles.every((article) => Boolean(selected[article.id]))}
+          onTogglePage={togglePage}
+          onClear={() => setSelection({ key: searchIdentity, articles: {} })}
+          onBusyChange={setIsExporting}
+        />
+        </div>
+      )}
+
       {/* Content Area: Initial Hero or Articles List */}
       {!hasSearched ? (
         <div className="rounded-[2.25rem] border border-dashed border-red-200/90 bg-gradient-to-b from-white/95 via-red-50/25 to-amber-50/15 p-8 sm:p-14 text-center shadow-sm">
@@ -354,12 +443,12 @@ export function ScopusSearchBrowser() {
             <Search className="size-8" />
           </div>
           <h3 className="text-lg sm:text-xl font-extrabold text-slate-900">
-            Pencarian Literatur Scopus Berdasarkan Judul
+            {queryMode === "advanced" ? "Bangun pencarian literatur yang terarah" : "Pencarian Literatur Scopus Berdasarkan Judul"}
           </h3>
           <p className="mx-auto mt-2 max-w-lg text-xs sm:text-sm text-slate-600 leading-relaxed">
-            Ketik kata kunci judul artikel di kolom pencarian di atas untuk mendapatkan publikasi yang relevan dan presisi, lalu tekan tombol <strong>Cari Scopus</strong> atau tekan Enter.
+            {queryMode === "advanced" ? "Gabungkan field dan operator Scopus di editor. Buka panduan untuk menyisipkan field atau menggunakan contoh query." : <>Ketik kata kunci judul artikel di kolom pencarian di atas, lalu tekan tombol <strong>Cari Scopus</strong> atau tekan Enter.</>}
           </p>
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-2 text-xs text-slate-500">
+          {queryMode === "basic" && <div className="mt-6 flex flex-wrap items-center justify-center gap-2 text-xs text-slate-500">
             <span className="font-semibold text-slate-700">Contoh judul riset:</span>
             <button
               type="button"
@@ -394,7 +483,7 @@ export function ScopusSearchBrowser() {
             >
               mathematical problem solving
             </button>
-          </div>
+          </div>}
         </div>
       ) : isPending ? (
         <div className="grid gap-4">
@@ -405,10 +494,15 @@ export function ScopusSearchBrowser() {
             />
           ))}
         </div>
+      ) : searchError ? (
+        <div role="alert" className="rounded-2xl border border-red-200 bg-white p-6 text-sm text-red-900">
+          <p>{searchError}</p>
+          <Button type="button" variant="outline" className="mt-3 rounded-xl" onClick={() => setRevision((value) => value + 1)}>Coba lagi</Button>
+        </div>
       ) : data?.articles && data.articles.length > 0 ? (
         <div className="grid gap-4 sm:gap-5">
           {data.articles.map((article) => (
-            <ArticleCard key={article.id} article={article} />
+            <ArticleCard key={article.id} article={article} isDemo={data.isDemo} selected={Boolean(selected[article.id])} selectionDisabled={isExporting || data.isDemo} onToggle={() => toggleArticle(article)} />
           ))}
         </div>
       ) : (
@@ -427,7 +521,7 @@ export function ScopusSearchBrowser() {
           <Button
             variant="outline"
             size="sm"
-            disabled={page <= 1 || isPending}
+            disabled={page <= 1 || isPending || isExporting}
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             className="rounded-xl border-slate-200 text-xs font-bold"
           >
@@ -442,7 +536,7 @@ export function ScopusSearchBrowser() {
           <Button
             variant="outline"
             size="sm"
-            disabled={page >= data.totalPages || isPending}
+            disabled={page >= data.totalPages || isPending || isExporting}
             onClick={() => setPage((p) => Math.min(data.totalPages, p + 1))}
             className="rounded-xl border-slate-200 text-xs font-bold"
           >
@@ -456,9 +550,13 @@ export function ScopusSearchBrowser() {
 }
 
 function ArticleCard({
-  article,
+  article, isDemo, selected, selectionDisabled, onToggle,
 }: {
   article: ScopusArticle;
+  isDemo: boolean;
+  selected: boolean;
+  selectionDisabled: boolean;
+  onToggle: () => void;
 }) {
   const articleUrl = article.doiUrl || article.scopusUrl;
 
@@ -467,10 +565,14 @@ function ArticleCard({
       <div className="pointer-events-none absolute -right-12 -top-12 size-36 rounded-full bg-red-500/10 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       <div className="relative z-10">
         <div>
+          <label className="mb-3 flex w-fit cursor-pointer items-center gap-2 text-xs font-semibold text-slate-600">
+            <input type="checkbox" checked={selected} disabled={selectionDisabled} onChange={onToggle} aria-label={`Pilih artikel: ${article.title}`} className="size-4 accent-red-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700" />
+            {selected ? "Terpilih untuk ekspor" : "Pilih untuk ekspor"}
+          </label>
           {/* Top Badges */}
           <div className="mb-2.5 flex flex-wrap items-center gap-2">
             <span className="rounded-full bg-gradient-to-r from-red-600 to-rose-600 px-2.5 py-0.5 text-[10px] font-extrabold text-white shadow-2xs">
-              Scopus Indexed
+              {isDemo ? "Data simulasi" : "Scopus Indexed"}
             </span>
 
             <span className="rounded-full bg-slate-100/90 border border-slate-200/70 px-2.5 py-0.5 text-[10px] font-bold text-slate-700 shadow-2xs">

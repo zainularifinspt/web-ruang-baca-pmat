@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import {
-  BookOpen,
   Building2,
   Clock3,
   Globe2,
@@ -76,7 +75,7 @@ export default async function ScopusPage() {
             {/* Subtitle with High Contrast */}
             <FadeIn>
               <p className="mx-auto mt-3.5 sm:mt-5 max-w-2xl text-sm sm:text-base leading-relaxed text-rose-100/95 font-medium drop-shadow-sm">
-                Eksplorasi publikasi jurnal internasional bereputasi tinggi (Q1–Q4), sitasi global, dan referensi mutakhir
+                Eksplorasi publikasi jurnal internasional, data sitasi, dan ekspor referensi untuk SLR
                 di bidang Pendidikan Matematika dan kajian riset Universitas Lambung Mangkurat.
               </p>
             </FadeIn>

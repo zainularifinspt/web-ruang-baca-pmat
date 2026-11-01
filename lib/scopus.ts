@@ -3,6 +3,8 @@ export type ScopusArticle = {
   eid: string;
   title: string;
   authors: string;
+  authorNames?: string[];
+  authorSource?: "scopus" | "crossref" | "creator";
   journal: string;
   coverDate: string;
   year: string;
@@ -10,6 +12,18 @@ export type ScopusArticle = {
   issue?: string;
   pages?: string;
   doi?: string;
+  issn?: string;
+  eIssn?: string;
+  sourceId?: string;
+  pubmedId?: string;
+  articleNumber?: string;
+  publicationStage?: string;
+  sourceAbbreviation?: string;
+  publisher?: string;
+  language?: string;
+  indexedKeywords?: string[];
+  abstract?: string;
+  keywords?: string[];
   doiUrl?: string;
   scopusUrl?: string;
   citedByCount: number;
@@ -21,6 +35,7 @@ export type ScopusArticle = {
 
 export type ScopusSearchOptions = {
   query: string;
+  queryMode?: "basic" | "advanced";
   sort?: "relevance" | "newest" | "citations";
   page?: number;
   pageSize?: number;
@@ -31,6 +46,21 @@ export type ScopusSearchOptions = {
   openAccessOnly?: boolean;
   apiKey?: string;
   searchField?: "title" | "all" | "author";
+  allowDemo?: boolean;
+  signal?: AbortSignal;
+};
+
+export type ScopusSearchSnapshot = {
+  query: string;
+  queryMode?: "basic" | "advanced";
+  executedQuery: string;
+  searchedAt: string;
+  sort: "relevance" | "newest" | "citations";
+  searchField: "title" | "all" | "author";
+  year: string;
+  language: string;
+  docType: string;
+  openAccessOnly: boolean;
 };
 
 export type ScopusSearchResponse = {
@@ -41,6 +71,7 @@ export type ScopusSearchResponse = {
   totalPages: number;
   isDemo: boolean;
   message?: string;
+  search?: ScopusSearchSnapshot;
 };
 
 const SCOPUS_STOP_WORDS = new Set([
@@ -78,11 +109,38 @@ const SCOPUS_STOP_WORDS = new Set([
   "untuk",
 ]);
 
+export class ScopusQueryError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ScopusQueryError";
+  }
+}
+
+export function validateAdvancedScopusQuery(query: string) {
+  if (!query.trim()) throw new ScopusQueryError("Masukkan advanced query terlebih dahulu.");
+  if (query.length > 12000) throw new ScopusQueryError("Query terlalu panjang. Batasi hingga 12.000 karakter.");
+  let quote = false;
+  let exactPhrase = false;
+  let parentheses = 0;
+  for (let i = 0; i < query.length; i++) {
+    const char = query[i];
+    if (char === '"' && !exactPhrase && query[i - 1] !== "\\") quote = !quote;
+    if (quote) continue;
+    if (char === "{") exactPhrase = true;
+    if (char === "}") exactPhrase = false;
+    if (exactPhrase) continue;
+    if (char === "(") parentheses++;
+    if (char === ")" && --parentheses < 0) throw new ScopusQueryError("Tanda kurung penutup tidak memiliki pasangan. Periksa advanced query Anda.");
+  }
+  if (quote || exactPhrase || parentheses !== 0) throw new ScopusQueryError("Tanda kurung atau tanda kutip belum berpasangan. Periksa advanced query Anda.");
+}
+
 /**
  * Normalizes user query into Scopus API search syntax with advanced filters
  */
 export function formatScopusQuery(options: {
   rawQuery: string;
+  queryMode?: "basic" | "advanced";
   preset?: string;
   year?: string;
   language?: string;
@@ -90,6 +148,10 @@ export function formatScopusQuery(options: {
   openAccessOnly?: boolean;
   searchField?: "title" | "all" | "author";
 }): string {
+  if (options.queryMode === "advanced") {
+    validateAdvancedScopusQuery(options.rawQuery);
+    return options.rawQuery.trim();
+  }
   let baseQuery = "";
   const trimmed = options.rawQuery.trim();
   const searchField = options.searchField ?? "title";
@@ -178,9 +240,9 @@ export function formatScopusQuery(options: {
   // Year filter
   if (options.year && options.year !== "all") {
     if (options.year === "last5") {
-      filters.push("PUBYEAR > 2020");
+      filters.push(`PUBYEAR > ${new Date().getFullYear() - 5}`);
     } else if (options.year === "last3") {
-      filters.push("PUBYEAR > 2022");
+      filters.push(`PUBYEAR > ${new Date().getFullYear() - 3}`);
     } else {
       filters.push(`PUBYEAR = ${options.year}`);
     }
@@ -214,12 +276,12 @@ export function formatScopusQuery(options: {
 function mapSortOption(sort?: "relevance" | "newest" | "citations"): string | undefined {
   switch (sort) {
     case "newest":
-      return "-coverDate";
+      return "-coverDate,+title,+creator";
     case "citations":
-      return "-citedby-count";
+      return "-citedby-count,+title,+creator";
     case "relevance":
     default:
-      return undefined;
+      return "-relevancy,+title,+creator";
   }
 }
 
@@ -229,6 +291,27 @@ function mapSortOption(sort?: "relevance" | "newest" | "citations"): string | un
 export async function searchScopusArticles(
   options: ScopusSearchOptions,
 ): Promise<ScopusSearchResponse> {
+  if (options.queryMode === "advanced") {
+    options = { ...options, year: "all", language: "all", docType: "all", openAccessOnly: false, searchField: "all", allowDemo: false };
+  }
+  const search: ScopusSearchSnapshot = {
+    query: options.query,
+    queryMode: options.queryMode ?? "basic",
+    executedQuery: formatScopusQuery({ ...options, rawQuery: options.query }),
+    searchedAt: new Date().toISOString(),
+    sort: options.sort ?? "relevance",
+    searchField: options.searchField ?? "title",
+    year: options.year ?? "all",
+    language: options.language ?? "all",
+    docType: options.docType ?? "all",
+    openAccessOnly: options.openAccessOnly ?? false,
+  };
+  return { ...await fetchScopusArticles(options), search };
+}
+
+async function fetchScopusArticles(
+  options: ScopusSearchOptions,
+): Promise<ScopusSearchResponse> {
   const apiKey = options.apiKey?.trim() || process.env.SCOPUS_API_KEY?.trim();
   const instToken = process.env.SCOPUS_INST_TOKEN?.trim();
 
@@ -236,6 +319,7 @@ export async function searchScopusArticles(
   const pageSize = Math.min(25, Math.max(5, options.pageSize ?? 25));
   const start = (page - 1) * pageSize;
   const formattedQuery = formatScopusQuery({
+    queryMode: options.queryMode,
     rawQuery: options.query,
     preset: options.preset,
     year: options.year,
@@ -247,6 +331,7 @@ export async function searchScopusArticles(
 
   // If no Scopus API key is configured, use realistic mock dataset
   if (!apiKey) {
+    if (options.allowDemo === false) throw new Error("Scopus belum terhubung. Ekspor data simulasi tidak diizinkan.");
     return getMockScopusResponse(options, page, pageSize);
   }
 
@@ -272,12 +357,15 @@ export async function searchScopusArticles(
 
     const response = await fetch(searchUrl.toString(), {
       headers,
+      signal: options.signal ? AbortSignal.any([options.signal, AbortSignal.timeout(15000)]) : AbortSignal.timeout(15000),
       next: { revalidate: 3600 },
     });
 
     if (!response.ok) {
       const errorText = await response.text();
       console.warn(`Scopus API error (${response.status}):`, errorText);
+      if (response.status === 400) throw new ScopusQueryError("Query tidak dapat diproses oleh Scopus. Periksa nama field, operator, dan tanda kurung, lalu coba lagi.");
+      if (options.allowDemo === false) throw new Error(`Scopus tidak dapat melanjutkan ekspor (${response.status}). Coba lagi nanti.`);
       // Fall back to curated mock if API key quota exceeded or invalid
       const fallback = getMockScopusResponse(options, page, pageSize);
       fallback.message = `Koneksi Scopus API (${response.status}). Menampilkan data simulasi terkurasi.`;
@@ -287,19 +375,13 @@ export async function searchScopusArticles(
     const data = await response.json();
     const searchResults = data["search-results"];
 
-    if (!searchResults) {
-      return {
-        articles: [],
-        totalResults: 0,
-        page,
-        pageSize,
-        totalPages: 0,
-        isDemo: false,
-      };
-    }
+    if (!searchResults) throw new Error("Respons Scopus tidak valid. Silakan ulangi pencarian.");
 
-    const rawEntries = (searchResults.entry ?? []) as Record<string, unknown>[];
+    const rawEntries = (Array.isArray(searchResults.entry) ? searchResults.entry : searchResults.entry ? [searchResults.entry] : []) as Record<string, unknown>[];
     const totalResults = Number(searchResults["opensearch:totalResults"] ?? rawEntries.length);
+    if (!Number.isSafeInteger(totalResults) || totalResults < 0 || (totalResults > 0 && rawEntries.some((entry) => entry.error))) {
+      throw new Error("Respons Scopus tidak lengkap. Silakan ulangi pencarian.");
+    }
     const totalPages = Math.ceil(totalResults / pageSize);
 
     const parsedArticles: ScopusArticle[] = rawEntries
@@ -317,6 +399,7 @@ export async function searchScopusArticles(
       isDemo: false,
     };
   } catch (error) {
+    if (options.signal?.aborted || options.allowDemo === false || error instanceof ScopusQueryError) throw error;
     console.error("Error connecting to Scopus API:", error);
     const fallback = getMockScopusResponse(options, page, pageSize);
     fallback.message = "Gagal terhubung ke Elsevier Scopus API. Menampilkan data simulasi terkurasi.";
@@ -327,7 +410,8 @@ export async function searchScopusArticles(
 /**
  * In-memory cache for Crossref author enrichments to avoid duplicate calls
  */
-const crossrefAuthorCache = new Map<string, string>();
+type CrossrefAuthors = { display: string; names: string[] };
+const crossrefAuthorCache = new Map<string, CrossrefAuthors>();
 
 interface CrossrefAuthor {
   given?: string;
@@ -364,7 +448,7 @@ export function formatCrossrefAuthorList(authors: CrossrefAuthor[]): string {
 /**
  * Fetches full author list from Crossref using DOI
  */
-async function fetchFullAuthorsFromCrossref(doi: string): Promise<string | null> {
+async function fetchFullAuthorsFromCrossref(doi: string): Promise<CrossrefAuthors | null> {
   const cleanDoi = doi.trim();
   if (!cleanDoi) return null;
 
@@ -372,9 +456,9 @@ async function fetchFullAuthorsFromCrossref(doi: string): Promise<string | null>
     return crossrefAuthorCache.get(cleanDoi) || null;
   }
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 3000);
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3000);
 
     const res = await fetch(`https://api.crossref.org/works/${encodeURIComponent(cleanDoi)}`, {
       headers: {
@@ -384,8 +468,6 @@ async function fetchFullAuthorsFromCrossref(doi: string): Promise<string | null>
       signal: controller.signal,
     });
 
-    clearTimeout(timeoutId);
-
     if (!res.ok) return null;
 
     const data = await res.json();
@@ -393,12 +475,19 @@ async function fetchFullAuthorsFromCrossref(doi: string): Promise<string | null>
     if (rawAuthors && Array.isArray(rawAuthors) && rawAuthors.length > 0) {
       const formatted = formatCrossrefAuthorList(rawAuthors);
       if (formatted) {
-        crossrefAuthorCache.set(cleanDoi, formatted);
-        return formatted;
+        const result = {
+          display: formatted,
+          names: rawAuthors.map((a) => a.name?.trim() || [a.family, a.given].filter(Boolean).join(", ")).filter(Boolean),
+        };
+        if (crossrefAuthorCache.size >= 2000) crossrefAuthorCache.clear();
+        crossrefAuthorCache.set(cleanDoi, result);
+        return result;
       }
     }
   } catch {
     // Gracefully handle timeout / network issues
+  } finally {
+    clearTimeout(timeoutId);
   }
 
   return null;
@@ -417,7 +506,9 @@ export async function enrichArticlesWithFullAuthors(
     if (fullAuthors) {
       return {
         ...article,
-        authors: fullAuthors,
+        authors: fullAuthors.display,
+        authorNames: fullAuthors.names,
+        authorSource: "crossref" as const,
       };
     }
 
@@ -430,23 +521,29 @@ export async function enrichArticlesWithFullAuthors(
 /**
  * Parses raw Scopus API entry into clean ScopusArticle
  */
-function parseScopusEntry(entry: Record<string, unknown>): ScopusArticle {
+export function parseScopusEntry(entry: Record<string, unknown>): ScopusArticle {
   const title = String(entry["dc:title"] ?? "Tanpa Judul").replace(/\.$/, "");
 
   let authors = "Peneliti Scopus";
+  let authorNames: string[] = [];
+  let authorSource: ScopusArticle["authorSource"];
   if (Array.isArray(entry.author) && entry.author.length > 0) {
     const list = (entry.author as Record<string, string>[])
       .map((a) => a.authname || `${a.surname || ""}, ${a["given-name"] || a.initials || ""}`.trim())
       .filter(Boolean);
+    authorNames = list;
+    authorSource = "scopus";
     if (list.length === 1) authors = list[0];
     else if (list.length === 2) authors = `${list[0]}, & ${list[1]}`;
     else if (list.length > 2) authors = `${list.slice(0, -1).join(", ")}, & ${list[list.length - 1]}`;
   } else if (entry["dc:creator"]) {
     authors = String(entry["dc:creator"]);
+    authorNames = [authors];
+    authorSource = "creator";
   }
   const journal = String(entry["prism:publicationName"] ?? "Jurnal Terindeks Scopus");
   const coverDate = String(entry["prism:coverDate"] ?? "");
-  const year = coverDate ? coverDate.substring(0, 4) : String(entry["prism:coverDisplayDate"] ?? "2024");
+  const year = coverDate ? coverDate.substring(0, 4) : String(entry["prism:coverDisplayDate"] ?? "").match(/\b\d{4}\b/)?.[0] ?? "";
   const doi = entry["prism:doi"] ? String(entry["prism:doi"]) : undefined;
   const doiUrl = doi ? `https://doi.org/${doi}` : undefined;
   const eid = String(entry.eid ?? entry["dc:identifier"] ?? Math.random().toString());
@@ -481,13 +578,15 @@ function parseScopusEntry(entry: Record<string, unknown>): ScopusArticle {
   const citedByCount = Number(entry["citedby-count"] ?? 0);
   const aggregationType = String(entry["prism:aggregationType"] ?? "Journal");
   const subtypeDescription = String(entry.subtypeDescription ?? "Article");
-  const openAccess = Boolean(entry.openaccess === "1" || entry.openaccess === true);
+  const openAccess = entry.openaccess == null ? undefined : entry.openaccess === "1" || entry.openaccess === 1 || entry.openaccess === true;
 
   return {
     id: eid,
     eid,
     title,
     authors,
+    authorNames,
+    authorSource,
     journal,
     coverDate,
     year,
@@ -495,6 +594,15 @@ function parseScopusEntry(entry: Record<string, unknown>): ScopusArticle {
     issue: entry["prism:issueIdentifier"] ? String(entry["prism:issueIdentifier"]) : undefined,
     pages: entry["prism:pageRange"] ? String(entry["prism:pageRange"]) : undefined,
     doi,
+    issn: entry["prism:issn"] ? String(entry["prism:issn"]) : undefined,
+    eIssn: entry["prism:eIssn"] ? String(entry["prism:eIssn"]) : undefined,
+    sourceId: entry["source-id"] ? String(entry["source-id"]) : undefined,
+    pubmedId: entry["pubmed-id"] ? String(entry["pubmed-id"]) : undefined,
+    articleNumber: entry["article-number"] ? String(entry["article-number"]) : undefined,
+    publicationStage: entry["pubstage"] ? String(entry["pubstage"]) : undefined,
+    sourceAbbreviation: entry["prism:publicationNameAbbreviation"] ? String(entry["prism:publicationNameAbbreviation"]) : undefined,
+    abstract: entry["dc:description"] ? String(entry["dc:description"]) : undefined,
+    keywords: typeof entry.authkeywords === "string" ? entry.authkeywords.split("|").map((keyword) => keyword.trim()).filter(Boolean) : [],
     doiUrl,
     scopusUrl,
     citedByCount,
@@ -758,9 +866,9 @@ function getMockScopusResponse(
   // Filter year
   if (options.year && options.year !== "all") {
     if (options.year === "last5") {
-      filtered = filtered.filter((art) => parseInt(art.year, 10) >= 2021);
+      filtered = filtered.filter((art) => parseInt(art.year, 10) >= new Date().getFullYear() - 4);
     } else if (options.year === "last3") {
-      filtered = filtered.filter((art) => parseInt(art.year, 10) >= 2023);
+      filtered = filtered.filter((art) => parseInt(art.year, 10) >= new Date().getFullYear() - 2);
     } else {
       filtered = filtered.filter((art) => art.year === options.year);
     }
