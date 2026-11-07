@@ -17,7 +17,6 @@ import {
   Expand,
   Grid2X2,
   Loader2,
-  MessageCircle,
   Search,
   TextSelect,
   X,
@@ -487,7 +486,14 @@ export function ReaderApp({
                 onClick={() => toggle("chat")}
                 disabled={!manifest}
               >
-                <MessageCircle size={17} />
+                <Image
+                  src="/mascots/tama-chat.png"
+                  alt=""
+                  width={35}
+                  height={32}
+                  sizes="35px"
+                  className="tama-reader-icon"
+                />
                 <span>Tanya buku</span>
               </button>
             </div>

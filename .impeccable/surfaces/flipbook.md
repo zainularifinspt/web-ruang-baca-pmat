@@ -15,7 +15,7 @@ The code-led reader extension is recorded in root `DESIGN.md` and `.impeccable/d
 
 Reviewed captures: `.impeccable/review/reader-desktop.png`, `reader-search.png`, `reader-mobile.png`, and `reader-chat-mobile.png` (opened and validated in the parent implementation review). Implementation evidence: `components/reader/reader.css`, `reader-app.tsx`, `flip-stage.tsx`, `chat-panel.tsx`, `chat-launcher.tsx`, `components/ebook-pdf-viewer.tsx`, and `app/baca/[type]/[id]/page.tsx`.
 
-Page imagery is runtime-generated WebP from actual public PDFs, not generated decorative art. Source URL/hash/policy are stored with local manifest/version metadata. Public document content is not design-system artwork; no generated decorative raster assets were committed for the reader. The tilted invitation book is CSS geometry with an SVG icon.
+Page imagery is runtime-generated WebP from actual public PDFs, not generated decorative art. Source URL/hash/policy are stored with local manifest/version metadata. Public document content is not design-system artwork. The original reader pass committed no generated decorative rasters. The later Tama launcher extension adds authored mascot artwork to the book chat control; its source and prompt are recorded in `docs/assets/tama-chat.json`. The tilted invitation book is CSS geometry with an SVG icon.
 
 Live AI remains inactive by the user's integration/configuration-first choice. SQL was not applied to remote production. `docs/reader-setup.md` records the local sample processing, simulated AI adapter validation, and production setup/performance limits. This system record does not certify live AI quality or production readiness.
 

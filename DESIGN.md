@@ -112,6 +112,11 @@ components:
     typography: "{typography.reader-copy}"
     rounded: "{rounded.reader-message}"
     padding: "14px"
+  tama-launcher-label:
+    textColor: "{colors.primary-foreground}"
+    rounded: "{rounded.control}"
+    padding: "6px 10px"
+    width: "112px"
 ---
 
 # Design System: Ruang Baca PMat
@@ -122,7 +127,7 @@ components:
 
 PMat mathematical geometry is the inherited visual anchor: the ULM identity, maroon fields, Plus Jakarta Sans, and luminous white glass connect the public portal and internal workspace. The admin extension uses compact type, pale colored surfaces, and controlled shadows to keep operational content readable.
 
-This record describes the shipped admin and reader extensions and their shared primitives. The public landing and catalog remain the visual authority for the established identity; this documentation does not declare those pages redesigned. Route composition and validation evidence live in the dashboard and flipbook surface briefs. The reader carries the public maroon and glass into a quiet paper stage; search, selectable text, and cited answers support the document rather than competing with it.
+This record describes the shipped admin and reader extensions and their shared primitives. The public landing and catalog remain the visual authority for the established identity; this documentation does not declare those pages redesigned. Route composition and validation evidence live in the dashboard, flipbook, and chat launcher surface briefs. The reader carries the public maroon and glass into a quiet paper stage; search, selectable text, and cited answers support the document rather than competing with it. Tama extends the assistant identity with the user-pinned hornbill artwork, while its controls retain the existing maroon and pale glass materials.
 
 **Key Characteristics:**
 - Maroon identity with rose, violet, teal, and amber category accents.
@@ -130,6 +135,7 @@ This record describes the shipped admin and reader extensions and their shared p
 - Strong numeric hierarchy and compact operational typography.
 - Mathematical glass geometry with restrained hover motion.
 - Neutral document paper, compact glass reader controls, and evidence-linked support panels.
+- Recognizable Tama identity artwork with a short greeting that comes to rest.
 
 ## Colors
 
@@ -179,7 +185,7 @@ Below 1280px, navigation uses a labelled modal drawer with the same identity. Be
 
 Grid counts and story order are surface-specific; see the dashboard brief. Shared panels have a minimum width of zero so grid content can shrink without widening the page.
 
-The reader fills the dynamic viewport and contains overflow within the paper stage and active support panel. Header height is stable at 76px, or 68px below 768px. The stage flexes between header and bottom toolbar. Desktop support panels reserve 350px, narrowing to 310px at or below 1000px. Below 768px, they become full-width bottom sheets occupying 82% of the reader body, with their own scrolling content. Controls wrap and center at or below 1000px. The catalog assistant is a separate anchored dialog (390px wide), with a viewport-fitted mobile layout.
+The reader fills the dynamic viewport and contains overflow within the paper stage and active support panel. Header height is stable at 76px, or 68px below 768px. The stage flexes between header and bottom toolbar. Desktop support panels reserve 350px, narrowing to 310px at or below 1000px. Below 768px, they become full-width bottom sheets occupying 82% of the reader body, with their own scrolling content. Controls wrap and center at or below 1000px. The catalog assistant is a separate nonmodal anchored dialog (390px wide), with a viewport-fitted mobile layout. Its Tama trigger sits at the lower right with safe-area offsets (20px desktop; 12px right and 14px bottom below 768px). The panel anchors above the trigger (166px desktop; 144px mobile) and keeps its message area scrollable. At viewport heights of 540px or less, the panel uses a 12px bottom inset and the available viewport height minus 24px.
 
 ## Elevation & Depth
 
@@ -190,7 +196,7 @@ The system combines tonal layering, backdrop blur, thin specular highlights, and
 - **Metric card:** `0 8px 24px -18px #5b32694d, inset 0 1px 0 #fff` supports colored statistics.
 - **Public glass:** `0 20px 40px -15px rgba(15, 23, 42, 0.05), 0 0 0 1px rgba(226, 232, 240, 0.4), inset 0 1px 1px 0 rgba(255, 255, 255, 0.95)` remains the inherited public material.
 
-The reader uses a pale rose/lavender stage, translucent white header and footer, and white document paper. The book has a diffuse drop shadow (`0 22px 20px #34233f28`); the mobile sheet has an upward shadow (`0 -18px 60px #3b254b26`). These distinguish document and support surfaces without adding decoration to page content.
+The reader uses a pale rose/lavender stage, translucent white header and footer, and white document paper. The book has a diffuse drop shadow (`0 22px 20px #34233f28`); the mobile sheet has an upward shadow (`0 -18px 60px #3b254b26`). These distinguish document and support surfaces without adding decoration to page content. Tama’s rounded rendered volumes are raster artwork, with a small diffuse drop shadow (`0 7px 5px #31162030`); they are not a runtime 3D model or skeletal animation. The assistant panel uses a diffuse shadow (`0 20px 70px #43244238`).
 
 **The Readable Glass Rule.** Use substantial white fill for data panels. Transparent faces and orbit lines belong to decorative geometry, away from operational text.
 
@@ -235,11 +241,22 @@ Previous/next controls, a labelled PDF page field, and arrow keys outside editab
 Search uses a white rounded field and separated result rows, with word-spaced excerpts that wrap long tokens. It reports the number of pages currently found and distinguishes more available results from all results displayed. Poor extracted text carries a visible warning to check the original. Search matches are translucent yellow overlays on the document, hidden from assistive technology. The text panel distinguishes poor extraction, image-only pages, loading, and no readable text.
 
 ### Assistant and Sources
-Reader chat uses book/page scope controls, pale assistant messages, maroon user messages, and warm error surfaces. Citation cards show the collection title and source page/label as links. New messages scroll the message container; the header stays stable. The composer remains outside that scrolling area. Busy and error responses remain visible in the panel; conversation clearing is explicitly labelled. The catalog launcher opens the same chat pattern in a labelled dialog.
+Reader chat uses book/page scope controls, pale assistant messages, maroon user messages, and warm error surfaces. Citation cards show the collection title and source page/label as links. New messages scroll the message container; the header stays stable. The composer remains outside that scrolling area. Busy and error responses remain visible in the panel; conversation clearing is explicitly labelled. The catalog launcher opens the same chat pattern in a labelled nonmodal dialog; page interaction remains available.
 
-Reader controls expose a 3px rose focus outline with 3px offset. Mobile support panels are labelled modal dialogs: focus enters the panel, stays within it, returns on close, and background header/main content become inert. Search results and citations close the mobile panel when they navigate to a page. Reduced motion selects static page mode and removes zoom/launcher transitions and thinking/spinner animations.
+Reader controls expose a 3px rose focus outline with 3px offset. Mobile support panels are labelled modal dialogs: focus enters the panel, stays within it, returns on close, and background header/main content become inert. Search results and citations close the mobile panel when they navigate to a page. Reduced motion selects static page mode and removes zoom transitions and thinking/spinner animations.
 
 **The Source Page Rule.** Keep source PDF numbers, printed labels, and revision links distinct; citations and search must take the reader to the corresponding allowed source page.
+
+### Tama Assistant Identity
+Tama is the user-pinned black-and-white hornbill with an orange beak and casque, green sash edged in purple, and a brown mathematics book. Preserve the transparent cutout and its recognizable proportions. The authored identity raster is `public/mascots/tama-chat.png`; the exact generation prompt, source reference, tool, and reference hash are recorded in `docs/assets/tama-chat.json`. It is distinct from runtime PDF page images, which remain source content. Next Image serves resized optimized derivatives while the source PNG retains alpha.
+
+The lower-right trigger pairs the figure (112×103px desktop; 96×88px mobile) with an explicit “Tanya Tama” label that becomes “Tutup” when open. The label retains the shared control radius, maroon gradient, white text, and SVG message/close icon. Tama is repeated as a compact panel avatar (56×51px) and as the book reader's scoped assistant icon (35×32px); its colors do not become new interface semantic tokens.
+
+The greeting rocks by −5° then 3°, rising at most 3px, for two 2.2s cycles after a 0.6s delay, then rests. Hover/focus runs one 1.2s greeting. The launcher pauses when the document is hidden or chat is open. The book reader icon uses the same bounded initial greeting. Panel entry lasts 200ms with `cubic-bezier(0.16,1,0.3,1)`, starting 8px below its resting position at 0.98 scale. Reduced motion removes the greeting and spatial entrance. These are CSS transforms and opacity on raster artwork.
+
+Opening focuses the labelled close control; Escape closes and returns focus to the trigger. Outside interaction leaves the nonmodal panel open, and the trigger toggles it. The panel uses the existing conversation and source patterns.
+
+**The Recognizable Tama Rule.** Reuse the authored Tama identity asset for assistant entry points, keep a visible action label, and let greeting motion come to rest; do not substitute generic bird artwork or a perpetual animation.
 
 ## Do's and Don'ts
 
@@ -251,6 +268,7 @@ Reader controls expose a 3px rose focus outline with 3px offset. Mobile support 
 - **Do** preserve the reduced-motion treatment and label mobile navigation.
 - **Do** keep reader overflow within the page stage or support panel and retain stable header dimensions.
 - **Do** show extraction quality and search pagination status alongside readable source excerpts.
+- **Do** preserve Tama’s transparent identity artwork, visible action label, and reduced-motion treatment.
 
 ### Don't:
 - **Don't** import the public hero display size into compact admin panels.

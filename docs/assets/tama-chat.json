@@ -1,0 +1,7 @@
+{
+  "prompt": "Use case: identity-preserve.\nAsset type: transparent 3D mascot for a small website chatbot launcher.\nInput image: edit target and exact character identity reference.\nCreate a polished, clean 3D cutout of this SAME cheerful Tama hornbill mascot. Preserve the enormous orange/yellow beak and casque, black feathered wings, white breast, glossy friendly eyes, green diagonal sash with purple edging and readable gold text \"Tama\", brown mathematics book and greeting/salute wing. Keep its recognizable proportions and colors. Use a waist-up/three-quarter-body composition with the whole beak, casque and greeting wing comfortably inside the canvas, facing the same direction as the reference. Make the eyes and feather shapes crisp and readable at small UI size. Premium soft toy-like 3D material, subtle feather detail, rounded volumes, warm studio highlights and ambient occlusion. Isolated subject only with genuine transparent alpha, no white background, no frame, no ground, no UI, no extra props, no watermark. Center the character with a narrow transparent margin. The image will be animated with gentle CSS greeting motion on the website.",
+  "source": "User-provided Tama hornbill reference; WhatsApp Image 2026-11-06 at 09.45.41.jpeg",
+  "tool": "built-in image_gen",
+  "asset": "public/mascots/tama-chat.png",
+  "referenceSha256": "bf78c43b620e541e09cea6ff30dc7ca7d9e11b3c5743cbae8cfbc9523a67ee7f"
+}

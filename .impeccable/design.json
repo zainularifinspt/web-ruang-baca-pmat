@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-07T04:34:33.920808+00:00",
+  "generatedAt": "2026-11-07T05:26:47.788292+00:00",
   "title": "Design System: Ruang Baca PMat",
   "extensions": {
     "colorMeta": {
@@ -377,6 +377,16 @@
         "name": "reader-mobile-panel",
         "value": "0 -18px 60px #3b254b26",
         "purpose": "Bottom support sheet on mobile."
+      },
+      {
+        "name": "tama-artwork",
+        "value": "drop-shadow(0 7px 5px #31162030)",
+        "purpose": "Small diffuse shadow under the transparent Tama identity cutout."
+      },
+      {
+        "name": "tama-panel",
+        "value": "0 20px 70px #43244238",
+        "purpose": "Elevation for the nonmodal anchored assistant panel."
       }
     ],
     "motion": [
@@ -399,6 +409,16 @@
         "name": "reader-flip",
         "value": "450ms",
         "purpose": "Page-flip engine duration; static page mode is selected under reduced motion."
+      },
+      {
+        "name": "tama-greeting",
+        "value": "tama-greet 2.2s 0.6s 2; hover/focus: tama-greet 1.2s 1",
+        "purpose": "Two initial CSS greeting cycles then rest; −5°/3° rotation and at most 3px lift. Launcher pauses while hidden/open; reduced motion removes greeting, including the reader icon."
+      },
+      {
+        "name": "tama-panel-entry",
+        "value": "200ms cubic-bezier(0.16,1,0.3,1)",
+        "purpose": "Opacity and transform entry from translateY(8px) scale(.98); removed under reduced motion."
       }
     ],
     "breakpoints": [
@@ -429,6 +449,10 @@
       {
         "name": "reader-compact-max",
         "value": "1000px"
+      },
+      {
+        "name": "tama-viewport-height-max",
+        "value": "540px"
       }
     ]
   },
@@ -504,22 +528,24 @@
       "css": ".ds-reader-message{font-family:\"Plus Jakarta Sans\",sans-serif;padding:14px;border-radius:14px;background:#f1ebf5;color:#302c38;font-size:12px;line-height:1.9;overflow-wrap:anywhere}.ds-reader-message p{margin:0}.ds-reader-source{display:block;background:#ffffffb5;border:1px solid #e8deed;border-radius:10px;padding:10px;margin-top:10px;font-size:11px;font-weight:700;color:#7d3659;text-decoration:none}.ds-reader-source small{display:block;margin-top:5px;font-size:9px;font-weight:400;color:#65576e}.ds-reader-source:focus-visible{outline:3px solid #bc6b91;outline-offset:3px}"
     },
     {
-      "name": "Catalog Assistant Launcher",
+      "name": "Tama Launcher Label",
       "kind": "button",
-      "description": "Anchored entry into the catalog assistant dialog.",
-      "html": "<button class=\"ds-chat-launcher\">Tanya Ruang Baca</button>",
-      "css": ".ds-chat-launcher{font-family:\"Plus Jakarta Sans\",sans-serif;display:flex;align-items:center;gap:10px;min-height:50px;padding:0 19px;border-radius:17px;background:linear-gradient(130deg,#9c3d5a,#65253f);color:white;box-shadow:0 10px 26px #58213935,inset 0 1px 0 #ffffff65;border:1px solid #ffffff55;font-size:12px;font-weight:700;transition:transform .2s}.ds-chat-launcher:hover{transform:translateY(-2px)}.ds-chat-launcher:focus-visible{outline:3px solid #bc6b91;outline-offset:3px}@media(prefers-reduced-motion:reduce){.ds-chat-launcher{transition:none}}"
+      "refersTo": "tama-launcher-label",
+      "description": "Label beneath the authored transparent Tama mascot; complete artwork and provenance are recorded in the chat-launcher surface brief. The label becomes Tutup when open.",
+      "html": "<button class=\"ds-tama-label\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719\"/></svg>Tanya Tama</button>",
+      "css": ".ds-tama-label{font-family:\"Plus Jakarta Sans\",sans-serif;display:flex;align-items:center;justify-content:center;gap:7px;min-height:34px;width:112px;white-space:nowrap;padding:6px 10px;color:#fff;font-size:12px;font-weight:700;border:0;border-radius:12px;background:linear-gradient(130deg,#9c3d5a,#65253f);box-shadow:0 7px 17px #58213930,inset 0 1px 0 #ffffff65;transition:filter 150ms;cursor:pointer}.ds-tama-label:hover{filter:brightness(1.1)}.ds-tama-label:active{filter:brightness(.92)}.ds-tama-label:focus-visible{outline:3px solid #bc6b91;outline-offset:3px}@media(max-width:767px){.ds-tama-label{width:104px;padding:6px 8px;gap:6px;min-height:32px;font-size:11px}}"
     }
   ],
   "narrative": {
     "northStar": "PMat mathematical geometry",
-    "overview": "PMat mathematical geometry is the inherited visual anchor: the ULM identity, maroon fields, Plus Jakarta Sans, and luminous white glass connect the public portal and internal workspace. The admin extension uses compact type, pale colored surfaces, and controlled shadows to keep operational content readable.\n\nThis record describes the shipped admin and reader extensions and their shared primitives. The public landing and catalog remain the visual authority for the established identity; this documentation does not declare those pages redesigned. Route composition and validation evidence live in the dashboard and flipbook surface briefs. The reader carries the public maroon and glass into a quiet paper stage; search, selectable text, and cited answers support the document rather than competing with it.",
+    "overview": "PMat mathematical geometry is the inherited visual anchor: the ULM identity, maroon fields, Plus Jakarta Sans, and luminous white glass connect the public portal and internal workspace. The admin extension uses compact type, pale colored surfaces, and controlled shadows to keep operational content readable.\n\nThis record describes the shipped admin and reader extensions and their shared primitives. The public landing and catalog remain the visual authority for the established identity; this documentation does not declare those pages redesigned. Route composition and validation evidence live in the dashboard, flipbook, and chat launcher surface briefs. The reader carries the public maroon and glass into a quiet paper stage; search, selectable text, and cited answers support the document rather than competing with it. Tama extends the assistant identity with the user-pinned hornbill artwork, while its controls retain the existing maroon and pale glass materials.",
     "keyCharacteristics": [
       "Maroon identity with rose, violet, teal, and amber category accents.",
       "Frosted white panels, specular edges, and softly rounded controls.",
       "Strong numeric hierarchy and compact operational typography.",
       "Mathematical glass geometry with restrained hover motion.",
-      "Neutral document paper, compact glass reader controls, and evidence-linked support panels."
+      "Neutral document paper, compact glass reader controls, and evidence-linked support panels.",
+      "Recognizable Tama identity artwork with a short greeting that comes to rest."
     ],
     "rules": [
       {
@@ -541,6 +567,11 @@
         "name": "The Source Page Rule",
         "body": "Keep source PDF numbers, printed labels, and revision links distinct; citations and search must take the reader to the corresponding allowed source page.",
         "section": "components"
+      },
+      {
+        "name": "The Recognizable Tama Rule",
+        "body": "Reuse the authored Tama identity asset for assistant entry points, keep a visible action label, and let greeting motion come to rest; do not substitute generic bird artwork or a perpetual animation.",
+        "section": "components"
       }
     ],
     "dos": [
@@ -550,7 +581,8 @@
       "Do keep overflow inside table containers and retain visible keyboard focus.",
       "Do preserve the reduced-motion treatment and label mobile navigation.",
       "Do keep reader overflow within the page stage or support panel and retain stable header dimensions.",
-      "Do show extraction quality and search pagination status alongside readable source excerpts."
+      "Do show extraction quality and search pagination status alongside readable source excerpts.",
+      "Do preserve Tama’s transparent identity artwork, visible action label, and reduced-motion treatment."
     ],
     "donts": [
       "Don't import the public hero display size into compact admin panels.",
