@@ -7,9 +7,16 @@
     "build": "next build",
     "start": "next start",
     "test:scopus": "node --experimental-strip-types --test tests/scopus-*.test.mjs",
-    "lint": "eslint"
+    "lint": "eslint",
+    "reader:index": "node --experimental-strip-types scripts/reader-index.mjs",
+    "reader:embeddings": "node scripts/reader-embeddings.mjs",
+    "test:reader": "node --experimental-strip-types --test tests/reader-*.test.mjs",
+    "reader:worker": "node scripts/reader-worker.mjs",
+    "reader:doctor": "node scripts/reader-doctor.mjs"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1164.0",
+    "@huggingface/transformers": "^4.3.2",
     "@radix-ui/react-dialog": "latest",
     "@radix-ui/react-select": "latest",
     "@radix-ui/react-separator": "latest",
@@ -24,6 +31,7 @@
     "framer-motion": "^13.2.0",
     "lucide-react": "latest",
     "next": "^16.3.4",
+    "page-flip": "^2.0.7",
     "pdfjs-dist": "^5.7.284",
     "react": "latest",
     "react-dom": "latest",

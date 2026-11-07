@@ -25,3 +25,6 @@ Data Error/
 .opencode/
 .qoder/
 .impeccable/
+
+# Processed reader assets and local private usage state
+.reader-data/

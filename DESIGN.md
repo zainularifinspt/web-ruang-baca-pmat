@@ -1,6 +1,6 @@
 ---
 name: Ruang Baca PMat
-description: Public maroon glass identity with a focused internal workspace extension.
+description: Public maroon glass identity with focused workspace and reading extensions.
 colors:
   primary: "#b91c1c"
   primary-foreground: "#ffffff"
@@ -22,6 +22,9 @@ colors:
   metric-teal-surface: "#def2ee"
   metric-amber: "#95621e"
   metric-amber-surface: "#fcf0d8"
+  reader-support: "#65576e"
+  reader-line: "#e7e0e8"
+  reader-panel: "#fcfafd"
 typography:
   headline:
     fontFamily: "Plus Jakarta Sans, sans-serif"
@@ -47,6 +50,15 @@ typography:
     fontWeight: 800
     lineHeight: 1.2
     letterSpacing: "-0.025em"
+  reader-panel-title:
+    fontFamily: "Plus Jakarta Sans, sans-serif"
+    fontSize: "19px"
+    fontWeight: 800
+    letterSpacing: "-0.02em"
+  reader-copy:
+    fontFamily: "Plus Jakarta Sans, sans-serif"
+    fontSize: "12px"
+    lineHeight: 1.9
 rounded:
   control: "12px"
   button: "10px"
@@ -54,6 +66,8 @@ rounded:
   admin-panel: "21px"
   admin-card: "20px"
   public-card: "1.5rem"
+  reader-message: "14px"
+  reader-field: "11px"
 spacing:
   xs: "8px"
   sm: "12px"
@@ -88,6 +102,16 @@ components:
     textColor: "#52686c"
     rounded: "{rounded.status}"
     padding: "4px 7px"
+  reader-search-field:
+    backgroundColor: "{colors.primary-foreground}"
+    textColor: "{colors.reader-support}"
+    rounded: "{rounded.reader-field}"
+    padding: "12px"
+  reader-message:
+    backgroundColor: "#f1ebf5"
+    typography: "{typography.reader-copy}"
+    rounded: "{rounded.reader-message}"
+    padding: "14px"
 ---
 
 # Design System: Ruang Baca PMat
@@ -98,13 +122,14 @@ components:
 
 PMat mathematical geometry is the inherited visual anchor: the ULM identity, maroon fields, Plus Jakarta Sans, and luminous white glass connect the public portal and internal workspace. The admin extension uses compact type, pale colored surfaces, and controlled shadows to keep operational content readable.
 
-This record describes the shipped admin extension and its shared primitives. The public landing and catalog remain the visual authority for the established identity; this documentation does not declare those pages redesigned. Route composition and validation evidence live in the dashboard surface brief.
+This record describes the shipped admin and reader extensions and their shared primitives. The public landing and catalog remain the visual authority for the established identity; this documentation does not declare those pages redesigned. Route composition and validation evidence live in the dashboard and flipbook surface briefs. The reader carries the public maroon and glass into a quiet paper stage; search, selectable text, and cited answers support the document rather than competing with it.
 
 **Key Characteristics:**
 - Maroon identity with rose, violet, teal, and amber category accents.
 - Frosted white panels, specular edges, and softly rounded controls.
 - Strong numeric hierarchy and compact operational typography.
 - Mathematical glass geometry with restrained hover motion.
+- Neutral document paper, compact glass reader controls, and evidence-linked support panels.
 
 ## Colors
 
@@ -122,6 +147,7 @@ Maroon and white glass establish continuity; the admin adds pale category tints 
 - **Muted / muted foreground:** supporting information and secondary surfaces.
 - **Border / input:** inherited field and divider strokes.
 - **Admin ink / canvas / glass:** internal text, ambient backdrop, and data panels.
+- **Reader support / line / panel:** readable plum-gray supporting copy, fine control strokes, and pale reading-support panels. Reader controls use maroon gradients; page images retain their original document colors. These scoped roles extend the public identity.
 
 **The Inherited Identity Rule.** Keep maroon, Plus Jakarta Sans, and the ULM identity recognizable across public and internal surfaces. Scope internal overrides to the admin workspace and its drawer.
 
@@ -143,6 +169,8 @@ Maroon and white glass establish continuity; the admin adds pale category tints 
 
 Small auxiliary metadata appears below the label role in the shipped interface; retain its secondary purpose rather than using it for essential explanatory copy. Public hero typography remains independently responsive and larger.
 
+The reader inherits the same family. Its title bar is compact (14px, 800; 12px on mobile), with truncation for long titles. Panel headings use the reader panel title role (18px on mobile). Message and search excerpts share the reader copy role. Selectable source text is deliberately more open (14px, line-height 2). Reader metadata ranges from 9–11px; it remains auxiliary to the document and panel content.
+
 ## Layout
 
 The desktop admin shell has a floating sidebar inset 16px, 244px wide, and a transparent account header. At 1280px the workspace reserves 276px on the left. At 1600px the sidebar grows to 258px and the offset to 290px. Main content is centered, capped at 1480px, with 28px horizontal padding, increasing to 36px at 1600px.
@@ -150,6 +178,8 @@ The desktop admin shell has a floating sidebar inset 16px, 244px wide, and a tra
 Below 1280px, navigation uses a labelled modal drawer with the same identity. Below 768px, workspace padding becomes 16px, panels tighten, and the compact heading retains visible cube geometry. Shared spacing follows an observed 4px-based utility rhythm, with bespoke panel padding where required. Tables own their horizontal overflow. Recent collection titles allow two lines on mobile and one from 640px.
 
 Grid counts and story order are surface-specific; see the dashboard brief. Shared panels have a minimum width of zero so grid content can shrink without widening the page.
+
+The reader fills the dynamic viewport and contains overflow within the paper stage and active support panel. Header height is stable at 76px, or 68px below 768px. The stage flexes between header and bottom toolbar. Desktop support panels reserve 350px, narrowing to 310px at or below 1000px. Below 768px, they become full-width bottom sheets occupying 82% of the reader body, with their own scrolling content. Controls wrap and center at or below 1000px. The catalog assistant is a separate anchored dialog (390px wide), with a viewport-fitted mobile layout.
 
 ## Elevation & Depth
 
@@ -160,6 +190,8 @@ The system combines tonal layering, backdrop blur, thin specular highlights, and
 - **Metric card:** `0 8px 24px -18px #5b32694d, inset 0 1px 0 #fff` supports colored statistics.
 - **Public glass:** `0 20px 40px -15px rgba(15, 23, 42, 0.05), 0 0 0 1px rgba(226, 232, 240, 0.4), inset 0 1px 1px 0 rgba(255, 255, 255, 0.95)` remains the inherited public material.
 
+The reader uses a pale rose/lavender stage, translucent white header and footer, and white document paper. The book has a diffuse drop shadow (`0 22px 20px #34233f28`); the mobile sheet has an upward shadow (`0 -18px 60px #3b254b26`). These distinguish document and support surfaces without adding decoration to page content.
+
 **The Readable Glass Rule.** Use substantial white fill for data panels. Transparent faces and orbit lines belong to decorative geometry, away from operational text.
 
 ## Shapes
@@ -167,6 +199,8 @@ The system combines tonal layering, backdrop blur, thin specular highlights, and
 Soft rectangles organize work: shared controls use the control radius; admin cards and panels use the larger radii above, while the public glass card uses the public radius. Metric cards tighten to 17px on mobile. Avatars are softly squared; status tags are smaller rounded rectangles. Pills and circular geometry remain valid where already used, including public segmented controls and chart forms.
 
 The signature cube is real CSS geometry: six translucent faces translated by half the cube size, preserve-3d transforms, perspective, and fine edge strokes. Orbits use thin circular outlines. These are decorative, hidden from assistive technology, and do not accept pointer events.
+
+Reader controls continue the soft rectangle vocabulary: back and fullscreen controls retain the shared control radius; messages and the composer share the reader message radius. Scope and search fields use the reader field radius. Mobile panel corners round only at the top (22px); page images remain rectangular paper.
 
 ## Components
 
@@ -192,6 +226,21 @@ The compact account header is transparent. Mobile navigation uses a labelled dia
 ### Mathematical Glass Geometry
 Static cubes connect the internal heading to public mathematical forms. Desktop heading hover changes their 3D rotation over 0.7s with `cubic-bezier(.16,1,.3,1)`. Mobile retains smaller geometry without that hover rotation; reduced motion removes admin transitions and animations. The cubes are not a general data-container treatment.
 
+### Document Reader
+The book is the principal artifact. Flipbook mode adapts between spreads and portrait pages according to available stage space. Mode halaman provides one page in a scrollable stage; theses start here, and zoom above 100% or reduced-motion preference also selects it. Zoom advances in 25% steps up to 200%; higher zoom requests the HD page asset. Only a bounded neighboring image window is retained. Page images use contain fitting and descriptive alt text; selectable text is available in a separate panel rather than pretending bitmap content is selectable.
+
+Previous/next controls, a labelled PDF page field, and arrow keys outside editable controls provide navigation. Printed labels and source PDF numbers remain distinct. Search and citations navigate with source page/revision references. Thumbnails load in batches of 24, with three columns on desktop and four on mobile. Unavailable documents keep the reading shell and show retry/detail actions.
+
+### Search and Reading Support
+Search uses a white rounded field and separated result rows, with word-spaced excerpts that wrap long tokens. It reports the number of pages currently found and distinguishes more available results from all results displayed. Poor extracted text carries a visible warning to check the original. Search matches are translucent yellow overlays on the document, hidden from assistive technology. The text panel distinguishes poor extraction, image-only pages, loading, and no readable text.
+
+### Assistant and Sources
+Reader chat uses book/page scope controls, pale assistant messages, maroon user messages, and warm error surfaces. Citation cards show the collection title and source page/label as links. New messages scroll the message container; the header stays stable. The composer remains outside that scrolling area. Busy and error responses remain visible in the panel; conversation clearing is explicitly labelled. The catalog launcher opens the same chat pattern in a labelled dialog.
+
+Reader controls expose a 3px rose focus outline with 3px offset. Mobile support panels are labelled modal dialogs: focus enters the panel, stays within it, returns on close, and background header/main content become inert. Search results and citations close the mobile panel when they navigate to a page. Reduced motion selects static page mode and removes zoom/launcher transitions and thinking/spinner animations.
+
+**The Source Page Rule.** Keep source PDF numbers, printed labels, and revision links distinct; citations and search must take the reader to the corresponding allowed source page.
+
 ## Do's and Don'ts
 
 ### Do:
@@ -200,9 +249,13 @@ Static cubes connect the internal heading to public mathematical forms. Desktop 
 - **Do** use one page h1 and h2 headings for titled data sections.
 - **Do** keep overflow inside table containers and retain visible keyboard focus.
 - **Do** preserve the reduced-motion treatment and label mobile navigation.
+- **Do** keep reader overflow within the page stage or support panel and retain stable header dimensions.
+- **Do** show extraction quality and search pagination status alongside readable source excerpts.
 
 ### Don't:
 - **Don't** import the public hero display size into compact admin panels.
 - **Don't** use decorative geometry as the background of dense data text.
 - **Don't** turn the dashboard overview composition into a requirement for every route.
 - **Don't** treat compact metadata sizes as the default for body copy.
+
+- **Don't** treat runtime document page images as decorative design assets or recolor their content.

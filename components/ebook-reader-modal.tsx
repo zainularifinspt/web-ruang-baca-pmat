@@ -1,15 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { BookOpen, Download, ExternalLink, X } from "lucide-react";
+import { BookOpen } from "lucide-react";
 import { EbookPdfViewer } from "@/components/ebook-pdf-viewer";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogTrigger,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import type { Book } from "@/lib/types";
 
@@ -43,7 +42,9 @@ export function EbookReaderModal({
       )}
 
       <DialogContent className="max-w-5xl w-[96vw] h-[92vh] max-h-[92vh] p-0 overflow-hidden rounded-[2rem] border-0 bg-slate-950 shadow-2xl flex flex-col">
+        <DialogTitle className="sr-only">{book.title}</DialogTitle>
         <EbookPdfViewer
+          collectionId={book.id}
           pdfUrl={book.pdfUrl}
           title={book.title}
           author={book.author}

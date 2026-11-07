@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { ChatLauncher } from "@/components/reader/chat-launcher";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -68,6 +69,7 @@ export function PublicNav({
   }, [initialSearchItems.length]);
 
   return (
+    <>
     <header
       className={cn(
         "sticky top-0 z-40 border-b transition-all duration-300",
@@ -119,6 +121,8 @@ export function PublicNav({
         <MobileNav isHomeHero={isHomeHero} />
       </div>
     </header>
+    <ChatLauncher />
+    </>
   );
 }
 

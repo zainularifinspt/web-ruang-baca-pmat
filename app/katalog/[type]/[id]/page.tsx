@@ -63,8 +63,9 @@ export default async function CollectionDetailPage({
                 </div>
                 {item.pdfUrl ? (
                   <div className="pt-2">
-                    <p className="font-semibold text-slate-900 mb-3">Google Drive PDF Viewer</p>
+                    <p className="font-semibold text-slate-900 mb-3">Baca e-book</p>
                     <EbookPdfViewer
+            collectionId={item.id}
                       pdfUrl={item.pdfUrl}
                       title={item.title}
                       author={item.author}

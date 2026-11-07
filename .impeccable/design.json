@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-06T23:26:11.959969+00:00",
+  "generatedAt": "2026-11-07T04:34:33.920808+00:00",
   "title": "Design System: Ruang Baca PMat",
   "extensions": {
     "colorMeta": {
@@ -283,6 +283,48 @@
           "oklch(84% 0.0341 84.59)",
           "oklch(95% 0.0341 84.59)"
         ]
+      },
+      "reader-support": {
+        "role": "neutral",
+        "displayName": "Reader Support",
+        "tonalRamp": [
+          "oklch(15% 0.0401 312.09)",
+          "oklch(26% 0.0401 312.09)",
+          "oklch(38% 0.0401 312.09)",
+          "oklch(49% 0.0401 312.09)",
+          "oklch(61% 0.0401 312.09)",
+          "oklch(72% 0.0401 312.09)",
+          "oklch(84% 0.0401 312.09)",
+          "oklch(95% 0.0401 312.09)"
+        ]
+      },
+      "reader-line": {
+        "role": "neutral",
+        "displayName": "Reader Line",
+        "tonalRamp": [
+          "oklch(15% 0.0131 321.90)",
+          "oklch(26% 0.0131 321.90)",
+          "oklch(38% 0.0131 321.90)",
+          "oklch(49% 0.0131 321.90)",
+          "oklch(61% 0.0131 321.90)",
+          "oklch(72% 0.0131 321.90)",
+          "oklch(84% 0.0131 321.90)",
+          "oklch(95% 0.0131 321.90)"
+        ]
+      },
+      "reader-panel": {
+        "role": "neutral",
+        "displayName": "Reader Panel",
+        "tonalRamp": [
+          "oklch(15% 0.0045 314.81)",
+          "oklch(26% 0.0045 314.81)",
+          "oklch(38% 0.0045 314.81)",
+          "oklch(49% 0.0045 314.81)",
+          "oklch(61% 0.0045 314.81)",
+          "oklch(72% 0.0045 314.81)",
+          "oklch(84% 0.0045 314.81)",
+          "oklch(95% 0.0045 314.81)"
+        ]
       }
     },
     "typographyMeta": {
@@ -305,6 +347,14 @@
       "metric": {
         "displayName": "Metric",
         "purpose": "Tabular metric values; grows at 640px."
+      },
+      "reader-panel-title": {
+        "displayName": "Reader Panel Title",
+        "purpose": "Search/text support headings; 18px on mobile."
+      },
+      "reader-copy": {
+        "displayName": "Reader Copy",
+        "purpose": "Chat messages and search excerpts."
       }
     },
     "shadows": [
@@ -317,6 +367,16 @@
         "name": "metric-card",
         "value": "0 8px 24px -18px #5b32694d, inset 0 1px 0 #fff",
         "purpose": "Category metric surfaces."
+      },
+      {
+        "name": "reader-book",
+        "value": "drop-shadow(0 22px 20px #34233f28)",
+        "purpose": "Filter applied to the document book."
+      },
+      {
+        "name": "reader-mobile-panel",
+        "value": "0 -18px 60px #3b254b26",
+        "purpose": "Bottom support sheet on mobile."
       }
     ],
     "motion": [
@@ -329,6 +389,16 @@
         "name": "cube-hover",
         "value": "transform .7s cubic-bezier(.16,1,.3,1)",
         "purpose": "Desktop heading geometry; disabled under reduced motion and neutralized on mobile."
+      },
+      {
+        "name": "reader-zoom",
+        "value": "transform .18s ease-out",
+        "purpose": "Zoom state; removed under reduced motion."
+      },
+      {
+        "name": "reader-flip",
+        "value": "450ms",
+        "purpose": "Page-flip engine duration; static page mode is selected under reduced motion."
       }
     ],
     "breakpoints": [
@@ -351,6 +421,14 @@
       {
         "name": "wide-admin",
         "value": "1600px"
+      },
+      {
+        "name": "reader-mobile-max",
+        "value": "767px"
+      },
+      {
+        "name": "reader-compact-max",
+        "value": "1000px"
       }
     ]
   },
@@ -408,16 +486,40 @@
       "description": "Welcome Link as implemented in the admin extension.",
       "html": "<a class=\"ds-hero-link\" href=\"#katalog\">Lihat katalog publik</a>",
       "css": ".ds-hero-link{font-family:\"Plus Jakarta Sans\",sans-serif;display:inline-flex;padding:10px 14px;border-radius:10px;font-size:11px;font-weight:700;color:#fff;background:#ffffff1e;border:1px solid #ffffff40;backdrop-filter:blur(12px);box-shadow:inset 0 1px 0 #ffffff30,0 4px 12px #280b2c16;text-decoration:none;transition:background .2s}.ds-hero-link:hover{background:#ffffff32}.ds-hero-link:focus-visible{outline:3px solid #a55dd4;outline-offset:3px}"
+    },
+    {
+      "name": "Reader Search Field",
+      "kind": "input",
+      "refersTo": "reader-search-field",
+      "description": "Content search on the pale support panel.",
+      "html": "<label class=\"ds-reader-search\"><input aria-label=\"Cari isi dokumen\" placeholder=\"Cari kata atau frasa…\"></label>",
+      "css": ".ds-reader-search{display:flex;gap:9px;align-items:center;background:white;border:1px solid #e2d8e6;border-radius:11px;padding:12px;color:#65576e}.ds-reader-search input{font-family:\"Plus Jakarta Sans\",sans-serif;width:100%;min-width:0;border:0;background:transparent;font-size:12px;color:#493c51}.ds-reader-search input:focus-visible{outline:3px solid #bc6b91;outline-offset:3px}"
+    },
+    {
+      "name": "Reader Message",
+      "kind": "custom",
+      "refersTo": "reader-message",
+      "description": "Assistant copy and source citation; user messages switch to maroon.",
+      "html": "<div class=\"ds-reader-message\"><p>Temukan pembahasan pada sumber berikut.</p><a class=\"ds-reader-source\" href=\"#halaman\">Judul koleksi<small>Halaman 12 · PDF 14</small></a></div>",
+      "css": ".ds-reader-message{font-family:\"Plus Jakarta Sans\",sans-serif;padding:14px;border-radius:14px;background:#f1ebf5;color:#302c38;font-size:12px;line-height:1.9;overflow-wrap:anywhere}.ds-reader-message p{margin:0}.ds-reader-source{display:block;background:#ffffffb5;border:1px solid #e8deed;border-radius:10px;padding:10px;margin-top:10px;font-size:11px;font-weight:700;color:#7d3659;text-decoration:none}.ds-reader-source small{display:block;margin-top:5px;font-size:9px;font-weight:400;color:#65576e}.ds-reader-source:focus-visible{outline:3px solid #bc6b91;outline-offset:3px}"
+    },
+    {
+      "name": "Catalog Assistant Launcher",
+      "kind": "button",
+      "description": "Anchored entry into the catalog assistant dialog.",
+      "html": "<button class=\"ds-chat-launcher\">Tanya Ruang Baca</button>",
+      "css": ".ds-chat-launcher{font-family:\"Plus Jakarta Sans\",sans-serif;display:flex;align-items:center;gap:10px;min-height:50px;padding:0 19px;border-radius:17px;background:linear-gradient(130deg,#9c3d5a,#65253f);color:white;box-shadow:0 10px 26px #58213935,inset 0 1px 0 #ffffff65;border:1px solid #ffffff55;font-size:12px;font-weight:700;transition:transform .2s}.ds-chat-launcher:hover{transform:translateY(-2px)}.ds-chat-launcher:focus-visible{outline:3px solid #bc6b91;outline-offset:3px}@media(prefers-reduced-motion:reduce){.ds-chat-launcher{transition:none}}"
     }
   ],
   "narrative": {
     "northStar": "PMat mathematical geometry",
-    "overview": "PMat mathematical geometry is the inherited visual anchor: the ULM identity, maroon fields, Plus Jakarta Sans, and luminous white glass connect the public portal and internal workspace. The admin extension uses compact type, pale colored surfaces, and controlled shadows to keep operational content readable.\n\nThis record describes the shipped admin extension and its shared primitives. The public landing and catalog remain the visual authority for the established identity; this documentation does not declare those pages redesigned. Route composition and validation evidence live in the dashboard surface brief.",
+    "overview": "PMat mathematical geometry is the inherited visual anchor: the ULM identity, maroon fields, Plus Jakarta Sans, and luminous white glass connect the public portal and internal workspace. The admin extension uses compact type, pale colored surfaces, and controlled shadows to keep operational content readable.\n\nThis record describes the shipped admin and reader extensions and their shared primitives. The public landing and catalog remain the visual authority for the established identity; this documentation does not declare those pages redesigned. Route composition and validation evidence live in the dashboard and flipbook surface briefs. The reader carries the public maroon and glass into a quiet paper stage; search, selectable text, and cited answers support the document rather than competing with it.",
     "keyCharacteristics": [
       "Maroon identity with rose, violet, teal, and amber category accents.",
       "Frosted white panels, specular edges, and softly rounded controls.",
       "Strong numeric hierarchy and compact operational typography.",
-      "Mathematical glass geometry with restrained hover motion."
+      "Mathematical glass geometry with restrained hover motion.",
+      "Neutral document paper, compact glass reader controls, and evidence-linked support panels."
     ],
     "rules": [
       {
@@ -434,6 +536,11 @@
         "name": "The Readable Glass Rule",
         "body": "Use substantial white fill for data panels. Transparent faces and orbit lines belong to decorative geometry, away from operational text.",
         "section": "elevation"
+      },
+      {
+        "name": "The Source Page Rule",
+        "body": "Keep source PDF numbers, printed labels, and revision links distinct; citations and search must take the reader to the corresponding allowed source page.",
+        "section": "components"
       }
     ],
     "dos": [
@@ -441,13 +548,16 @@
       "Do pair category colors with text and SVG icons.",
       "Do use one page h1 and h2 headings for titled data sections.",
       "Do keep overflow inside table containers and retain visible keyboard focus.",
-      "Do preserve the reduced-motion treatment and label mobile navigation."
+      "Do preserve the reduced-motion treatment and label mobile navigation.",
+      "Do keep reader overflow within the page stage or support panel and retain stable header dimensions.",
+      "Do show extraction quality and search pagination status alongside readable source excerpts."
     ],
     "donts": [
       "Don't import the public hero display size into compact admin panels.",
       "Don't use decorative geometry as the background of dense data text.",
       "Don't turn the dashboard overview composition into a requirement for every route.",
-      "Don't treat compact metadata sizes as the default for body copy."
+      "Don't treat compact metadata sizes as the default for body copy.",
+      "Don't treat runtime document page images as decorative design assets or recolor their content."
     ]
   }
 }

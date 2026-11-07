@@ -64,6 +64,13 @@ const navItems: Array<{
     roles: ["admin", "dosen"],
   },
   {
+    href: "/dashboard/dokumen",
+    label: "Dokumen Digital",
+    icon: BookOpen,
+    group: "manajemen",
+    roles: ["admin"],
+  },
+  {
     href: "/dashboard/pengguna",
     label: "Pengguna",
     icon: Users,
@@ -86,6 +93,7 @@ const pageTitles: Record<string, string> = {
   "/dashboard/pengguna": "Pengguna",
   "/dashboard/permissions": "Hak Akses",
   "/dashboard/profil": "Profil Akun",
+  "/dashboard/dokumen": "Dokumen Digital",
   "/petugas": "Katalog Koleksi",
 };
 

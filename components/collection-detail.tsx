@@ -1,4 +1,3 @@
-import Image from "next/image";
 import {
   BookOpen,
   Calendar,
@@ -155,8 +154,7 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
               <div className="mt-5 pt-4 border-t border-slate-200/50">
                 {pdfViewUrl ? (
                   <a
-                    href={pdfViewUrl}
-                    target="_blank"
+                    href={`/baca/buku/${encodeURIComponent(item.id)}`}
                     rel="noopener noreferrer"
                     style={{ color: "#ffffff", textDecoration: "none" }}
                     className="group relative flex w-full sm:w-auto items-center justify-center gap-2.5 px-7 h-12 rounded-2xl bg-gradient-to-r from-red-600 via-rose-600 to-orange-500 font-extrabold text-white !text-white shadow-[0_12px_28px_-4px_rgba(225,29,72,0.45),inset_0_1px_1px_rgba(255,255,255,0.5),inset_0_-2px_4px_rgba(0,0,0,0.2)] border border-white/30 transition-all duration-200 hover:brightness-110 hover:-translate-y-0.5 hover:shadow-[0_16px_36px_-4px_rgba(225,29,72,0.55)] active:translate-y-0 active:scale-[0.98] cursor-pointer"
@@ -171,7 +169,7 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
                       className="text-sm sm:text-base font-black tracking-wide drop-shadow-[0_1px_2px_rgba(0,0,0,0.45)]"
                       style={{ color: "#ffffff" }}
                     >
-                      Lihat PDF
+                      Baca flipbook
                     </span>
                   </a>
                 ) : (

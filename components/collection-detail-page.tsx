@@ -221,8 +221,9 @@ function BookDetail({ item }: { item: Book }) {
 
       {isEbook && item.pdfUrl ? (
         <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-6">
-          <p className="text-sm font-semibold text-slate-950 mb-3">Google Drive PDF Viewer</p>
+          <p className="text-sm font-semibold text-slate-950 mb-3">Baca e-book</p>
           <EbookPdfViewer
+            collectionId={item.id}
             pdfUrl={item.pdfUrl}
             title={item.title}
             author={item.author}

@@ -63,6 +63,7 @@ export type Book = CollectionBase & {
   status: BookStatus;
   pdfUrl?: string;
   isEbook?: boolean;
+  readerSourceVerified?: boolean;
   downloadUrl?: string;
 };
 

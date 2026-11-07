@@ -5,6 +5,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { WebsiteVisitTracker } from "@/components/website-visit-tracker";
 import "./globals.css";
+import "@/components/reader/reader.css";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
