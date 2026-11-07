@@ -770,6 +770,9 @@
   -webkit-tap-highlight-color: transparent;
   border-radius: 16px;
 }
+.catalog-chat-launcher[hidden] {
+  display: none;
+}
 .tama-launcher-figure {
   display: block;
   width: 112px;
@@ -820,11 +823,11 @@
   left: auto;
   right: max(20px, env(safe-area-inset-right));
   top: auto;
-  bottom: calc(166px + env(safe-area-inset-bottom));
+  bottom: calc(20px + env(safe-area-inset-bottom));
   translate: none;
   transform: none;
   width: 390px;
-  height: min(650px, calc(100dvh - 186px - env(safe-area-inset-bottom)));
+  height: min(650px, calc(100dvh - 40px - env(safe-area-inset-bottom)));
   max-height: none;
   max-width: calc(100vw - 32px);
   display: flex;
@@ -1104,10 +1107,10 @@
   }
   .catalog-chat-dialog {
     right: 12px;
-    bottom: calc(144px + env(safe-area-inset-bottom));
+    bottom: calc(12px + env(safe-area-inset-bottom));
     width: calc(100vw - 24px);
     max-width: none;
-    height: min(660px, calc(100dvh - 160px - env(safe-area-inset-bottom)));
+    height: min(660px, calc(100dvh - 24px - env(safe-area-inset-bottom)));
   }
   .ebook-reader-invitation {
     padding: 26px;
@@ -1184,12 +1187,6 @@
   margin: 8px 0;
 }
 
-@media (max-height: 540px) {
-  .catalog-chat-dialog {
-    bottom: 12px;
-    height: calc(100dvh - 24px);
-  }
-}
 @media (prefers-reduced-motion: reduce) {
   .tama-launcher-figure,
   .catalog-chat-launcher:is(:hover, :focus-visible) .tama-launcher-figure,

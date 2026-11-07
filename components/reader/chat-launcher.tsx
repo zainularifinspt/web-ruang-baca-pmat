@@ -36,7 +36,8 @@ export function ChatLauncher() {
         <button
           className="catalog-chat-launcher"
           type="button"
-          aria-label={open ? "Tutup chatbot Tama" : "Buka chatbot Tama"}
+          aria-label="Buka chatbot Tama"
+          hidden={open}
           data-paused={hidden || open ? "true" : undefined}
         >
           <span className="tama-launcher-figure" aria-hidden="true">
@@ -50,12 +51,8 @@ export function ChatLauncher() {
             />
           </span>
           <span className="tama-launcher-label">
-            {open ? (
-              <X size={14} aria-hidden="true" />
-            ) : (
-              <MessageCircle size={14} aria-hidden="true" />
-            )}
-            {open ? "Tutup" : "Tanya Tama"}
+            <MessageCircle size={14} aria-hidden="true" />
+            Tanya Tama
           </span>
         </button>
       </DialogTrigger>

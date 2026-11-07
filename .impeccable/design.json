@@ -531,7 +531,7 @@
       "name": "Tama Launcher Label",
       "kind": "button",
       "refersTo": "tama-launcher-label",
-      "description": "Label beneath the authored transparent Tama mascot; complete artwork and provenance are recorded in the chat-launcher surface brief. The label becomes Tutup when open.",
+      "description": "Label beneath the authored transparent Tama mascot; complete artwork and provenance are recorded in the chat-launcher surface brief. The launcher hides while chat is open.",
       "html": "<button class=\"ds-tama-label\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719\"/></svg>Tanya Tama</button>",
       "css": ".ds-tama-label{font-family:\"Plus Jakarta Sans\",sans-serif;display:flex;align-items:center;justify-content:center;gap:7px;min-height:34px;width:112px;white-space:nowrap;padding:6px 10px;color:#fff;font-size:12px;font-weight:700;border:0;border-radius:12px;background:linear-gradient(130deg,#9c3d5a,#65253f);box-shadow:0 7px 17px #58213930,inset 0 1px 0 #ffffff65;transition:filter 150ms;cursor:pointer}.ds-tama-label:hover{filter:brightness(1.1)}.ds-tama-label:active{filter:brightness(.92)}.ds-tama-label:focus-visible{outline:3px solid #bc6b91;outline-offset:3px}@media(max-width:767px){.ds-tama-label{width:104px;padding:6px 8px;gap:6px;min-height:32px;font-size:11px}}"
     }
