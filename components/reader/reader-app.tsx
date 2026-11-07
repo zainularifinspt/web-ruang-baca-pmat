@@ -15,15 +15,14 @@ import {
   ChevronLeft,
   ChevronRight,
   Expand,
+  ExternalLink,
   Grid2X2,
   Loader2,
   Search,
-  TextSelect,
   X,
   ZoomIn,
   ZoomOut,
   PanelRightClose,
-  FileText,
   Layers,
 } from "lucide-react";
 import { FlipStage, type FlipHandle } from "./flip-stage";
@@ -56,6 +55,11 @@ export function ReaderApp({
 }: Props) {
   const chatLabel = kind === "thesis" ? "Tanya Tama" : "Tanya buku";
   const documentName = kind === "thesis" ? "skripsi" : "buku";
+  const sourceLabel = /^https:\/\/(?:drive|docs)\.google\.com\//i.test(
+    fallbackUrl ?? "",
+  )
+    ? "Lihat di Google Drive"
+    : "Lihat PDF asli";
   const [manifest, setManifest] = useState<ReaderManifest | null>(null);
   const [error, setError] = useState("");
   const [reload, setReload] = useState(0);
@@ -63,9 +67,7 @@ export function ReaderApp({
   const [pageInput, setPageInput] = useState<string | null>(null);
   const [zoom, setZoom] = useState(1);
   const [vertical, setVertical] = useState(kind === "thesis");
-  const [tab, setTab] = useState<"search" | "chat" | "thumbs" | "text" | null>(
-    null,
-  );
+  const [tab, setTab] = useState<"search" | "chat" | "thumbs" | null>(null);
   const [query, setQuery] = useState("");
   const [hits, setHits] = useState<SearchHit[]>([]);
   const [nextOffset, setNextOffset] = useState<number | null>(null);
@@ -75,9 +77,6 @@ export function ReaderApp({
     page: number;
     words: ReaderWord[];
   }>();
-  const [text, setText] = useState("");
-  const [textPage, setTextPage] = useState(0);
-  const [pageQuality, setPageQuality] = useState("");
   const [chatPage, setChatPage] = useState(false);
   const [notice, setNotice] = useState("");
   const [thumbStart, setThumbStart] = useState(0);
@@ -122,6 +121,8 @@ export function ReaderApp({
     getMotion,
     () => false,
   );
+  const pageMode = vertical || reducedMotion || zoom > 1;
+  const modeLabel = pageMode ? "Mode halaman" : "Mode flipbook";
   const go = useCallback(
     (page: number) => {
       if (!manifest?.pages.some((p) => p.number === page)) {
@@ -149,28 +150,20 @@ export function ReaderApp({
       } catch {}
   }, [current, manifest]);
   useEffect(() => {
-    if (!manifest) return;
+    if (!manifest || query.trim().length < 2) return;
     const abort = new AbortController();
+    const terms = queryTerms(query);
     fetch(`${api}/page?page=${current}&v=${manifest.revision}`, {
       signal: abort.signal,
     })
       .then((r) => r.json())
       .then((d) => {
-        if (d.error) {
-          setNotice(d.error);
-          return;
-        }
-        setText(d.text || "");
-        setTextPage(current);
-        setPageQuality(d.quality);
-        const terms = queryTerms(query);
+        if (!Array.isArray(d.words)) return;
         setHighlight({
           page: current,
-          words: query.trim()
-            ? d.words.filter((w: ReaderWord) =>
-                terms.some((t) => normalizeText(w.text).includes(t)),
-              )
-            : [],
+          words: d.words.filter((w: ReaderWord) =>
+            terms.some((t) => normalizeText(w.text).includes(t)),
+          ),
         });
       })
       .catch(() => {});
@@ -315,22 +308,20 @@ export function ReaderApp({
                   rel="noopener noreferrer"
                   className="reader-source-link"
                 >
-                  PDF sumber
+                  {sourceLabel}
+                  <ExternalLink size={13} aria-hidden="true" />
                 </a>
               )}
               <button
                 className={vertical ? "is-selected" : ""}
                 type="button"
                 onClick={() => setVertical((v) => !v)}
-                aria-pressed={vertical || reducedMotion || zoom > 1}
+                aria-label={modeLabel}
+                aria-pressed={pageMode}
                 disabled={reducedMotion || zoom > 1}
               >
                 <Layers size={14} />
-                <span>
-                  {vertical || reducedMotion || zoom > 1
-                    ? "Mode halaman"
-                    : "Mode flipbook"}
-                </span>
+                <span>{modeLabel}</span>
               </button>
               <button
                 type="button"
@@ -389,8 +380,8 @@ export function ReaderApp({
               manifest={manifest}
               initialPage={initialPage}
               zoom={zoom}
-              vertical={vertical || reducedMotion || zoom > 1}
-              highlight={highlight}
+              vertical={pageMode}
+              highlight={query.trim().length >= 2 ? highlight : undefined}
               onPage={(number) => {
                 setCurrent(number);
                 setPageInput(null);
@@ -438,7 +429,15 @@ export function ReaderApp({
                   aria-label="Nomor halaman PDF"
                   disabled={!manifest}
                 />
-                <span>/ {manifest?.totalPages || "—"}</span>
+                <span className="reader-page-total">
+                  / {manifest?.totalPages || "—"}
+                </span>
+                <progress
+                  className="reader-page-progress"
+                  max={manifest?.pages.length ?? 1}
+                  value={manifest ? index + 1 : 0}
+                  aria-hidden="true"
+                />
               </form>
               <button
                 type="button"
@@ -470,16 +469,6 @@ export function ReaderApp({
               >
                 <Search size={17} />
                 <span>Cari isi</span>
-              </button>
-              <button
-                className={tab === "text" ? "is-active" : ""}
-                aria-expanded={tab === "text"}
-                type="button"
-                onClick={() => toggle("text")}
-                disabled={!manifest}
-                aria-label="Baca teks halaman"
-              >
-                <TextSelect size={17} />
               </button>
               <button
                 className={`reader-ask-button ${tab === "chat" ? "is-active" : ""}`}
@@ -542,9 +531,7 @@ export function ReaderApp({
                   ? `Asisten ${documentName}`
                   : tab === "search"
                     ? "Pencarian isi"
-                    : tab === "text"
-                      ? "Teks halaman"
-                      : "Jelajahi halaman"}
+                    : "Jelajahi halaman"}
               </span>
               <button
                 className="reader-icon-button"
@@ -596,6 +583,7 @@ export function ReaderApp({
                       searchVersion.current += 1;
                       setQuery(e.target.value);
                       setHits([]);
+                      setHighlight(undefined);
                       setNextOffset(null);
                       setSearchError("");
                       setSearching(e.target.value.trim().length >= 2);
@@ -667,34 +655,6 @@ export function ReaderApp({
                   >
                     Hasil berikutnya
                   </button>
-                )}
-              </div>
-            ) : tab === "text" ? (
-              <div className="reader-text-panel">
-                <div className="reader-panel-symbol">
-                  <FileText size={18} />
-                </div>
-                <h2>Halaman PDF {current}</h2>
-                <p className="reader-panel-caption">
-                  Teks sumber untuk membaca dan menyalin bagian yang diperlukan.
-                </p>
-                {textPage === current && pageQuality === "poor" && (
-                  <p className="reader-extraction-warning">
-                    Sebagian teks kurang jelas. Periksa halaman asli untuk
-                    memastikan bacaannya.
-                  </p>
-                )}
-                {textPage === current && pageQuality === "image" ? (
-                  <p>
-                    Halaman berupa gambar dan belum memiliki teks yang dapat
-                    dicari.
-                  </p>
-                ) : (
-                  <p className="reader-plain-text">
-                    {textPage === current
-                      ? text || "Halaman tidak memiliki teks yang terbaca."
-                      : "Memuat teks halaman…"}
-                  </p>
                 )}
               </div>
             ) : (
