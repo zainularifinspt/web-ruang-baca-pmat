@@ -41,12 +41,13 @@ export async function GET(
       searchReady: doc.pages.some((p) => p.quality !== "image"),
       textPages: doc.pages.filter((p) => p.quality !== "image").length,
       aiReady:
+        doc.storage !== "pilot" &&
         Boolean(process.env.DEEPSEEK_API_KEY) &&
         doc.pages.some((p) => p.quality !== "image"),
       embeddingReady: doc.embeddingReady,
     };
     // Explicit CDN only for assets pre-approved for public distribution.
-    if (process.env.READER_ASSET_BASE_URL)
+    if (doc.storage !== "pilot" && process.env.READER_ASSET_BASE_URL)
       for (const p of manifest.pages) {
         for (const field of ["image", "thumbnail", "hd"] as const) {
           const filename = p[field].split("/").pop();

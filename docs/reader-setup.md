@@ -66,6 +66,10 @@ Batas bawaan 150 MB/PDF (`READER_MAX_PDF_MB`, maksimum 250), 1.000 halaman, dan 
 
 ## Mengaktifkan produksi
 
+Preview satu buku untuk *Theory of Functions of a Complex Variable Vol I* tersedia lewat bucket privat `reader-pilot`. Pembaca memakai jalur uji ini ketika belum ada entri buku tersebut di database pembaca. Jalur ini menyediakan flipbook dan pencarian isi. Jawaban AI memerlukan konfigurasi produksi di bawah.
+
+Untuk menerbitkan ulang revisi buku uji yang sudah diproses lokal, jalankan `node --experimental-strip-types scripts/reader-publish-pilot.mjs`. Revisi aktif berganti setelah semua aset dan indeks teks berhasil diunggah.
+
 1. Terapkan `supabase/migrations/20261107_reader_chat.sql` pada proyek Supabase yang dipakai aplikasi. Migrasi menambah pgvector, tabel reader, RPC pencarian/kuota, serta trigger invalidasi katalog. Data katalog lama dipertahankan. Tabel reader dan RPC hanya dapat dipakai layanan server; tidak diberikan akses langsung kepada pengunjung.
 2. Pilih `READER_STORAGE=supabase` untuk bucket privat `reader-assets`, atau `READER_STORAGE=r2` beserta `R2_ENDPOINT`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_READER_BUCKET`. Metadata/teks/vektor tetap di Supabase pada kedua pilihan. Service role dan kunci R2 berada di server/worker.
 3. Tambahkan `DEEPSEEK_API_KEY` dan `CHAT_SESSION_SECRET` acak minimal 32 karakter pada aplikasi. Contoh pembuatan secret lokal: `openssl rand -hex 32`. Jangan memakai secret contoh. Pastikan model dan tarif masih sesuai [dokumentasi DeepSeek](https://api-docs.deepseek.com/quick_start/pricing/).

@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { getReaderDocument, dataRoot, readerLocal } from "@/lib/reader/store";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
+import { PILOT_BUCKET } from "@/lib/reader/pilot-config";
 export async function GET(
   _request: Request,
   {
@@ -33,7 +34,7 @@ export async function GET(
     let bytes: Uint8Array;
     if (readerLocal())
       bytes = await readFile(path.join(dataRoot(), doc.key, revision, file));
-    else if (process.env.READER_STORAGE === "r2") {
+    else if (doc.storage !== "pilot" && process.env.READER_STORAGE === "r2") {
       const { S3Client, GetObjectCommand } = await import("@aws-sdk/client-s3");
       const s3 = new S3Client({
         region: "auto",
@@ -52,7 +53,11 @@ export async function GET(
       bytes = await object.Body!.transformToByteArray();
     } else {
       const { data, error } = await createSupabaseAdminClient()
-        .storage.from(process.env.READER_ASSET_BUCKET || "reader-assets")
+        .storage.from(
+          doc.storage === "pilot"
+            ? PILOT_BUCKET
+            : process.env.READER_ASSET_BUCKET || "reader-assets",
+        )
         .download(`${doc.key}/${revision}/${file}`);
       if (error || !data) throw Error();
       bytes = new Uint8Array(await data.arrayBuffer());

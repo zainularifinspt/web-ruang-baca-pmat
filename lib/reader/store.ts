@@ -2,6 +2,8 @@ import { readFile, readdir, stat } from "node:fs/promises";
 import path from "node:path";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
 import { publicCollection, sourceUrl } from "./catalog";
+import { readPilotBook, readPilotPages } from "./pilot";
+import { PILOT_BOOK_ID } from "./pilot-config";
 import {
   READER_POLICY,
   readerKey,
@@ -56,18 +58,25 @@ export async function getReaderDocument(
   let doc: ReaderDocument | null = null;
   if (readerLocal()) doc = await readLocalDocument(key);
   else {
+    const pilot = kind === "book" && id === PILOT_BOOK_ID;
     const db = createSupabaseAdminClient();
     const { data: d, error } = await db
       .from("reader_documents")
       .select("*")
       .eq("id", key)
-      .eq("is_public", true)
       .maybeSingle();
-    if (error)
+    if (error && !(pilot && ["PGRST205", "42P01"].includes(error.code)))
       throw new Error(
         "Penyimpanan pembaca belum diaktifkan. Silakan gunakan katalog sementara.",
       );
-    if (!d?.active_revision) return null;
+    if (!d && pilot) {
+      const book = await readPilotBook();
+      return book?.policy === READER_POLICY &&
+        book.sourceUrl === sourceUrl(item)
+        ? book
+        : null;
+    }
+    if (!d?.active_revision || !d.is_public) return null;
     const [{ data: v }, { data: pages, error: pe }] = await Promise.all([
       db
         .from("reader_document_versions")
@@ -118,6 +127,14 @@ export async function readerPage(
   doc: ReaderDocument,
   number: number,
 ): Promise<ReaderPage | null> {
+  if (doc.storage === "pilot") {
+    if (!doc.pages.some((page) => page.number === number)) return null;
+    return (
+      (await readPilotPages(doc.revision)).find(
+        (page) => page.number === number,
+      ) || null
+    );
+  }
   if (readerLocal()) return doc.pages.find((p) => p.number === number) || null;
   const { data } = await createSupabaseAdminClient()
     .from("reader_pages")
@@ -135,6 +152,10 @@ export async function searchDocument(
   query: string,
   offset: number,
 ): Promise<SearchHit[]> {
+  if (doc.storage === "pilot") {
+    const pages = await readPilotPages(doc.revision);
+    return searchPages({ ...doc, pages }, query).slice(offset, offset + 21);
+  }
   if (readerLocal()) return searchPages(doc, query).slice(offset, offset + 21);
   const { data, error } = await createSupabaseAdminClient().rpc(
     "reader_search",

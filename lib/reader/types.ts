@@ -26,6 +26,7 @@ export type ReaderChunk = {
 };
 export type ReaderDocument = {
   schema: 1;
+  storage?: "pilot";
   key: string;
   collectionId: string;
   kind: ReaderKind;
