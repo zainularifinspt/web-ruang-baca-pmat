@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath, revalidateTag } from "next/cache";
-import { requireStaffRole } from "@/lib/auth-guards";
+import { requireActiveStaffRole } from "@/lib/auth-guards";
 import {
   writeBookVerificationOverride,
   writeThesisVerificationOverride,
@@ -41,7 +41,7 @@ const defaultAccessNote =
 export async function updateDraftSubmission(
   input: DraftSubmissionInput,
 ): Promise<DraftSubmissionActionResult> {
-  const auth = await requireStaffRole(["admin"]);
+  const auth = await requireActiveStaffRole("whatsapp", ["admin"]);
   if (!auth.ok) return failure(auth.message);
 
   const id = input.id.trim();
@@ -72,7 +72,7 @@ export async function updateDraftSubmission(
 }
 
 export async function approveDraftSubmission(id: string): Promise<DraftSubmissionActionResult> {
-  const auth = await requireStaffRole(["admin"]);
+  const auth = await requireActiveStaffRole("whatsapp", ["admin"]);
   if (!auth.ok) return failure(auth.message);
 
   const normalizedId = id.trim();
@@ -122,7 +122,7 @@ export async function approveDraftSubmission(id: string): Promise<DraftSubmissio
 }
 
 export async function rejectDraftSubmission(id: string): Promise<DraftSubmissionActionResult> {
-  const auth = await requireStaffRole(["admin"]);
+  const auth = await requireActiveStaffRole("whatsapp", ["admin"]);
   if (!auth.ok) return failure(auth.message);
 
   const normalizedId = id.trim();

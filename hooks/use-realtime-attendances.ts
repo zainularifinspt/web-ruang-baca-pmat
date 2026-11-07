@@ -125,7 +125,7 @@ export function countVisitsForCurrentMonth(items: Attendance[]) {
 
 export function buildWeeklyVisitorMetrics(items: Attendance[]): VisitorMetric[] {
   const weekStart = startOfCurrentWeek();
-  const labels = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
+  const labels = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"];
 
   return labels.map((label, index) => {
     const date = new Date(weekStart);

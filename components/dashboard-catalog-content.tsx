@@ -47,7 +47,7 @@ export function DashboardCatalogContent({
       books={books}
       theses={theses}
       initialTab="all"
-      initialVerificationStatus="approved"
+      initialVerificationStatus="all"
       showAllTab
       toolbar={<DashboardCatalogActions />}
       itemActions={(item) =>
@@ -66,15 +66,15 @@ export function DashboardCatalogActions() {
   const { role, canAccess } = useRole();
   const canExport = canAccess(role, "export_data");
   const canAddBook = role === "admin" || role === "petugas";
-  const canAddThesis = role === "admin" || role === "petugas" || role === "dosen";
+  const canAddThesis = role === "admin" || role === "petugas";
   const canImport = role === "admin" || role === "petugas";
   const canSyncThesis = role === "admin";
 
   return (
-    <section className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/70 sm:p-5">
+    <section className="admin-catalog-toolbar p-4 sm:p-5">
       <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-sm font-semibold text-primary">Aksi katalog</p>
+
           <h2 className="mt-1 text-xl font-semibold text-slate-950 sm:text-2xl">
             Kelola data buku dan skripsi
           </h2>

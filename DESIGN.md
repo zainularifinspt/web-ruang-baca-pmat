@@ -1,0 +1,208 @@
+---
+name: Ruang Baca PMat
+description: Public maroon glass identity with a focused internal workspace extension.
+colors:
+  primary: "#b91c1c"
+  primary-foreground: "#ffffff"
+  background: "#f8fafc"
+  foreground: "#0f172a"
+  muted: "#f1f5f9"
+  muted-foreground: "#64748b"
+  border: "#e2e8f0"
+  input: "#cbd5e1"
+  admin-maroon: "#57162e"
+  admin-ink: "#292638"
+  admin-canvas: "#f7f6fa"
+  admin-glass: "#ffffffc9"
+  metric-rose: "#b7345e"
+  metric-rose-surface: "#fce8ee"
+  metric-violet: "#7f45b5"
+  metric-violet-surface: "#eee5fc"
+  metric-teal: "#237d79"
+  metric-teal-surface: "#def2ee"
+  metric-amber: "#95621e"
+  metric-amber-surface: "#fcf0d8"
+typography:
+  headline:
+    fontFamily: "Plus Jakarta Sans, sans-serif"
+    fontSize: "28px"
+    fontWeight: 800
+    lineHeight: 1.25
+    letterSpacing: "-0.025em"
+  title:
+    fontFamily: "Plus Jakarta Sans, sans-serif"
+    fontSize: "14px"
+    fontWeight: 700
+    letterSpacing: "-0.025em"
+  body:
+    fontFamily: "Plus Jakarta Sans, sans-serif"
+    fontSize: "14px"
+  label:
+    fontFamily: "Plus Jakarta Sans, sans-serif"
+    fontSize: "12px"
+    fontWeight: 600
+  metric:
+    fontFamily: "Plus Jakarta Sans, sans-serif"
+    fontSize: "30px"
+    fontWeight: 800
+    lineHeight: 1.2
+    letterSpacing: "-0.025em"
+rounded:
+  control: "12px"
+  button: "10px"
+  status: "6px"
+  admin-panel: "21px"
+  admin-card: "20px"
+  public-card: "1.5rem"
+spacing:
+  xs: "8px"
+  sm: "12px"
+  md: "16px"
+  lg: "20px"
+  xl: "24px"
+  workspace: "28px"
+components:
+  button-primary:
+    backgroundColor: "{colors.primary}"
+    textColor: "{colors.primary-foreground}"
+    height: "40px"
+    padding: "8px 16px"
+    rounded: "10px"
+  button-outline:
+    backgroundColor: "{colors.background}"
+    textColor: "{colors.foreground}"
+    height: "40px"
+    padding: "8px 16px"
+    rounded: "10px"
+  input:
+    backgroundColor: "{colors.background}"
+    textColor: "{colors.foreground}"
+    height: "40px"
+    padding: "8px 12px"
+    rounded: "{rounded.control}"
+  admin-section:
+    backgroundColor: "{colors.admin-glass}"
+    rounded: "{rounded.admin-panel}"
+  admin-status:
+    backgroundColor: "#f0f4f5"
+    textColor: "#52686c"
+    rounded: "{rounded.status}"
+    padding: "4px 7px"
+---
+
+# Design System: Ruang Baca PMat
+
+## Overview
+
+**Creative North Star: "PMat mathematical geometry"**
+
+PMat mathematical geometry is the inherited visual anchor: the ULM identity, maroon fields, Plus Jakarta Sans, and luminous white glass connect the public portal and internal workspace. The admin extension uses compact type, pale colored surfaces, and controlled shadows to keep operational content readable.
+
+This record describes the shipped admin extension and its shared primitives. The public landing and catalog remain the visual authority for the established identity; this documentation does not declare those pages redesigned. Route composition and validation evidence live in the dashboard surface brief.
+
+**Key Characteristics:**
+- Maroon identity with rose, violet, teal, and amber category accents.
+- Frosted white panels, specular edges, and softly rounded controls.
+- Strong numeric hierarchy and compact operational typography.
+- Mathematical glass geometry with restrained hover motion.
+
+## Colors
+
+Maroon and white glass establish continuity; the admin adds pale category tints against a lavender, rose, and mint washed canvas. The frontmatter holds the normative values; admin colors are scoped roles, not replacements for root primitives.
+
+### Primary
+- **Public crimson:** shared primary controls and existing portal identity.
+- **Admin maroon:** navigation and welcome framing; gradient variants deepen toward plum.
+
+### Secondary
+- **Metric rose / violet / teal / amber:** book collections, theses, today's visits, and seven-day visits respectively. Use their paired pale surfaces in metric cards. Shortcut and chart colors use related, context-specific shades rather than a single universal semantic ramp.
+
+### Neutral
+- **Background / foreground:** inherited control surfaces and strong text.
+- **Muted / muted foreground:** supporting information and secondary surfaces.
+- **Border / input:** inherited field and divider strokes.
+- **Admin ink / canvas / glass:** internal text, ambient backdrop, and data panels.
+
+**The Inherited Identity Rule.** Keep maroon, Plus Jakarta Sans, and the ULM identity recognizable across public and internal surfaces. Scope internal overrides to the admin workspace and its drawer.
+
+**The Label Alongside Color Rule.** Category colors accompany visible labels, icons, and values; they do not carry meaning alone.
+
+## Typography
+
+**Display Font:** Plus Jakarta Sans (sans-serif fallback).
+**Body Font:** Plus Jakarta Sans (sans-serif fallback), loaded by the root layout with swap behavior.
+
+**Character:** One geometric sans family connects the mathematical public identity and dense internal work. Hierarchy comes from weight, size, spacing, and tabular figures rather than a second typeface. The admin is not a strict ratio-based type scale.
+
+### Hierarchy
+- **Headline:** admin welcome and page headings use heavy, tightly tracked type; the welcome becomes 25px on mobile. Content headings use 26px, becoming 24px on mobile.
+- **Title:** titled admin sections resolve to the compact title role, with semantic h2 headings.
+- **Body:** internal content and table text use the body role; descriptions and secondary rows commonly step down to 12px.
+- **Label:** navigation and metric labels use the label role; metric labels increase to 14px from 640px.
+- **Metric:** extra-bold tabular figures increase from 30px to 36px at 640px. Counts use Indonesian number formatting.
+
+Small auxiliary metadata appears below the label role in the shipped interface; retain its secondary purpose rather than using it for essential explanatory copy. Public hero typography remains independently responsive and larger.
+
+## Layout
+
+The desktop admin shell has a floating sidebar inset 16px, 244px wide, and a transparent account header. At 1280px the workspace reserves 276px on the left. At 1600px the sidebar grows to 258px and the offset to 290px. Main content is centered, capped at 1480px, with 28px horizontal padding, increasing to 36px at 1600px.
+
+Below 1280px, navigation uses a labelled modal drawer with the same identity. Below 768px, workspace padding becomes 16px, panels tighten, and the compact heading retains visible cube geometry. Shared spacing follows an observed 4px-based utility rhythm, with bespoke panel padding where required. Tables own their horizontal overflow. Recent collection titles allow two lines on mobile and one from 640px.
+
+Grid counts and story order are surface-specific; see the dashboard brief. Shared panels have a minimum width of zero so grid content can shrink without widening the page.
+
+## Elevation & Depth
+
+The system combines tonal layering, backdrop blur, thin specular highlights, and diffuse shadows. Public glass cards use a white translucent fill and 20px blur. Internal data sections use a stronger white fill and 16px blur; gradients give metrics their category tone. This is ambient depth, not hard offset framing.
+
+### Shadow Vocabulary
+- **Admin panel:** `0 8px 28px -20px #40294f38, inset 0 1px 0 #fff` supports recurring data sections.
+- **Metric card:** `0 8px 24px -18px #5b32694d, inset 0 1px 0 #fff` supports colored statistics.
+- **Public glass:** `0 20px 40px -15px rgba(15, 23, 42, 0.05), 0 0 0 1px rgba(226, 232, 240, 0.4), inset 0 1px 1px 0 rgba(255, 255, 255, 0.95)` remains the inherited public material.
+
+**The Readable Glass Rule.** Use substantial white fill for data panels. Transparent faces and orbit lines belong to decorative geometry, away from operational text.
+
+## Shapes
+
+Soft rectangles organize work: shared controls use the control radius; admin cards and panels use the larger radii above, while the public glass card uses the public radius. Metric cards tighten to 17px on mobile. Avatars are softly squared; status tags are smaller rounded rectangles. Pills and circular geometry remain valid where already used, including public segmented controls and chart forms.
+
+The signature cube is real CSS geometry: six translucent faces translated by half the cube size, preserve-3d transforms, perspective, and fine edge strokes. Orbits use thin circular outlines. These are decorative, hidden from assistive technology, and do not accept pointer events.
+
+## Components
+
+### Buttons
+Shared primary controls use public crimson with white text; outline controls retain a visible input stroke and pale fill. Default height is 40px, with 8px by 16px padding and the shared 10px radius; route-level variants may round further. Hover raises standard buttons slightly, while active presses scale to 0.98. Disabled controls reduce opacity and block pointer interaction.
+
+The welcome link is a distinct translucent white button with a fine light border, 10px by 14px padding, and a brighter hover fill. Operational shortcuts use pale white rounded surfaces and category-colored labels/icons. They brighten and gain subtle shadow on hover.
+
+### Chips
+The admin status chip uses a muted cool background, a compact rounded shape, and visible text. It is informational, not an interactive filter. Existing shared badges retain primary, secondary, and outline variants in their own contexts.
+
+### Cards / Containers
+Reusable data sections use frosted white panels without an exterior stroke in the admin. Headings and body are divided with a pale internal line. Desktop header padding is 21px 22px 17px; body padding is 17px 22px 22px. Mobile padding tightens to 19px 18px 14px and 14px 18px 18px respectively. Metric cards use a white-to-category gradient and an inset icon tile. Empty, loading, and unavailable states stay inside the same panel instead of presenting invented values.
+
+### Inputs / Fields
+Shared fields use a pale background, input stroke, 40px height, 12px horizontal padding, and an admin control radius. Disabled fields retain the shared reduced-opacity state. Admin interactive elements receive a 3px violet focus outline, offset 3px; shared controls may additionally retain their crimson focus ring. Input and textarea carets use a maroon accent.
+
+### Navigation
+The floating sidebar uses a maroon-to-plum gradient, pale text, 12px semibold labels, and 13px rounded links. Hover adds a translucent white wash; the active page gains a brighter glass fill, inset highlight, colored icon, and trailing chevron. Active links expose aria-current. Role-aware navigation and action visibility remain functional concerns, not decorative variants.
+
+The compact account header is transparent. Mobile navigation uses a labelled dialog and closes after navigation. A focus-revealed skip link reaches the main content.
+
+### Mathematical Glass Geometry
+Static cubes connect the internal heading to public mathematical forms. Desktop heading hover changes their 3D rotation over 0.7s with `cubic-bezier(.16,1,.3,1)`. Mobile retains smaller geometry without that hover rotation; reduced motion removes admin transitions and animations. The cubes are not a general data-container treatment.
+
+## Do's and Don'ts
+
+### Do:
+- **Do** retain the public identity and scope admin styling to the workspace or drawer.
+- **Do** pair category colors with text and SVG icons.
+- **Do** use one page h1 and h2 headings for titled data sections.
+- **Do** keep overflow inside table containers and retain visible keyboard focus.
+- **Do** preserve the reduced-motion treatment and label mobile navigation.
+
+### Don't:
+- **Don't** import the public hero display size into compact admin panels.
+- **Don't** use decorative geometry as the background of dense data text.
+- **Don't** turn the dashboard overview composition into a requirement for every route.
+- **Don't** treat compact metadata sizes as the default for body copy.

@@ -1,3 +1,4 @@
+import { internalFeatures } from "@/lib/internal-features";
 import { redirect } from "next/navigation";
 import { Inbox } from "lucide-react";
 import {
@@ -15,13 +16,15 @@ import { requireStaffRole } from "@/lib/auth-guards";
 export const dynamic = "force-dynamic";
 
 export default async function SubmissionsPage() {
+  if (!internalFeatures.whatsapp) redirect("/dashboard");
   const auth = await requireStaffRole(["admin"]);
 
   if (!auth.ok) {
     redirect("/login?redirectTo=/admin/submissions&error=admin_required");
   }
 
-  const { submissions, profilesById, petugasByPhone, error } = await fetchSubmissionsData();
+  const { submissions, profilesById, petugasByPhone, error } =
+    await fetchSubmissionsData();
   const currentProfile = profilesById[auth.user.id];
   const metadata = auth.user.user_metadata ?? {};
   const userDisplayName =
@@ -33,7 +36,11 @@ export default async function SubmissionsPage() {
   const userEmail = currentProfile?.email ?? auth.user.email ?? "";
 
   return (
-    <DashboardRoot role={auth.role} userDisplayName={userDisplayName} userEmail={userEmail}>
+    <DashboardRoot
+      role={auth.role}
+      userDisplayName={userDisplayName}
+      userEmail={userEmail}
+    >
       <div className="space-y-6">
         <PageHeader
           eyebrow="Admin only"
@@ -42,9 +49,24 @@ export default async function SubmissionsPage() {
         />
 
         <div className="grid gap-4 sm:grid-cols-3">
-          <Metric label="Pending" value={submissions.filter((item) => item.status === "pending").length} />
-          <Metric label="Approved" value={submissions.filter((item) => item.status === "approved").length} />
-          <Metric label="Rejected" value={submissions.filter((item) => item.status === "rejected").length} />
+          <Metric
+            label="Pending"
+            value={
+              submissions.filter((item) => item.status === "pending").length
+            }
+          />
+          <Metric
+            label="Approved"
+            value={
+              submissions.filter((item) => item.status === "approved").length
+            }
+          />
+          <Metric
+            label="Rejected"
+            value={
+              submissions.filter((item) => item.status === "rejected").length
+            }
+          />
         </div>
 
         {error ? (
@@ -93,7 +115,9 @@ async function fetchSubmissionsData() {
         .select("*")
         .order("created_at", { ascending: false }),
       supabaseAdmin.from("profiles").select("id,full_name,email"),
-      supabaseAdmin.from("whatsapp_petugas").select("nama,phone_number,profile_id"),
+      supabaseAdmin
+        .from("whatsapp_petugas")
+        .select("nama,phone_number,profile_id"),
     ]);
 
     if (submissionsError) return emptyResult(submissionsError.message);
@@ -101,12 +125,24 @@ async function fetchSubmissionsData() {
     if (petugasError) return emptyResult(petugasError.message);
 
     const profilesById = Object.fromEntries(
-      ((profiles ?? []) as SenderProfile[]).map((profile) => [profile.id, profile]),
+      ((profiles ?? []) as SenderProfile[]).map((profile) => [
+        profile.id,
+        profile,
+      ]),
     );
     const petugasByPhone = Object.fromEntries(
-      ((petugasRows ?? []) as Array<{ nama: string | null; phone_number: string | null; profile_id: string | null }>)
+      (
+        (petugasRows ?? []) as Array<{
+          nama: string | null;
+          phone_number: string | null;
+          profile_id: string | null;
+        }>
+      )
         .filter((row) => row.phone_number)
-        .map((row) => [row.phone_number as string, { nama: row.nama, profile_id: row.profile_id }]),
+        .map((row) => [
+          row.phone_number as string,
+          { nama: row.nama, profile_id: row.profile_id },
+        ]),
     );
 
     return {
@@ -116,7 +152,9 @@ async function fetchSubmissionsData() {
       error: undefined,
     };
   } catch (error) {
-    return emptyResult(error instanceof Error ? error.message : "Gagal memuat submission.");
+    return emptyResult(
+      error instanceof Error ? error.message : "Gagal memuat submission.",
+    );
   }
 }
 
@@ -124,7 +162,10 @@ function emptyResult(error: string) {
   return {
     submissions: [] as SubmissionRow[],
     profilesById: {} as Record<string, SenderProfile>,
-    petugasByPhone: {} as Record<string, { nama: string | null; profile_id: string | null }>,
+    petugasByPhone: {} as Record<
+      string,
+      { nama: string | null; profile_id: string | null }
+    >,
     error,
   };
 }

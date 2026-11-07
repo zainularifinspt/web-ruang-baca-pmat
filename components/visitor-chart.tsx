@@ -8,15 +8,15 @@ export function VisitorBarChart({ metrics }: VisitorChartProps) {
   const max = Math.max(1, ...metrics.map((item) => item.visits));
 
   return (
-    <div className="rounded-3xl border border-slate-200/70 bg-slate-50/70 p-4">
+    <div className="visitor-bars rounded-3xl border border-slate-200/70 bg-slate-50/70 p-4">
       <div className="flex h-72 items-end gap-2 sm:gap-3">
         {metrics.map((item) => (
           <div key={item.label} className="flex h-full min-w-0 flex-1 flex-col justify-end gap-2">
             <div className="text-center text-xs font-semibold text-slate-700">{item.visits}</div>
-            <div className="flex flex-1 items-end rounded-t-2xl bg-white/90 px-1 pt-3 shadow-inner ring-1 ring-slate-100">
+            <div className="visitor-bar-track flex flex-1 items-end rounded-t-2xl bg-white/90 px-1 pt-3 shadow-inner ring-1 ring-slate-100">
               <div
-                className="min-h-3 w-full rounded-t-xl bg-gradient-to-t from-red-700 via-rose-500 to-yellow-300 shadow-sm shadow-red-900/10 transition hover:from-red-800"
-                style={{ height: `${Math.max(4, (item.visits / max) * 86)}%` }}
+                className="visitor-bar-fill w-full rounded-t-xl bg-gradient-to-t from-red-700 via-rose-500 to-yellow-300 shadow-sm shadow-red-900/10 transition hover:from-red-800"
+                style={{ height: `${(item.visits / max) * 86}%` }}
                 aria-label={`${item.label}: ${item.visits} kunjungan`}
               />
             </div>
@@ -48,12 +48,12 @@ export function VisitorLineChart({ metrics }: VisitorChartProps) {
       .join(" ");
 
   return (
-    <div className="rounded-3xl border border-slate-200/70 bg-slate-50/70 p-4">
+    <div className="visitor-lines rounded-3xl border border-slate-200/70 bg-slate-50/70 p-4">
       <svg
         viewBox={`0 0 ${width} ${height}`}
         className="h-64 w-full overflow-visible"
         role="img"
-        aria-label="Grafik minat koleksi buku dan skripsi"
+        aria-label="Grafik tujuan kunjungan terkait buku dan skripsi"
       >
         <defs>
           <linearGradient id="books-line" x1="0" x2="1" y1="0" y2="0">

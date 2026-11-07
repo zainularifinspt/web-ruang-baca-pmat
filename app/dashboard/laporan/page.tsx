@@ -4,14 +4,21 @@ import { ExportButton } from "@/components/export-button";
 import { PageHeader } from "@/components/page-header";
 import { SectionCard } from "@/components/section-card";
 import { VisitorBarChart, VisitorLineChart } from "@/components/visitor-chart";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   buildWeeklyVisitorMetrics,
   useRealtimeAttendances,
 } from "@/hooks/use-realtime-attendances";
 
 export default function ReportsPage() {
-  const { attendances } = useRealtimeAttendances();
+  const { attendances, isLoading, error } = useRealtimeAttendances(500);
   const visitorMetrics = buildWeeklyVisitorMetrics(attendances);
 
   return (
@@ -19,25 +26,53 @@ export default function ReportsPage() {
       <PageHeader
         eyebrow="Laporan"
         title="Analitik Pengunjung"
-        description="Ringkasan visual untuk membaca tren kunjungan dan kebutuhan koleksi ruang baca."
-        action={<ExportButton type="visitor" label="Ekspor laporan pengunjung" />}
+        description="Ringkasan visual untuk membaca tren kunjungan dan tujuan kunjungan ruang baca."
+        action={
+          <ExportButton
+            type="visitor"
+            label="Ekspor laporan pengunjung"
+            attendances={attendances}
+            disabled={isLoading || Boolean(error)}
+          />
+        }
       />
+      {error && (
+        <p
+          role="alert"
+          className="rounded-xl bg-amber-50 p-4 text-sm text-amber-900"
+        >
+          Data belum dapat dimuat. {error}
+        </p>
+      )}
+      <p className="text-xs text-slate-600">
+        Ringkasan maksimal 500 presensi terbaru. File ekspor memuat catatan yang
+        digunakan dalam laporan ini.
+      </p>
       <div className="grid gap-5 xl:grid-cols-2">
-        <SectionCard title="Kunjungan Harian" description="Jumlah kunjungan per hari.">
+        <SectionCard
+          title="Kunjungan Harian"
+          description="Jumlah kunjungan per hari."
+        >
           <VisitorBarChart metrics={visitorMetrics} />
         </SectionCard>
-        <SectionCard title="Minat Koleksi" description="Perbandingan pencarian buku dan skripsi.">
+        <SectionCard
+          title="Tujuan Kunjungan"
+          description="Tujuan kunjungan terkait buku dan skripsi, berdasarkan isian presensi."
+        >
           <VisitorLineChart metrics={visitorMetrics} />
         </SectionCard>
       </div>
-      <SectionCard title="Ringkasan Data" description="Data tabel untuk kebutuhan presentasi dan laporan.">
+      <SectionCard
+        title="Ringkasan Data"
+        description="Data tabel untuk kebutuhan presentasi dan laporan."
+      >
         <Table className="min-w-[640px]">
           <TableHeader>
             <TableRow>
               <TableHead>Hari</TableHead>
               <TableHead>Kunjungan</TableHead>
-              <TableHead>Cari buku</TableHead>
-              <TableHead>Cari skripsi</TableHead>
+              <TableHead>Tujuan: buku</TableHead>
+              <TableHead>Tujuan: skripsi</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

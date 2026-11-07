@@ -2,7 +2,7 @@
 
 import { revalidatePath, revalidateTag } from "next/cache";
 import { read, utils } from "xlsx";
-import { requireStaffRole } from "@/lib/auth-guards";
+import { requireStaffRole, requireActiveStaffRole } from "@/lib/auth-guards";
 import {
   writeCatalogInputOverride,
   writeBookVerificationOverride,
@@ -81,10 +81,10 @@ export async function createThesis(values: ThesisFormValues): Promise<CatalogAct
 
   const inputBy = await getInputActorName(auth.user.id, auth.user.email);
   const result = await safelyMutateCatalog(() =>
-    insertThesis(thesisPayload(values, inputBy, auth.user.id), {
+    insertThesis(thesisPayload({ ...values, verificationStatus: "approved" }, inputBy, auth.user.id), {
       type: "thesis",
       inputBy,
-      verificationStatus: values.verificationStatus,
+      verificationStatus: "approved",
     }),
   );
   revalidateCatalogPaths();
@@ -510,7 +510,7 @@ export async function updateBook(
   const validationError = validateBook(values);
   if (validationError) return failure(validationError);
 
-  const result = await safelyMutateCatalog(() => updateBookRow(id, bookPayload(values)));
+  const result = await safelyMutateCatalog(() => updateBookRow(id, omitPayloadKeys(bookPayload(values), ["verification_status"])));
   revalidateCatalogPaths();
 
   return result.ok ? success("Buku berhasil diperbarui.") : failure(result.message);
@@ -526,7 +526,7 @@ export async function updateThesis(
   const validationError = validateThesis(values);
   if (validationError) return failure(validationError);
 
-  const result = await safelyMutateCatalog(() => updateThesisRow(id, thesisPayload(values)));
+  const result = await safelyMutateCatalog(() => updateThesisRow(id, omitPayloadKeys(thesisPayload(values), ["verification_status"])));
   revalidateCatalogPaths();
 
   return result.ok ? success("Skripsi berhasil diperbarui.") : failure(result.message);
@@ -558,7 +558,7 @@ export async function updateCollectionVerificationStatus(
   id: string,
   status: VerificationStatus,
 ): Promise<CatalogActionResult> {
-  const auth = await requireStaffRole(["admin"]);
+  const auth = await requireActiveStaffRole("verification", ["admin"]);
   if (!auth.ok) return failure(auth.message);
 
   if (!["pending", "approved", "rejected"].includes(status)) {

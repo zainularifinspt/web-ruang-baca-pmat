@@ -80,7 +80,7 @@ const emptyThesisValues: ThesisFormValues = {
   pdfSize: 0,
 };
 
-export function AddBookDialog() {
+export function AddBookDialog({ trigger }: { trigger?: React.ReactNode } = {}) {
   const [values, setValues] = useState<BookFormValues>(emptyBookValues);
   const [coverFile, setCoverFile] = useState<File | null>(null);
 
@@ -98,17 +98,17 @@ export function AddBookDialog() {
         setValues(emptyBookValues);
         setCoverFile(null);
       }}
-      trigger={
+      trigger={trigger ?? (
         <Button size="sm" className="rounded-xl">
           <Plus />
           Tambah buku
         </Button>
-      }
+      )}
     />
   );
 }
 
-export function AddThesisDialog() {
+export function AddThesisDialog({ trigger }: { trigger?: React.ReactNode } = {}) {
   const [values, setValues] = useState<ThesisFormValues>(emptyThesisValues);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
 
@@ -126,12 +126,12 @@ export function AddThesisDialog() {
         setValues(emptyThesisValues);
         setPdfFile(null);
       }}
-      trigger={
+      trigger={trigger ?? (
         <Button size="sm" className="rounded-xl">
           <Plus />
           Tambah skripsi
         </Button>
-      }
+      )}
     />
   );
 }

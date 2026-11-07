@@ -1,0 +1,453 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-06T23:26:11.959969+00:00",
+  "title": "Design System: Ruang Baca PMat",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Primary",
+        "tonalRamp": [
+          "oklch(15% 0.1905 27.52)",
+          "oklch(26% 0.1905 27.52)",
+          "oklch(38% 0.1905 27.52)",
+          "oklch(49% 0.1905 27.52)",
+          "oklch(61% 0.1905 27.52)",
+          "oklch(72% 0.1905 27.52)",
+          "oklch(84% 0.1905 27.52)",
+          "oklch(95% 0.1905 27.52)"
+        ]
+      },
+      "primary-foreground": {
+        "role": "neutral",
+        "displayName": "Primary Foreground",
+        "tonalRamp": [
+          "oklch(15% 0.0000 89.88)",
+          "oklch(26% 0.0000 89.88)",
+          "oklch(38% 0.0000 89.88)",
+          "oklch(49% 0.0000 89.88)",
+          "oklch(61% 0.0000 89.88)",
+          "oklch(72% 0.0000 89.88)",
+          "oklch(84% 0.0000 89.88)",
+          "oklch(95% 0.0000 89.88)"
+        ]
+      },
+      "background": {
+        "role": "neutral",
+        "displayName": "Background",
+        "tonalRamp": [
+          "oklch(15% 0.0034 247.86)",
+          "oklch(26% 0.0034 247.86)",
+          "oklch(38% 0.0034 247.86)",
+          "oklch(49% 0.0034 247.86)",
+          "oklch(61% 0.0034 247.86)",
+          "oklch(72% 0.0034 247.86)",
+          "oklch(84% 0.0034 247.86)",
+          "oklch(95% 0.0034 247.86)"
+        ]
+      },
+      "foreground": {
+        "role": "neutral",
+        "displayName": "Foreground",
+        "tonalRamp": [
+          "oklch(15% 0.0398 265.75)",
+          "oklch(26% 0.0398 265.75)",
+          "oklch(38% 0.0398 265.75)",
+          "oklch(49% 0.0398 265.75)",
+          "oklch(61% 0.0398 265.75)",
+          "oklch(72% 0.0398 265.75)",
+          "oklch(84% 0.0398 265.75)",
+          "oklch(95% 0.0398 265.75)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Muted",
+        "tonalRamp": [
+          "oklch(15% 0.0069 247.90)",
+          "oklch(26% 0.0069 247.90)",
+          "oklch(38% 0.0069 247.90)",
+          "oklch(49% 0.0069 247.90)",
+          "oklch(61% 0.0069 247.90)",
+          "oklch(72% 0.0069 247.90)",
+          "oklch(84% 0.0069 247.90)",
+          "oklch(95% 0.0069 247.90)"
+        ]
+      },
+      "muted-foreground": {
+        "role": "neutral",
+        "displayName": "Muted Foreground",
+        "tonalRamp": [
+          "oklch(15% 0.0407 257.42)",
+          "oklch(26% 0.0407 257.42)",
+          "oklch(38% 0.0407 257.42)",
+          "oklch(49% 0.0407 257.42)",
+          "oklch(61% 0.0407 257.42)",
+          "oklch(72% 0.0407 257.42)",
+          "oklch(84% 0.0407 257.42)",
+          "oklch(95% 0.0407 257.42)"
+        ]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Border",
+        "tonalRamp": [
+          "oklch(15% 0.0126 255.51)",
+          "oklch(26% 0.0126 255.51)",
+          "oklch(38% 0.0126 255.51)",
+          "oklch(49% 0.0126 255.51)",
+          "oklch(61% 0.0126 255.51)",
+          "oklch(72% 0.0126 255.51)",
+          "oklch(84% 0.0126 255.51)",
+          "oklch(95% 0.0126 255.51)"
+        ]
+      },
+      "input": {
+        "role": "neutral",
+        "displayName": "Input",
+        "tonalRamp": [
+          "oklch(15% 0.0198 252.89)",
+          "oklch(26% 0.0198 252.89)",
+          "oklch(38% 0.0198 252.89)",
+          "oklch(49% 0.0198 252.89)",
+          "oklch(61% 0.0198 252.89)",
+          "oklch(72% 0.0198 252.89)",
+          "oklch(84% 0.0198 252.89)",
+          "oklch(95% 0.0198 252.89)"
+        ]
+      },
+      "admin-maroon": {
+        "role": "primary",
+        "displayName": "Admin Maroon",
+        "tonalRamp": [
+          "oklch(15% 0.0976 1.96)",
+          "oklch(26% 0.0976 1.96)",
+          "oklch(38% 0.0976 1.96)",
+          "oklch(49% 0.0976 1.96)",
+          "oklch(61% 0.0976 1.96)",
+          "oklch(72% 0.0976 1.96)",
+          "oklch(84% 0.0976 1.96)",
+          "oklch(95% 0.0976 1.96)"
+        ]
+      },
+      "admin-ink": {
+        "role": "neutral",
+        "displayName": "Admin Ink",
+        "tonalRamp": [
+          "oklch(15% 0.0330 291.77)",
+          "oklch(26% 0.0330 291.77)",
+          "oklch(38% 0.0330 291.77)",
+          "oklch(49% 0.0330 291.77)",
+          "oklch(61% 0.0330 291.77)",
+          "oklch(72% 0.0330 291.77)",
+          "oklch(84% 0.0330 291.77)",
+          "oklch(95% 0.0330 291.77)"
+        ]
+      },
+      "admin-canvas": {
+        "role": "neutral",
+        "displayName": "Admin Canvas",
+        "tonalRamp": [
+          "oklch(15% 0.0054 297.73)",
+          "oklch(26% 0.0054 297.73)",
+          "oklch(38% 0.0054 297.73)",
+          "oklch(49% 0.0054 297.73)",
+          "oklch(61% 0.0054 297.73)",
+          "oklch(72% 0.0054 297.73)",
+          "oklch(84% 0.0054 297.73)",
+          "oklch(95% 0.0054 297.73)"
+        ]
+      },
+      "admin-glass": {
+        "role": "neutral",
+        "displayName": "Admin Glass",
+        "tonalRamp": [
+          "oklch(15% 0.0000 89.88)",
+          "oklch(26% 0.0000 89.88)",
+          "oklch(38% 0.0000 89.88)",
+          "oklch(49% 0.0000 89.88)",
+          "oklch(61% 0.0000 89.88)",
+          "oklch(72% 0.0000 89.88)",
+          "oklch(84% 0.0000 89.88)",
+          "oklch(95% 0.0000 89.88)"
+        ]
+      },
+      "metric-rose": {
+        "role": "secondary",
+        "displayName": "Metric Rose",
+        "tonalRamp": [
+          "oklch(15% 0.1692 5.71)",
+          "oklch(26% 0.1692 5.71)",
+          "oklch(38% 0.1692 5.71)",
+          "oklch(49% 0.1692 5.71)",
+          "oklch(61% 0.1692 5.71)",
+          "oklch(72% 0.1692 5.71)",
+          "oklch(84% 0.1692 5.71)",
+          "oklch(95% 0.1692 5.71)"
+        ]
+      },
+      "metric-rose-surface": {
+        "role": "secondary",
+        "displayName": "Metric Rose Surface",
+        "tonalRamp": [
+          "oklch(15% 0.0231 357.35)",
+          "oklch(26% 0.0231 357.35)",
+          "oklch(38% 0.0231 357.35)",
+          "oklch(49% 0.0231 357.35)",
+          "oklch(61% 0.0231 357.35)",
+          "oklch(72% 0.0231 357.35)",
+          "oklch(84% 0.0231 357.35)",
+          "oklch(95% 0.0231 357.35)"
+        ]
+      },
+      "metric-violet": {
+        "role": "secondary",
+        "displayName": "Metric Violet",
+        "tonalRamp": [
+          "oklch(15% 0.1728 304.92)",
+          "oklch(26% 0.1728 304.92)",
+          "oklch(38% 0.1728 304.92)",
+          "oklch(49% 0.1728 304.92)",
+          "oklch(61% 0.1728 304.92)",
+          "oklch(72% 0.1728 304.92)",
+          "oklch(84% 0.1728 304.92)",
+          "oklch(95% 0.1728 304.92)"
+        ]
+      },
+      "metric-violet-surface": {
+        "role": "secondary",
+        "displayName": "Metric Violet Surface",
+        "tonalRamp": [
+          "oklch(15% 0.0322 303.48)",
+          "oklch(26% 0.0322 303.48)",
+          "oklch(38% 0.0322 303.48)",
+          "oklch(49% 0.0322 303.48)",
+          "oklch(61% 0.0322 303.48)",
+          "oklch(72% 0.0322 303.48)",
+          "oklch(84% 0.0322 303.48)",
+          "oklch(95% 0.0322 303.48)"
+        ]
+      },
+      "metric-teal": {
+        "role": "secondary",
+        "displayName": "Metric Teal",
+        "tonalRamp": [
+          "oklch(15% 0.0820 190.64)",
+          "oklch(26% 0.0820 190.64)",
+          "oklch(38% 0.0820 190.64)",
+          "oklch(49% 0.0820 190.64)",
+          "oklch(61% 0.0820 190.64)",
+          "oklch(72% 0.0820 190.64)",
+          "oklch(84% 0.0820 190.64)",
+          "oklch(95% 0.0820 190.64)"
+        ]
+      },
+      "metric-teal-surface": {
+        "role": "secondary",
+        "displayName": "Metric Teal Surface",
+        "tonalRamp": [
+          "oklch(15% 0.0217 182.55)",
+          "oklch(26% 0.0217 182.55)",
+          "oklch(38% 0.0217 182.55)",
+          "oklch(49% 0.0217 182.55)",
+          "oklch(61% 0.0217 182.55)",
+          "oklch(72% 0.0217 182.55)",
+          "oklch(84% 0.0217 182.55)",
+          "oklch(95% 0.0217 182.55)"
+        ]
+      },
+      "metric-amber": {
+        "role": "secondary",
+        "displayName": "Metric Amber",
+        "tonalRamp": [
+          "oklch(15% 0.1040 69.21)",
+          "oklch(26% 0.1040 69.21)",
+          "oklch(38% 0.1040 69.21)",
+          "oklch(49% 0.1040 69.21)",
+          "oklch(61% 0.1040 69.21)",
+          "oklch(72% 0.1040 69.21)",
+          "oklch(84% 0.1040 69.21)",
+          "oklch(95% 0.1040 69.21)"
+        ]
+      },
+      "metric-amber-surface": {
+        "role": "secondary",
+        "displayName": "Metric Amber Surface",
+        "tonalRamp": [
+          "oklch(15% 0.0341 84.59)",
+          "oklch(26% 0.0341 84.59)",
+          "oklch(38% 0.0341 84.59)",
+          "oklch(49% 0.0341 84.59)",
+          "oklch(61% 0.0341 84.59)",
+          "oklch(72% 0.0341 84.59)",
+          "oklch(84% 0.0341 84.59)",
+          "oklch(95% 0.0341 84.59)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Internal welcome and page headings; mobile sizes are documented in DESIGN.md."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Compact semantic section headings."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Internal operational copy and tables."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Navigation and metric labels."
+      },
+      "metric": {
+        "displayName": "Metric",
+        "purpose": "Tabular metric values; grows at 640px."
+      }
+    },
+    "shadows": [
+      {
+        "name": "admin-panel",
+        "value": "0 8px 28px -20px #40294f38, inset 0 1px 0 #fff",
+        "purpose": "Recurring internal data panels."
+      },
+      {
+        "name": "metric-card",
+        "value": "0 8px 24px -18px #5b32694d, inset 0 1px 0 #fff",
+        "purpose": "Category metric surfaces."
+      }
+    ],
+    "motion": [
+      {
+        "name": "navigation-state",
+        "value": "background .2s, color .2s",
+        "purpose": "Sidebar hover and active feedback."
+      },
+      {
+        "name": "cube-hover",
+        "value": "transform .7s cubic-bezier(.16,1,.3,1)",
+        "purpose": "Desktop heading geometry; disabled under reduced motion and neutralized on mobile."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "mobile-admin-max",
+        "value": "767px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      },
+      {
+        "name": "xl-sidebar",
+        "value": "1280px"
+      },
+      {
+        "name": "wide-admin",
+        "value": "1600px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Primary Button as implemented in the admin extension.",
+      "html": "<button class=\"ds-primary\">Simpan</button>",
+      "css": ".ds-primary{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:8px 16px;border-radius:10px;font-size:14px;font-weight:500;transition:all .2s ease-out;font-family:\"Plus Jakarta Sans\",sans-serif;border:0;background:var(--primary,#b91c1c);color:var(--primary-foreground,#fff)}.ds-primary:hover{background:color-mix(in srgb,var(--primary,#b91c1c) 90%,transparent);transform:translateY(-2px)}.ds-primary:active{transform:scale(.98)}.ds-primary:focus-visible{outline:3px solid #a55dd4;outline-offset:3px}.ds-primary:disabled{opacity:.5;pointer-events:none}"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Outline Button as implemented in the admin extension.",
+      "html": "<button class=\"ds-outline\">Batal</button>",
+      "css": ".ds-outline{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:8px 16px;border-radius:10px;font-size:14px;font-weight:500;transition:all .2s ease-out;font-family:\"Plus Jakarta Sans\",sans-serif;border:1px solid var(--input,#cbd5e1);background:var(--background,#f8fafc);color:var(--foreground,#0f172a)}.ds-outline:hover{background:var(--accent,#f8fafc);transform:translateY(-2px)}.ds-outline:active{transform:scale(.98)}.ds-outline:focus-visible{outline:3px solid #a55dd4;outline-offset:3px}"
+    },
+    {
+      "name": "Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Input as implemented in the admin extension.",
+      "html": "<input class=\"ds-input\" aria-label=\"Cari koleksi\" placeholder=\"Cari koleksi\">",
+      "css": ".ds-input{font-family:\"Plus Jakarta Sans\",sans-serif;height:40px;padding:8px 12px;font-size:14px;border:1px solid var(--input,#cbd5e1);border-radius:12px;background:var(--background,#f8fafc);color:var(--foreground,#0f172a);caret-color:#9f244c;transition:color .15s,border-color .15s}.ds-input:focus-visible{outline:3px solid #a55dd4;outline-offset:3px}.ds-input:disabled{opacity:.5;cursor:not-allowed}"
+    },
+    {
+      "name": "Admin Navigation",
+      "kind": "nav",
+      "description": "Admin Navigation as implemented in the admin extension.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Navigasi dashboard\"><a class=\"ds-link\" href=\"#dasbor\" aria-current=\"page\">Dasbor</a><a class=\"ds-link\" href=\"#katalog\">Katalog Koleksi</a></nav>",
+      "css": ".ds-nav{font-family:\"Plus Jakarta Sans\",sans-serif;padding:18px;width:208px;border-radius:24px;background:linear-gradient(160deg,#57162e,#30152b 90%)}.ds-link{display:flex;padding:13px 14px;border-radius:13px;color:#f2dce5;font-size:12px;font-weight:600;text-decoration:none;transition:background .2s,color .2s}.ds-link:hover{background:#ffffff12;color:#fff}.ds-link[aria-current]{background:linear-gradient(110deg,#ffffff29,#ffffff13);color:#fff;box-shadow:inset 0 1px 0 #ffffff40,0 5px 12px #230b2520}.ds-link:focus-visible{outline:3px solid #a55dd4;outline-offset:3px}"
+    },
+    {
+      "name": "Status Chip",
+      "kind": "chip",
+      "refersTo": "admin-status",
+      "description": "Status Chip as implemented in the admin extension.",
+      "html": "<span class=\"ds-status\">Mahasiswa</span>",
+      "css": ".ds-status{font-family:\"Plus Jakarta Sans\",sans-serif;display:inline-block;border-radius:6px;padding:4px 7px;background:#f0f4f5;color:#52686c;font-size:9px;font-weight:600}"
+    },
+    {
+      "name": "Data Section",
+      "kind": "card",
+      "refersTo": "admin-section",
+      "description": "Data Section as implemented in the admin extension.",
+      "html": "<section class=\"ds-section\"><header class=\"ds-header\"><h2>Aktivitas kunjungan</h2><p>Presensi ruang baca pada pekan berjalan.</p></header><div class=\"ds-content\">Berdasarkan presensi yang tercatat.</div></section>",
+      "css": ".ds-section{font-family:\"Plus Jakarta Sans\",sans-serif;border-radius:21px;background:#ffffffc9;box-shadow:0 8px 28px -20px #40294f38,inset 0 1px 0 #fff;backdrop-filter:blur(16px);color:#292638}.ds-header{padding:21px 22px 17px;border-bottom:1px solid #ece7f0}.ds-header h2{margin:0;font-size:14px;font-weight:700;letter-spacing:-.025em}.ds-header p{margin:4px 0 0;font-size:11px;line-height:1.7;color:var(--muted-foreground,#64748b)}.ds-content{padding:17px 22px 22px;font-size:14px}"
+    },
+    {
+      "name": "Welcome Link",
+      "kind": "button",
+      "description": "Welcome Link as implemented in the admin extension.",
+      "html": "<a class=\"ds-hero-link\" href=\"#katalog\">Lihat katalog publik</a>",
+      "css": ".ds-hero-link{font-family:\"Plus Jakarta Sans\",sans-serif;display:inline-flex;padding:10px 14px;border-radius:10px;font-size:11px;font-weight:700;color:#fff;background:#ffffff1e;border:1px solid #ffffff40;backdrop-filter:blur(12px);box-shadow:inset 0 1px 0 #ffffff30,0 4px 12px #280b2c16;text-decoration:none;transition:background .2s}.ds-hero-link:hover{background:#ffffff32}.ds-hero-link:focus-visible{outline:3px solid #a55dd4;outline-offset:3px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "PMat mathematical geometry",
+    "overview": "PMat mathematical geometry is the inherited visual anchor: the ULM identity, maroon fields, Plus Jakarta Sans, and luminous white glass connect the public portal and internal workspace. The admin extension uses compact type, pale colored surfaces, and controlled shadows to keep operational content readable.\n\nThis record describes the shipped admin extension and its shared primitives. The public landing and catalog remain the visual authority for the established identity; this documentation does not declare those pages redesigned. Route composition and validation evidence live in the dashboard surface brief.",
+    "keyCharacteristics": [
+      "Maroon identity with rose, violet, teal, and amber category accents.",
+      "Frosted white panels, specular edges, and softly rounded controls.",
+      "Strong numeric hierarchy and compact operational typography.",
+      "Mathematical glass geometry with restrained hover motion."
+    ],
+    "rules": [
+      {
+        "name": "The Inherited Identity Rule",
+        "body": "Keep maroon, Plus Jakarta Sans, and the ULM identity recognizable across public and internal surfaces. Scope internal overrides to the admin workspace and its drawer.",
+        "section": "colors"
+      },
+      {
+        "name": "The Label Alongside Color Rule",
+        "body": "Category colors accompany visible labels, icons, and values; they do not carry meaning alone.",
+        "section": "colors"
+      },
+      {
+        "name": "The Readable Glass Rule",
+        "body": "Use substantial white fill for data panels. Transparent faces and orbit lines belong to decorative geometry, away from operational text.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do retain the public identity and scope admin styling to the workspace or drawer.",
+      "Do pair category colors with text and SVG icons.",
+      "Do use one page h1 and h2 headings for titled data sections.",
+      "Do keep overflow inside table containers and retain visible keyboard focus.",
+      "Do preserve the reduced-motion treatment and label mobile navigation."
+    ],
+    "donts": [
+      "Don't import the public hero display size into compact admin panels.",
+      "Don't use decorative geometry as the background of dense data text.",
+      "Don't turn the dashboard overview composition into a requirement for every route.",
+      "Don't treat compact metadata sizes as the default for body copy."
+    ]
+  }
+}

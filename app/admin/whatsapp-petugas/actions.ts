@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireStaffRole } from "@/lib/auth-guards";
+import { requireActiveStaffRole } from "@/lib/auth-guards";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
 import { normalizePhoneNumber } from "@/lib/whatsapp-drafts";
 
@@ -20,7 +20,7 @@ export type WhatsappPetugasActionResult = {
 export async function saveWhatsappPetugas(
   input: WhatsappPetugasInput,
 ): Promise<WhatsappPetugasActionResult> {
-  const auth = await requireStaffRole(["admin"]);
+  const auth = await requireActiveStaffRole("whatsapp", ["admin"]);
   if (!auth.ok) return failure(auth.message);
 
   const id = input.id?.trim();
@@ -56,7 +56,7 @@ export async function setWhatsappPetugasActive(
   id: string,
   isActive: boolean,
 ): Promise<WhatsappPetugasActionResult> {
-  const auth = await requireStaffRole(["admin"]);
+  const auth = await requireActiveStaffRole("whatsapp", ["admin"]);
   if (!auth.ok) return failure(auth.message);
 
   if (!id.trim()) return failure("Data petugas tidak valid.");

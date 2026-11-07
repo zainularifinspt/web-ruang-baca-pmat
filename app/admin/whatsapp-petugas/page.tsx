@@ -1,3 +1,4 @@
+import { internalFeatures } from "@/lib/internal-features";
 import { redirect } from "next/navigation";
 import { MessageCircle } from "lucide-react";
 import {
@@ -15,6 +16,7 @@ import { requireStaffRole } from "@/lib/auth-guards";
 export const dynamic = "force-dynamic";
 
 export default async function WhatsappPetugasPage() {
+  if (!internalFeatures.whatsapp) redirect("/dashboard");
   const auth = await requireStaffRole(["admin"]);
 
   if (!auth.ok) {
@@ -22,7 +24,9 @@ export default async function WhatsappPetugasPage() {
   }
 
   const { rows, profiles, error } = await fetchWhatsappPetugasData();
-  const currentProfile = profiles.find((profile) => profile.id === auth.user.id);
+  const currentProfile = profiles.find(
+    (profile) => profile.id === auth.user.id,
+  );
   const metadata = auth.user.user_metadata ?? {};
   const userDisplayName =
     currentProfile?.full_name ??
@@ -33,7 +37,11 @@ export default async function WhatsappPetugasPage() {
   const userEmail = currentProfile?.email ?? auth.user.email ?? "";
 
   return (
-    <DashboardRoot role={auth.role} userDisplayName={userDisplayName} userEmail={userEmail}>
+    <DashboardRoot
+      role={auth.role}
+      userDisplayName={userDisplayName}
+      userEmail={userEmail}
+    >
       <div className="space-y-6">
         <PageHeader
           eyebrow="Admin only"
@@ -71,21 +79,33 @@ export default async function WhatsappPetugasPage() {
 async function fetchWhatsappPetugasData() {
   try {
     const supabaseAdmin = createSupabaseAdminClient();
-    const [{ data: rows, error: rowsError }, { data: profiles, error: profilesError }] =
-      await Promise.all([
-        supabaseAdmin
-          .from("whatsapp_petugas")
-          .select("id,profile_id,nama,phone_number,is_active,created_at")
-          .order("created_at", { ascending: false }),
-        supabaseAdmin
-          .from("profiles")
-          .select("id,full_name,email,role")
-          .in("role", ["admin", "petugas", "dosen"])
-          .order("full_name", { ascending: true }),
-      ]);
+    const [
+      { data: rows, error: rowsError },
+      { data: profiles, error: profilesError },
+    ] = await Promise.all([
+      supabaseAdmin
+        .from("whatsapp_petugas")
+        .select("id,profile_id,nama,phone_number,is_active,created_at")
+        .order("created_at", { ascending: false }),
+      supabaseAdmin
+        .from("profiles")
+        .select("id,full_name,email,role")
+        .in("role", ["admin", "petugas", "dosen"])
+        .order("full_name", { ascending: true }),
+    ]);
 
-    if (rowsError) return { rows: [] as WhatsappPetugasRow[], profiles: [] as ProfileOption[], error: rowsError.message };
-    if (profilesError) return { rows: (rows ?? []) as WhatsappPetugasRow[], profiles: [] as ProfileOption[], error: profilesError.message };
+    if (rowsError)
+      return {
+        rows: [] as WhatsappPetugasRow[],
+        profiles: [] as ProfileOption[],
+        error: rowsError.message,
+      };
+    if (profilesError)
+      return {
+        rows: (rows ?? []) as WhatsappPetugasRow[],
+        profiles: [] as ProfileOption[],
+        error: profilesError.message,
+      };
 
     return {
       rows: (rows ?? []) as WhatsappPetugasRow[],
@@ -96,7 +116,10 @@ async function fetchWhatsappPetugasData() {
     return {
       rows: [] as WhatsappPetugasRow[],
       profiles: [] as ProfileOption[],
-      error: error instanceof Error ? error.message : "Gagal memuat data WhatsApp petugas.",
+      error:
+        error instanceof Error
+          ? error.message
+          : "Gagal memuat data WhatsApp petugas.",
     };
   }
 }

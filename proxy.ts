@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { type NextRequest, NextResponse } from "next/server";
 import { hasValidSupabaseConfig } from "@/lib/supabase-config";
 import { getUserAppRole } from "@/lib/app-roles";
+import { isInactiveInternalPath } from "@/lib/internal-features";
 
 function redirectToLogin(request: NextRequest, error?: string) {
   const loginUrl = new URL("/login", request.url);
@@ -37,6 +38,9 @@ function isProtectedDashboardPath(pathname: string) {
 }
 
 export async function proxy(request: NextRequest) {
+  if (isInactiveInternalPath(request.nextUrl.pathname)) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;

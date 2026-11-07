@@ -99,7 +99,6 @@ async function fetchManagedUsers() {
           email: profile.email ?? authUser?.email ?? "",
           fullName: profile.full_name ?? metadata.full_name ?? metadata.name ?? "",
           nimNip: textMetadata(metadata, ["nim_nip", "nimNip", "nim", "nip"]),
-          phoneNumber: textMetadata(metadata, ["phone_number", "phoneNumber", "whatsapp", "phone"]),
           role,
         };
       })

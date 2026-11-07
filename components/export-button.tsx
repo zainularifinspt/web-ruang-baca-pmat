@@ -1,9 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import { Download } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import type { Book, ExportType, Thesis } from "@/lib/types";
+import type { Attendance, Book, ExportType, Thesis } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const exportLabels: Record<ExportType, string> = {
@@ -17,11 +18,16 @@ export function ExportButton({
   className,
   type,
   label = "Ekspor",
+  attendances,
+  disabled = false,
 }: {
   className?: string;
   type: ExportType;
   label?: string;
+  attendances?: Attendance[];
+  disabled?: boolean;
 }) {
+  const [busy, setBusy] = useState(false);
   return (
     <Button
       variant="outline"
@@ -30,23 +36,53 @@ export function ExportButton({
         "rounded-lg border-slate-200 bg-white px-3.5 font-medium text-slate-700 shadow-xs transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900",
         className,
       )}
-      onClick={() => exportCatalogData(type)}
+      disabled={disabled || busy}
+      onClick={async () => {
+        setBusy(true);
+        try {
+          await exportCatalogData(type, attendances);
+        } finally {
+          setBusy(false);
+        }
+      }}
     >
       <Download />
-      {label}
+      {busy ? "Menyiapkan..." : label}
     </Button>
   );
 }
 
-async function exportCatalogData(type: ExportType) {
-  if (type !== "book" && type !== "thesis") {
-    toast.success(`Ekspor ${exportLabels[type]} disiapkan`, {
-      description: "File ekspor sedang disiapkan dari data sistem.",
-    });
-    return;
-  }
-
+async function exportCatalogData(type: ExportType, attendances?: Attendance[]) {
   try {
+    if (type === "attendance" || type === "visitor") {
+      if (!attendances?.length) {
+        toast.info("Belum ada presensi untuk diekspor.");
+        return;
+      }
+      const { utils, writeFile } = await import("xlsx");
+      const rows = attendances.map((item) => ({
+        Nama: item.guestName,
+        "NIM/NIP": item.guestNim,
+        Status: item.visitorStatus,
+        "Program studi": item.studyProgram,
+        Tujuan: item.purpose,
+        "Waktu (WITA)": new Intl.DateTimeFormat("id-ID", {
+          timeZone: "Asia/Makassar",
+          dateStyle: "medium",
+          timeStyle: "short",
+        }).format(new Date(item.visitedAt)),
+      }));
+      const workbook = utils.book_new();
+      utils.book_append_sheet(workbook, utils.json_to_sheet(rows), "Presensi");
+      writeFile(
+        workbook,
+        `export-${type === "visitor" ? "laporan-pengunjung" : "presensi"}.xlsx`,
+      );
+      toast.success("Ekspor selesai", {
+        description: `${rows.length} catatan presensi diunduh.`,
+      });
+      return;
+    }
     const [{ utils, writeFile }, response] = await Promise.all([
       import("xlsx"),
       fetch("/api/catalog?visibility=internal", { cache: "no-store" }),
@@ -88,9 +124,14 @@ async function exportCatalogData(type: ExportType) {
           }));
     const worksheet = utils.json_to_sheet(rows);
     const workbook = utils.book_new();
-    const filename = type === "book" ? "export-buku.xlsx" : "export-skripsi.xlsx";
+    const filename =
+      type === "book" ? "export-buku.xlsx" : "export-skripsi.xlsx";
 
-    utils.book_append_sheet(workbook, worksheet, type === "book" ? "Buku" : "Skripsi");
+    utils.book_append_sheet(
+      workbook,
+      worksheet,
+      type === "book" ? "Buku" : "Skripsi",
+    );
     writeFile(workbook, filename);
 
     toast.success(`Ekspor ${exportLabels[type]} selesai`, {
@@ -98,7 +139,10 @@ async function exportCatalogData(type: ExportType) {
     });
   } catch (error) {
     toast.error(`Gagal ekspor ${exportLabels[type]}`, {
-      description: error instanceof Error ? error.message : "Terjadi kesalahan saat membuat XLSX.",
+      description:
+        error instanceof Error
+          ? error.message
+          : "Terjadi kesalahan saat membuat XLSX.",
     });
   }
 }

@@ -1,7 +1,6 @@
 import { cn } from "@/lib/utils";
 
 export function PageHeader({
-  eyebrow,
   title,
   description,
   action,
@@ -16,14 +15,11 @@ export function PageHeader({
   return (
     <div
       className={cn(
-        "flex flex-col gap-4 rounded-2xl border bg-white p-5 shadow-sm sm:flex-row sm:items-end sm:justify-between sm:p-6",
+        "admin-content-heading flex flex-col gap-4 rounded-2xl border bg-white p-5 shadow-sm sm:flex-row sm:items-end sm:justify-between sm:p-6",
         className,
       )}
     >
       <div className="max-w-3xl">
-        {eyebrow ? (
-          <p className="text-sm font-semibold text-primary">{eyebrow}</p>
-        ) : null}
         <h1 className="mt-1 text-2xl font-bold tracking-normal text-slate-950 sm:text-3xl">
           {title}
         </h1>

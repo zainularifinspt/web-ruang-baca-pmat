@@ -1,3 +1,4 @@
+import { internalFeatures, inactiveFeatureMessage } from "@/lib/internal-features";
 import { NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
 import {
@@ -17,6 +18,9 @@ type WhatsappPetugasMatch = {
 };
 
 export async function GET(request: Request) {
+  if (!internalFeatures.whatsapp) {
+    return NextResponse.json({ error: inactiveFeatureMessage }, { status: 503, headers: { "Cache-Control": "no-store" } });
+  }
   const { searchParams } = new URL(request.url);
   const mode = searchParams.get("hub.mode");
   const verifyToken = searchParams.get("hub.verify_token");
@@ -39,6 +43,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  if (!internalFeatures.whatsapp) {
+    return NextResponse.json({ error: inactiveFeatureMessage }, { status: 503, headers: { "Cache-Control": "no-store" } });
+  }
   let payload: unknown;
 
   try {

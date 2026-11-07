@@ -39,7 +39,6 @@ export type ManagedUser = {
   email: string;
   fullName: string;
   nimNip: string;
-  phoneNumber: string;
   role: Role;
 };
 
@@ -51,7 +50,6 @@ const emptyForm = {
   password: "",
   confirmPassword: "",
   nimNip: "",
-  phoneNumber: "",
   role: "mahasiswa" as ManagedUserRole,
 };
 
@@ -77,13 +75,12 @@ export function UsersManagement({ users }: { users: ManagedUser[] }) {
   );
 
   return (
-    <Table className="min-w-[920px]">
+    <Table className="min-w-[780px]">
       <TableHeader>
         <TableRow>
           <TableHead>Nama</TableHead>
           <TableHead>Email</TableHead>
           <TableHead>NIM/NIP</TableHead>
-              <TableHead>No. WhatsApp</TableHead>
               <TableHead>Peran</TableHead>
               <TableHead className="w-[360px] text-right">Aksi</TableHead>
         </TableRow>
@@ -100,7 +97,6 @@ export function UsersManagement({ users }: { users: ManagedUser[] }) {
               </TableCell>
               <TableCell>{user.email}</TableCell>
               <TableCell>{user.nimNip || "-"}</TableCell>
-              <TableCell>{user.phoneNumber || "-"}</TableCell>
               <TableCell>
                 <Badge variant="secondary">{roleLabels[user.role]}</Badge>
               </TableCell>
@@ -121,7 +117,7 @@ export function UsersManagement({ users }: { users: ManagedUser[] }) {
           ))
         ) : (
           <TableRow>
-            <TableCell colSpan={6} className="py-8">
+            <TableCell colSpan={5} className="py-8">
               <EmptyState
                 title="Belum ada pengguna"
                 description="Pengguna akan tampil di sini setelah ditambahkan."
@@ -165,7 +161,6 @@ function ExportUsersButton({ users }: { users: ManagedUser[] }) {
         full_name: user.fullName,
         email: user.email,
         nim_nip: user.nimNip,
-        phone_number: user.phoneNumber,
         role: user.role,
         role_label: roleLabels[user.role],
       }));
@@ -376,7 +371,6 @@ function UserDialog({ user }: { user?: ManagedUser }) {
           password: "",
           confirmPassword: "",
           nimNip: user.nimNip,
-          phoneNumber: user.phoneNumber,
           role: (editableRoles.includes(user.role as ManagedUserRole)
             ? user.role
             : "mahasiswa") as ManagedUserRole,
@@ -448,14 +442,6 @@ function UserDialog({ user }: { user?: ManagedUser }) {
                 value={values.nimNip}
                 onChange={(event) => setValues({ ...values, nimNip: event.target.value })}
                 placeholder="NIM atau NIP"
-                required
-              />
-            </Field>
-            <Field label="No. WhatsApp">
-              <Input
-                value={values.phoneNumber}
-                onChange={(event) => setValues({ ...values, phoneNumber: event.target.value })}
-                placeholder="+62812..."
                 required
               />
             </Field>

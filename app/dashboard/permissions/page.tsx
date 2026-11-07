@@ -5,7 +5,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { permissionLabels, roleLabels, rolePermissions } from "@/lib/mock-data";
 import type { Permission, Role } from "@/lib/types";
 
-const permissions = Object.keys(permissionLabels) as Permission[];
+const permissions = (Object.keys(permissionLabels) as Permission[]).filter(
+  (permission) => permission !== "verify_collection" && permission !== "use_whatsapp_simulation",
+);
 const roles = Object.keys(roleLabels) as Role[];
 
 export default function PermissionMatrixPage() {

@@ -15,7 +15,6 @@ export type SaveUserInput = {
   password?: string;
   confirmPassword?: string;
   nimNip: string;
-  phoneNumber: string;
   role: ManagedUserRole;
 };
 
@@ -41,7 +40,6 @@ export async function saveManagedUser(input: SaveUserInput): Promise<SaveUserRes
   const password = input.password ?? "";
   const confirmPassword = input.confirmPassword ?? "";
   const nimNip = input.nimNip.trim();
-  const phoneNumber = input.phoneNumber.trim();
   const role = input.role;
   const isEditing = Boolean(userId);
 
@@ -49,7 +47,6 @@ export async function saveManagedUser(input: SaveUserInput): Promise<SaveUserRes
   if (!email.includes("@")) return failure("Email tidak valid.");
   if (!managedRoles.includes(role)) return failure("Role pengguna tidak valid.");
   if (!nimNip) return failure("NIM/NIP wajib diisi.");
-  if (!phoneNumber) return failure("No. WhatsApp wajib diisi.");
   if (!isEditing && password.length < 6) return failure("Password minimal 6 karakter.");
   if (password && password.length < 6) return failure("Password minimal 6 karakter.");
   if (password !== confirmPassword) return failure("Konfirmasi password tidak sama.");
@@ -70,7 +67,6 @@ export async function saveManagedUser(input: SaveUserInput): Promise<SaveUserRes
       app_role: role,
       full_name: fullName,
       nim_nip: nimNip,
-      phone_number: phoneNumber,
     };
 
     const updatePayload = {

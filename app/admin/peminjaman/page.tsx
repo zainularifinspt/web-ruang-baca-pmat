@@ -1,3 +1,4 @@
+import { internalFeatures } from "@/lib/internal-features";
 import { redirect } from "next/navigation";
 import { BookMarked } from "lucide-react";
 import { DashboardRoot } from "@/components/dashboard-shell";
@@ -13,6 +14,7 @@ import { fetchLoansPageData } from "@/lib/loans";
 export const dynamic = "force-dynamic";
 
 export default async function LoansPage() {
+  if (!internalFeatures.loans) redirect("/dashboard");
   const auth = await requireStaffRole(["admin", "dosen", "petugas"]);
 
   if (!auth.ok) {
@@ -37,7 +39,11 @@ export default async function LoansPage() {
   const userEmail = profileResult.data?.email ?? auth.user.email ?? "";
 
   return (
-    <DashboardRoot role={auth.role} userDisplayName={userDisplayName} userEmail={userEmail}>
+    <DashboardRoot
+      role={auth.role}
+      userDisplayName={userDisplayName}
+      userEmail={userEmail}
+    >
       <div className="space-y-6">
         <PageHeader
           eyebrow="Manajemen"
@@ -48,7 +54,11 @@ export default async function LoansPage() {
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <Metric label="Aktif" value={data.activeCount} tone="emerald" />
           <Metric label="Terlambat" value={data.overdueCount} tone="rose" />
-          <Metric label="Dikembalikan" value={data.returnedCount} tone="slate" />
+          <Metric
+            label="Dikembalikan"
+            value={data.returnedCount}
+            tone="slate"
+          />
           <Metric label="Dibatalkan" value={data.cancelledCount} tone="amber" />
         </div>
 
@@ -90,7 +100,9 @@ function Metric({
   return (
     <Card className="rounded-2xl border-slate-200 bg-white shadow-sm">
       <CardContent className="flex items-center gap-4 p-5">
-        <span className={`flex size-12 items-center justify-center rounded-2xl border ${tones[tone]}`}>
+        <span
+          className={`flex size-12 items-center justify-center rounded-2xl border ${tones[tone]}`}
+        >
           <BookMarked className="size-5" />
         </span>
         <div>

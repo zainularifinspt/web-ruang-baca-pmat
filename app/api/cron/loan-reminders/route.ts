@@ -1,3 +1,4 @@
+import { internalFeatures, inactiveFeatureMessage } from "@/lib/internal-features";
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
 import {
@@ -30,6 +31,9 @@ type CronLoanRow = {
 };
 
 export async function GET(request: NextRequest) {
+  if (!internalFeatures.loans) {
+    return NextResponse.json({ error: inactiveFeatureMessage }, { status: 503, headers: { "Cache-Control": "no-store" } });
+  }
   const cronSecret = process.env.CRON_SECRET?.trim();
   const authorization = request.headers.get("authorization")?.trim() ?? "";
 
