@@ -286,22 +286,86 @@ export function ReaderApp({
         >
           <ArrowLeft size={18} />
         </Link>
-        <div className="reader-brand-mark">
+        <div className="reader-brand-mark" aria-hidden="true">
           <BookOpen size={19} />
         </div>
         <div className="reader-heading">
           <h1>{title}</h1>
-          <p>{author || "Ruang Baca PMat"}</p>
+          <p>
+            {author || "Ruang Baca PMat"}
+            {kind === "thesis" && (
+              <span className="reader-document-kind">Repositori Skripsi</span>
+            )}
+          </p>
         </div>
-        <button
-          className="reader-icon-button"
-          type="button"
-          aria-label={fullscreenLabel}
-          title={fullscreenLabel}
-          onClick={toggleFullscreen}
+        <div
+          className="reader-header-actions"
+          role="group"
+          aria-label="Kontrol pembaca"
         >
-          {fullscreen ? <Shrink size={18} /> : <Expand size={18} />}
-        </button>
+          {fallbackUrl && (
+            <a
+              href={fallbackUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="reader-source-link"
+              aria-label={sourceLabel}
+              title={sourceLabel}
+            >
+              <ExternalLink size={15} aria-hidden="true" />
+              <span className="reader-source-label">{sourceLabel}</span>
+              <span className="reader-source-short">
+                {sourceLabel === "Lihat di Google Drive"
+                  ? "Google Drive"
+                  : "PDF asli"}
+              </span>
+            </a>
+          )}
+          <button
+            className="reader-mode-button"
+            type="button"
+            onClick={() => setVertical((v) => !v)}
+            aria-label={modeLabel}
+            title={modeLabel}
+            aria-pressed={pageMode}
+            disabled={reducedMotion || zoom > 1}
+          >
+            <Layers size={16} aria-hidden="true" />
+            <span>{modeLabel}</span>
+          </button>
+          <div
+            className="reader-zoom"
+            role="group"
+            aria-label="Perbesaran halaman"
+          >
+            <button
+              type="button"
+              onClick={() => setZoom((z) => Math.max(1, z - 0.25))}
+              aria-label="Perkecil"
+              disabled={zoom <= 1}
+            >
+              <ZoomOut size={15} />
+            </button>
+            <span className="reader-zoom-label">{Math.round(zoom * 100)}%</span>
+            <button
+              type="button"
+              onClick={() => setZoom((z) => Math.min(2, z + 0.25))}
+              aria-label="Perbesar"
+              disabled={zoom >= 2}
+            >
+              <ZoomIn size={15} />
+            </button>
+          </div>
+          <button
+            className="reader-icon-button reader-fullscreen"
+            type="button"
+            aria-label={fullscreenLabel}
+            title={fullscreenLabel}
+            onClick={toggleFullscreen}
+          >
+            {fullscreen ? <Shrink size={18} /> : <Expand size={18} />}
+          </button>
+        </div>
       </header>
       <div className="reader-body">
         <main
@@ -309,56 +373,6 @@ export function ReaderApp({
           aria-label="Halaman buku"
           inert={mobile && !!tab}
         >
-          <div className="reader-stage-bar">
-            {kind === "thesis" && (
-              <span>
-                <span className="reader-live-dot" /> Repositori Skripsi
-              </span>
-            )}
-            <div>
-              {fallbackUrl && (
-                <a
-                  href={fallbackUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="reader-source-link"
-                >
-                  {sourceLabel}
-                  <ExternalLink size={13} aria-hidden="true" />
-                </a>
-              )}
-              <button
-                className={vertical ? "is-selected" : ""}
-                type="button"
-                onClick={() => setVertical((v) => !v)}
-                aria-label={modeLabel}
-                aria-pressed={pageMode}
-                disabled={reducedMotion || zoom > 1}
-              >
-                <Layers size={14} />
-                <span>{modeLabel}</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setZoom((z) => Math.max(1, z - 0.25))}
-                aria-label="Perkecil"
-                disabled={zoom <= 1}
-              >
-                <ZoomOut size={15} />
-              </button>
-              <span className="reader-zoom-label">
-                {Math.round(zoom * 100)}%
-              </span>
-              <button
-                type="button"
-                onClick={() => setZoom((z) => Math.min(2, z + 0.25))}
-                aria-label="Perbesar"
-                disabled={zoom >= 2}
-              >
-                <ZoomIn size={15} />
-              </button>
-            </div>
-          </div>
           {error ? (
             <div className="reader-state">
               <BookOpen size={40} />

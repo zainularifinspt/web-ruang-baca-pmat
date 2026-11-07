@@ -52,7 +52,7 @@ export function ChatPanel({
   async function send(event: React.FormEvent) {
     event.preventDefault();
     const question = input.trim();
-    if (!question || busy) return;
+    if (question.length < 2 || busy) return;
     const history = messages
       .slice(-4)
       .map((m) => ({ role: m.role, content: m.content }));
@@ -189,6 +189,13 @@ export function ChatPanel({
           maxLength={1200}
           value={input}
           onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key !== "Enter" || e.shiftKey || e.nativeEvent.isComposing)
+              return;
+            e.preventDefault();
+            e.currentTarget.form?.requestSubmit();
+          }}
+          enterKeyHint="send"
           placeholder={
             scope?.page
               ? "Tanyakan isi halaman ini…"
@@ -203,27 +210,28 @@ export function ChatPanel({
           type="submit"
           disabled={busy || input.trim().length < 2}
           aria-label="Kirim pertanyaan"
+          title="Kirim pertanyaan (Enter)"
         >
           <ArrowUp size={18} />
         </button>
       </form>
-      <div className="reader-chat-foot">
-        <span>
-          {remaining !== null
-            ? `${remaining} pertanyaan tersisa hari ini`
-            : "Jawaban singkat, selalu bersumber."}
-        </span>
-        {messages.length > 0 && (
-          <button
-            type="button"
-            onClick={() => setMessages([])}
-            disabled={busy}
-            aria-label="Hapus percakapan lokal"
-          >
-            <RotateCcw size={13} />
-          </button>
-        )}
-      </div>
+      {(remaining !== null || messages.length > 0) && (
+        <div className="reader-chat-foot">
+          {remaining !== null && (
+            <span>{remaining} pertanyaan tersisa hari ini</span>
+          )}
+          {messages.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setMessages([])}
+              disabled={busy}
+              aria-label="Hapus percakapan lokal"
+            >
+              <RotateCcw size={13} />
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
