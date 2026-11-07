@@ -23,13 +23,18 @@ type Message = {
 export function ChatPanel({
   scope,
   onSource,
+  compact = false,
   title = "Tanya Ruang Baca",
 }: {
   scope?: Scope;
   onSource?: (url: string) => void;
+  compact?: boolean;
   title?: string;
 }) {
   const documentName = scope?.kind === "thesis" ? "skripsi" : "buku";
+  const scopedExample = scope?.page
+    ? "Apa inti pembahasan di halaman ini?"
+    : `Apa topik utama ${documentName} ini?`;
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -93,19 +98,21 @@ export function ChatPanel({
   }
   return (
     <div className="reader-chat">
-      <div className="reader-panel-intro">
-        <div className="reader-panel-symbol">
-          <MessageCircle size={19} />
+      {!compact && (
+        <div className="reader-panel-intro">
+          <div className="reader-panel-symbol">
+            <MessageCircle size={19} />
+          </div>
+          <h2>{title}</h2>
+          <p>
+            {scope?.page
+              ? `Bertanya tentang halaman PDF ${scope.page}.`
+              : scope
+                ? `Jawaban dari bagian ${documentName} yang dapat dibaca.`
+                : "Temukan koleksi dan jawaban dari sumber Ruang Baca."}
+          </p>
         </div>
-        <h2>{title}</h2>
-        <p>
-          {scope?.page
-            ? `Bertanya tentang halaman PDF ${scope.page}.`
-            : scope
-              ? `Jawaban dari bagian ${documentName} yang dapat dibaca.`
-              : "Temukan koleksi dan jawaban dari sumber Ruang Baca."}
-        </p>
-      </div>
+      )}
       <div
         className="reader-messages"
         ref={messagesBox}
@@ -113,13 +120,15 @@ export function ChatPanel({
         aria-relevant="additions text"
       >
         {!messages.length && (
-          <div className="reader-chat-empty">
-            <BookOpen size={28} />
-            <p>Mulai dari rasa ingin tahu.</p>
+          <div className={`reader-chat-empty${compact ? " is-compact" : ""}`}>
+            {compact ? <MessageCircle size={24} /> : <BookOpen size={28} />}
+            <p>{compact ? "Coba tanyakan" : "Mulai dari rasa ingin tahu."}</p>
             <span>
-              {scope
-                ? "Coba “Apa pembahasan utama bagian ini?”"
-                : "Coba “Cari buku tentang statistika”."}
+              {compact
+                ? `“${scopedExample}”`
+                : scope
+                  ? "Coba “Apa pembahasan utama bagian ini?”"
+                  : "Coba “Cari buku tentang statistika”."}
             </span>
           </div>
         )}
@@ -181,7 +190,11 @@ export function ChatPanel({
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder={
-            scope ? `Tanyakan isi ${documentName}…` : "Cari koleksi atau tanyakan topik…"
+            scope?.page
+              ? "Tanyakan isi halaman ini…"
+              : scope
+                ? `Tanyakan isi ${documentName}…`
+                : "Cari koleksi atau tanyakan topik…"
           }
           rows={2}
           disabled={busy}

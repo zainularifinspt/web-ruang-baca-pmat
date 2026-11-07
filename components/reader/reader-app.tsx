@@ -16,9 +16,11 @@ import {
   ChevronRight,
   Expand,
   ExternalLink,
+  FileText,
   Grid2X2,
   Loader2,
   Search,
+  Shrink,
   X,
   ZoomIn,
   ZoomOut,
@@ -67,6 +69,7 @@ export function ReaderApp({
   const [pageInput, setPageInput] = useState<string | null>(null);
   const [zoom, setZoom] = useState(1);
   const [vertical, setVertical] = useState(kind === "thesis");
+  const [fullscreen, setFullscreen] = useState(false);
   const [tab, setTab] = useState<"search" | "chat" | "thumbs" | null>(null);
   const [query, setQuery] = useState("");
   const [hits, setHits] = useState<SearchHit[]>([]);
@@ -85,6 +88,13 @@ export function ReaderApp({
   const panel = useRef<HTMLElement>(null);
   const searchVersion = useRef(0);
   const mobile = useSyncExternalStore(subscribeMobile, getMobile, () => false);
+  useEffect(() => {
+    const syncFullscreen = () => {
+      setFullscreen(document.fullscreenElement === root.current);
+    };
+    document.addEventListener("fullscreenchange", syncFullscreen);
+    return () => document.removeEventListener("fullscreenchange", syncFullscreen);
+  }, []);
   useEffect(() => {
     if (!tab) return;
     const previous = document.activeElement as HTMLElement | null;
@@ -232,6 +242,20 @@ export function ReaderApp({
   const index = manifest?.pages.findIndex((p) => p.number === current) ?? 0;
   const toggle = (value: typeof tab) =>
     setTab((prev) => (prev === value ? null : value));
+  const fullscreenLabel = fullscreen
+    ? "Keluar dari layar penuh"
+    : "Layar penuh";
+  async function toggleFullscreen() {
+    const reader = root.current;
+    if (!reader) return;
+    try {
+      if (document.fullscreenElement === reader) await document.exitFullscreen();
+      else await reader.requestFullscreen();
+      setNotice("");
+    } catch {
+      setNotice("Layar penuh tidak tersedia pada perangkat ini.");
+    }
+  }
   return (
     <div
       className="reader-shell"
@@ -269,24 +293,14 @@ export function ReaderApp({
           <h1>{title}</h1>
           <p>{author || "Ruang Baca PMat"}</p>
         </div>
-        <span className="reader-brand-name">
-          Ruang Baca<span>.</span>
-        </span>
         <button
           className="reader-icon-button"
           type="button"
-          aria-label="Layar penuh"
-          onClick={() => {
-            if (document.fullscreenElement) void document.exitFullscreen();
-            else
-              void root.current
-                ?.requestFullscreen()
-                .catch(() =>
-                  setNotice("Layar penuh tidak tersedia pada perangkat ini."),
-                );
-          }}
+          aria-label={fullscreenLabel}
+          title={fullscreenLabel}
+          onClick={toggleFullscreen}
         >
-          <Expand size={18} />
+          {fullscreen ? <Shrink size={18} /> : <Expand size={18} />}
         </button>
       </header>
       <div className="reader-body">
@@ -296,10 +310,11 @@ export function ReaderApp({
           inert={mobile && !!tab}
         >
           <div className="reader-stage-bar">
-            <span>
-              <span className="reader-live-dot" />{" "}
-              {kind === "book" ? "E-Book Digital" : "Repositori Skripsi"}
-            </span>
+            {kind === "thesis" && (
+              <span>
+                <span className="reader-live-dot" /> Repositori Skripsi
+              </span>
+            )}
             <div>
               {fallbackUrl && (
                 <a
@@ -526,13 +541,21 @@ export function ReaderApp({
             }
           >
             <div className="reader-panel-header">
-              <span>
-                {tab === "chat"
-                  ? `Asisten ${documentName}`
-                  : tab === "search"
-                    ? "Pencarian isi"
-                    : "Jelajahi halaman"}
-              </span>
+              {tab === "chat" ? (
+                <span className="reader-chat-identity">
+                  <Image
+                    src="/mascots/tama-chat.png"
+                    alt=""
+                    width={32}
+                    height={29}
+                  />
+                  Tama
+                </span>
+              ) : (
+                <span>
+                  {tab === "search" ? "Pencarian isi" : "Jelajahi halaman"}
+                </span>
+              )}
               <button
                 className="reader-icon-button"
                 type="button"
@@ -544,25 +567,33 @@ export function ReaderApp({
             </div>
             {tab === "chat" ? (
               <>
-                <div className="reader-scope">
+                <div
+                  className="reader-scope"
+                  role="group"
+                  aria-label={`Cakupan pertanyaan ${documentName}`}
+                >
                   <button
                     type="button"
                     className={!chatPage ? "is-active" : ""}
+                    aria-pressed={!chatPage}
                     onClick={() => setChatPage(false)}
                   >
+                    <BookOpen size={15} aria-hidden="true" />
                     {kind === "thesis" ? "Skripsi ini" : "Buku ini"}
                   </button>
                   <button
                     type="button"
                     className={chatPage ? "is-active" : ""}
+                    aria-pressed={chatPage}
                     onClick={() => setChatPage(true)}
                   >
+                    <FileText size={15} aria-hidden="true" />
                     Halaman {current}
                   </button>
                 </div>
                 <ChatPanel
                   key={`${manifest.key}:${chatPage ? current : "book"}`}
-                  title={chatPage ? "Tanya halaman ini" : `Tanya ${documentName} ini`}
+                  compact
                   scope={{
                     kind,
                     id,
