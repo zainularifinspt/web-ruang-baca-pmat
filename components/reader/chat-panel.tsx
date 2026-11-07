@@ -29,6 +29,7 @@ export function ChatPanel({
   onSource?: (url: string) => void;
   title?: string;
 }) {
+  const documentName = scope?.kind === "thesis" ? "skripsi" : "buku";
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -101,7 +102,7 @@ export function ChatPanel({
           {scope?.page
             ? `Bertanya tentang halaman PDF ${scope.page}.`
             : scope
-              ? "Jawaban dari bagian buku yang dapat dibaca."
+              ? `Jawaban dari bagian ${documentName} yang dapat dibaca.`
               : "Temukan koleksi dan jawaban dari sumber Ruang Baca."}
         </p>
       </div>
@@ -180,7 +181,7 @@ export function ChatPanel({
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder={
-            scope ? "Tanyakan isi buku…" : "Cari koleksi atau tanyakan topik…"
+            scope ? `Tanyakan isi ${documentName}…` : "Cari koleksi atau tanyakan topik…"
           }
           rows={2}
           disabled={busy}

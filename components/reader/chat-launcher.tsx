@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import { MessageCircle, X } from "lucide-react";
+import type { ReaderManifest } from "@/lib/reader/types";
 import {
   Dialog,
   DialogClose,
@@ -21,7 +22,13 @@ const ChatPanel = dynamic(
     ssr: false,
   },
 );
-export function ChatLauncher() {
+export function ChatLauncher({
+  thesisId,
+  portalContainer,
+}: {
+  thesisId?: string;
+  portalContainer?: HTMLElement;
+} = {}) {
   const [open, setOpen] = useState(false);
   const [hidden, setHidden] = useState(false);
   const close = useRef<HTMLButtonElement>(null);
@@ -59,6 +66,7 @@ export function ChatLauncher() {
       <DialogContent
         className="catalog-chat-dialog left-auto top-auto translate-x-0 translate-y-0"
         hideCloseButton
+        portalContainer={portalContainer}
         onInteractOutside={(event) => event.preventDefault()}
         onOpenAutoFocus={(event) => {
           event.preventDefault();
@@ -89,8 +97,52 @@ export function ChatLauncher() {
             </button>
           </DialogClose>
         </div>
-        {open && <ChatPanel />}
+        {open && (thesisId ? <ThesisChat key={thesisId} id={thesisId} /> : <ChatPanel />)}
       </DialogContent>
     </Dialog>
+  );
+}
+
+function ThesisChat({ id }: { id: string }) {
+  const [revision, setRevision] = useState("");
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const { signal } = controller;
+
+    async function load() {
+      try {
+        const response = await fetch(`/api/reader/thesis/${encodeURIComponent(id)}`, { signal });
+        if (signal.aborted) return;
+        if (response.status === 404) {
+          setMessage("Teks skripsi ini belum disiapkan untuk Tama. PDF tetap bisa dibaca.");
+          return;
+        }
+        if (!response.ok) throw new Error("Indeks skripsi belum dapat dimuat.");
+        const manifest: ReaderManifest = await response.json();
+        if (signal.aborted) return;
+        if (manifest.searchReady) setRevision(manifest.revision);
+        else setMessage("Skripsi ini belum memiliki teks yang dapat ditelusuri Tama.");
+      } catch {
+        if (!signal.aborted) {
+          setMessage("Tama belum dapat memuat skripsi ini. Tutup panel lalu coba lagi.");
+        }
+      }
+    }
+
+    void load();
+    return () => controller.abort();
+  }, [id]);
+
+  if (revision) {
+    return <ChatPanel title="Tanya skripsi ini" scope={{ kind: "thesis", id, revision }} />;
+  }
+
+  return (
+    <div className="reader-panel-intro">
+      <h2>Tanya skripsi ini</h2>
+      <p role="status">{message || "Menyiapkan sumber skripsi…"}</p>
+    </div>
   );
 }

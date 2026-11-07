@@ -86,6 +86,7 @@ export default async function CollectionDetailPage({
                   <p className="font-medium text-foreground">File Skripsi</p>
                   <div className="mt-2">
                     <ThesisPdfViewer
+                      thesisId={item.id}
                       pdfUrl={item.pdfUrl}
                       pdfR2={item.pdfR2}
                       pdfFilename={item.pdfFilename}

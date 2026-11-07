@@ -310,6 +310,7 @@ export function CollectionDetailContent({ item }: { item: CollectionItem }) {
                     </div>
                     <div className="mt-6 md:mt-0">
                       <ThesisPdfViewer
+                        thesisId={item.id}
                         pdfUrl={item.pdfUrl}
                         pdfR2={item.pdfR2}
                         pdfFilename={item.pdfFilename}

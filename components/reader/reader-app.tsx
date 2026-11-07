@@ -54,6 +54,8 @@ export function ReaderApp({
   requestedRevision,
   fallbackUrl,
 }: Props) {
+  const chatLabel = kind === "thesis" ? "Tanya Tama" : "Tanya buku";
+  const documentName = kind === "thesis" ? "skripsi" : "buku";
   const [manifest, setManifest] = useState<ReaderManifest | null>(null);
   const [error, setError] = useState("");
   const [reload, setReload] = useState(0);
@@ -494,7 +496,7 @@ export function ReaderApp({
                   sizes="35px"
                   className="tama-reader-icon"
                 />
-                <span>Tanya buku</span>
+                <span>{chatLabel}</span>
               </button>
             </div>
           </footer>
@@ -528,7 +530,7 @@ export function ReaderApp({
             }}
             aria-label={
               tab === "chat"
-                ? "Tanya buku"
+                ? chatLabel
                 : tab === "search"
                   ? "Pencarian isi"
                   : "Navigasi dokumen"
@@ -537,7 +539,7 @@ export function ReaderApp({
             <div className="reader-panel-header">
               <span>
                 {tab === "chat"
-                  ? "Asisten buku"
+                  ? `Asisten ${documentName}`
                   : tab === "search"
                     ? "Pencarian isi"
                     : tab === "text"
@@ -561,7 +563,7 @@ export function ReaderApp({
                     className={!chatPage ? "is-active" : ""}
                     onClick={() => setChatPage(false)}
                   >
-                    Buku ini
+                    {kind === "thesis" ? "Skripsi ini" : "Buku ini"}
                   </button>
                   <button
                     type="button"
@@ -573,7 +575,7 @@ export function ReaderApp({
                 </div>
                 <ChatPanel
                   key={`${manifest.key}:${chatPage ? current : "book"}`}
-                  title={chatPage ? "Tanya halaman ini" : "Tanya buku ini"}
+                  title={chatPage ? "Tanya halaman ini" : `Tanya ${documentName} ini`}
                   scope={{
                     kind,
                     id,

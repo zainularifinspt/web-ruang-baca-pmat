@@ -261,6 +261,7 @@ function ThesisDetail({ item }: { item: Thesis }) {
         <p className="text-sm font-semibold text-slate-950">File Skripsi</p>
         <div className="mt-3">
           <ThesisPdfViewer
+            thesisId={item.id}
             pdfUrl={item.pdfUrl}
             pdfR2={item.pdfR2}
             pdfFilename={item.pdfFilename}
