@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { BookOpen, Check, CheckCircle2, ChevronDown, Download, FileSpreadsheet, FileText, Info, Loader2, SlidersHorizontal, X } from "lucide-react";
+import { BookOpen, Check, CheckCircle2, ChevronDown, Download, FileSpreadsheet, FileText, Info, LibraryBig, List, Loader2, Quote, SlidersHorizontal, X } from "lucide-react";
 import type { ScopusArticle, ScopusSearchResponse } from "@/lib/scopus";
 import {
   assertScopusExportable, collectAllScopusArticles, createScopusExport, deduplicateScopusArticles,
@@ -23,19 +23,37 @@ type Props = {
 };
 type ExportStage = "collecting" | "enriching" | "generating";
 const formats = [
-  { id: "xlsx", name: "Excel", extension: ".xlsx", icon: FileSpreadsheet },
-  { id: "csv", name: "CSV", extension: ".csv", icon: FileText },
-  { id: "ris", name: "RIS", extension: ".ris", icon: BookOpen },
+  { id: "xlsx", name: "Excel", extension: ".xlsx", icon: FileSpreadsheet, tone: "bg-emerald-50 text-emerald-950 hover:bg-emerald-100 has-checked:bg-emerald-100 has-checked:ring-emerald-600" },
+  { id: "csv", name: "CSV", extension: ".csv", icon: FileText, tone: "bg-amber-50 text-amber-950 hover:bg-amber-100 has-checked:bg-amber-100 has-checked:ring-amber-700" },
+  { id: "ris", name: "RIS", extension: ".ris", icon: BookOpen, tone: "bg-violet-50 text-violet-950 hover:bg-violet-100 has-checked:bg-violet-100 has-checked:ring-violet-600" },
 ] as const;
 
+const columnGroups = SCOPUS_EXPORT_GROUPS.filter((group) => group.id !== "screening");
+const panelFieldIds: ScopusExportFieldId[] = SCOPUS_EXPORT_FIELDS.filter((field) => field.group !== "screening").map((field) => field.id);
 const presets = [
   { label: "Referensi dasar", fields: SCOPUS_CITATION_FIELDS },
-  { label: "Kebutuhan SLR", fields: SCOPUS_SLR_FIELDS },
-  { label: "Semua data", fields: SCOPUS_EXPORT_FIELDS.map((field) => field.id) },
+  { label: "Kebutuhan SLR", fields: SCOPUS_SLR_FIELDS.filter((id) => panelFieldIds.includes(id)) },
+  { label: "Semua data", fields: panelFieldIds },
 ];
-const groupLabels = { citation: "Sitasi", publication: "Publikasi", abstract: "Abstrak", screening: "Screening" };
+const columnThemes = {
+  citation: {
+    label: "Sitasi", icon: Quote,
+    tab: "bg-violet-50 text-violet-950 hover:bg-violet-100 data-[state=active]:bg-violet-200 data-[state=active]:text-violet-950 data-[state=active]:inset-ring-violet-500",
+    panel: "bg-violet-50 text-violet-950", line: "border-violet-200!", field: "hover:bg-violet-100", accent: "accent-violet-800",
+  },
+  publication: {
+    label: "Publikasi", icon: LibraryBig,
+    tab: "bg-teal-50 text-teal-950 hover:bg-teal-100 data-[state=active]:bg-teal-200 data-[state=active]:text-teal-950 data-[state=active]:inset-ring-teal-600",
+    panel: "bg-teal-50 text-teal-950", line: "border-teal-200!", field: "hover:bg-teal-100", accent: "accent-teal-800",
+  },
+  abstract: {
+    label: "Abstrak", icon: List,
+    tab: "bg-amber-50 text-amber-950 hover:bg-amber-100 data-[state=active]:bg-amber-200 data-[state=active]:text-amber-950 data-[state=active]:inset-ring-amber-600",
+    panel: "bg-amber-50 text-amber-950", line: "border-amber-200!", field: "hover:bg-amber-100", accent: "accent-amber-800",
+  },
+};
 const focusRing = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-800";
-const choiceClass = "relative flex min-h-16 min-w-0 cursor-pointer flex-col items-start justify-center gap-1 rounded-lg px-2 py-2 text-slate-700 transition-colors hover:bg-white/70 has-checked:bg-white has-checked:text-red-950 has-checked:ring-1 has-checked:ring-red-200 has-checked:ring-inset has-disabled:cursor-not-allowed has-disabled:text-slate-500 has-disabled:hover:bg-transparent has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-red-800 motion-reduce:transition-none sm:px-3";
+const choiceClass = "relative flex min-h-16 min-w-0 cursor-pointer flex-col items-start justify-center gap-1 rounded-lg px-2 py-2 transition-colors has-checked:ring-2 has-checked:ring-inset has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-red-800 motion-reduce:transition-none sm:px-3";
 
 // Give React a frame to paint the loading state before serializing a large workbook.
 function paintExportState() {
@@ -70,7 +88,7 @@ export function ScopusExportPanel({ data, selected, allOnPageSelected, onToggleP
   const count = scope === "selected" ? selected.length : scope === "page" ? data.articles.length : data.totalResults;
   const allOverLimit = data.totalResults > SCOPUS_EXPORT_LIMIT;
   const effectiveFields = getScopusExportFields({ fields }, format);
-  const compatibleFields = getScopusExportFields({}, format);
+  const compatibleFields = getScopusExportFields({ fields: panelFieldIds }, format);
   const disabled = busy || data.isDemo || !data.search || count === 0 || effectiveFields.length === 0 || (scope === "all" && allOverLimit);
   const formatName = formats.find((item) => item.id === format)!.name;
 
@@ -177,14 +195,14 @@ export function ScopusExportPanel({ data, selected, allOnPageSelected, onToggleP
   const stageIndex = stages.findIndex((item) => item.id === stage);
 
   return (
-    <section aria-label="Pemilihan dan ekspor artikel" className="mb-6 overflow-hidden rounded-2xl border border-slate-200 bg-white selection:bg-red-100 selection:text-red-950">
-      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-2.5 text-slate-800 sm:px-6">
+    <section aria-label="Pemilihan dan ekspor artikel" className="mb-6 overflow-hidden rounded-2xl border border-rose-200! bg-white selection:bg-rose-200 selection:text-rose-950">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-2.5 text-rose-950 sm:px-6">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-          <label className="flex min-h-11 cursor-pointer items-center gap-2 text-sm font-semibold has-disabled:cursor-not-allowed has-disabled:text-slate-500">
+          <label className="flex min-h-11 cursor-pointer items-center gap-2 text-sm font-semibold has-disabled:cursor-not-allowed has-disabled:text-rose-900/75">
             <input type="checkbox" checked={allOnPageSelected} disabled={busy || data.isDemo} onChange={onTogglePage} className={cn("size-4 accent-red-800", focusRing)} />
             Pilih halaman ini
           </label>
-          <span aria-live="polite" className="text-xs tabular-nums text-slate-600">{selected.length.toLocaleString("id-ID")} artikel terpilih</span>
+          <span aria-live="polite" className="rounded-md bg-rose-50 px-2 py-1 text-xs font-medium tabular-nums text-rose-900">{selected.length.toLocaleString("id-ID")} artikel terpilih</span>
           {selected.length > 0 && (
             <button type="button" disabled={busy} onClick={onClear} className={cn("min-h-9 rounded-sm text-xs font-semibold text-red-800 underline-offset-4 hover:underline disabled:opacity-50", focusRing)}>
               Hapus pilihan
@@ -200,20 +218,29 @@ export function ScopusExportPanel({ data, selected, allOnPageSelected, onToggleP
 
       <div id={panelId} hidden={!open}>
         {open && <>
-          <header className="relative isolate flex items-center justify-between gap-3 overflow-hidden bg-red-950 px-4 py-3.5 text-white sm:px-6">
-            <svg aria-hidden="true" viewBox="0 0 280 100" fill="none" className="pointer-events-none absolute -right-4 top-1/2 -z-10 hidden w-72 -translate-y-1/2 text-rose-200/25 sm:block">
-              <path d="M25 100 86 39h66l39-39M73 100l41-41h65l59-59M120 100l20-20h65l75-75" stroke="currentColor" />
-              <path d="M152 39h44l39-39M179 59h47l54-54" stroke="currentColor" strokeOpacity=".55" />
-              <circle cx="152" cy="39" r="2.5" fill="currentColor" />
-              <circle cx="179" cy="59" r="2.5" fill="currentColor" />
+          <header className="relative isolate flex items-center justify-between gap-3 overflow-hidden border-y border-rose-100! bg-linear-to-r from-rose-200 via-fuchsia-100 to-violet-200 px-4 py-4 text-rose-950 sm:px-6 sm:py-5">
+            <svg aria-hidden="true" viewBox="0 0 320 124" fill="none" className="pointer-events-none absolute right-12 top-1/2 -z-10 hidden w-72 -translate-y-1/2 sm:block">
+              <path d="M0 99h80l32-32h79l36-36h93M28 113h70l21-21h112l35-35h54" stroke="#a78bfa" strokeOpacity=".55" />
+              <g transform="translate(114 27) rotate(-17 35 48)">
+                <rect x="1" y="1" width="68" height="94" rx="9" fill="#a7f3d0" stroke="#34d399" />
+                <path d="M15 25h38v37H15zM15 37h38M15 50h38M34 25v37" stroke="#047857" strokeOpacity=".65" strokeWidth="1.5" />
+              </g>
+              <g transform="translate(166 8) rotate(5 35 48)">
+                <rect x="1" y="1" width="68" height="94" rx="9" fill="#fde68a" stroke="#fbbf24" />
+                <path d="M16 25h35M16 36h35M16 47h24M16 58h31" stroke="#92400e" strokeOpacity=".55" strokeLinecap="round" strokeWidth="1.5" />
+              </g>
+              <g transform="translate(216 26) rotate(21 35 48)">
+                <rect x="1" y="1" width="68" height="94" rx="9" fill="#ddd6fe" stroke="#a78bfa" />
+                <path d="M35 40c-6-5-13-5-21-4v25c8-1 15-1 21 4 6-5 13-5 21-4V36c-8-1-15-1-21 4Zm0 0v25" stroke="#5b21b6" strokeOpacity=".7" strokeLinejoin="round" strokeWidth="1.5" />
+              </g>
             </svg>
             <div className="flex items-center gap-3">
-              <span className="grid size-10 shrink-0 place-items-center rounded-xl border border-white/20 bg-white/10 text-rose-100">
+              <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-rose-900 text-white">
                 <Download aria-hidden="true" className="size-5" />
               </span>
-              <h3 ref={headingRef} tabIndex={-1} className="scroll-mt-24 rounded-sm text-lg font-extrabold tracking-tight focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-rose-200 sm:text-xl">Ekspor literatur</h3>
+              <h3 ref={headingRef} tabIndex={-1} className="scroll-mt-24 rounded-sm text-xl font-extrabold tracking-tight focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-rose-800 sm:text-2xl">Ekspor literatur</h3>
             </div>
-            <button type="button" aria-label="Tutup opsi ekspor" disabled={busy} onClick={() => togglePanel(false)} className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-xl text-rose-100 hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-200 disabled:cursor-not-allowed disabled:opacity-40">
+            <button type="button" aria-label="Tutup opsi ekspor" disabled={busy} onClick={() => togglePanel(false)} className={cn("grid size-11 shrink-0 cursor-pointer place-items-center rounded-xl bg-white/65 text-violet-950 hover:bg-white disabled:cursor-not-allowed disabled:opacity-40", focusRing)}>
               <X aria-hidden="true" className="size-5" />
             </button>
           </header>
@@ -248,13 +275,13 @@ export function ScopusExportPanel({ data, selected, allOnPageSelected, onToggleP
               <div className="grid gap-5 py-5 md:grid-cols-2 md:gap-8">
                 <fieldset className="min-w-0">
                   <legend className="mb-2 text-sm font-bold text-slate-950">Artikel</legend>
-                  <div className="grid grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1">
+                  <div className="grid grid-cols-3 gap-1 rounded-xl bg-rose-50 p-1">
                     {([
                       ["selected", "Terpilih", selected.length, selected.length === 0],
                       ["page", "Halaman ini", data.articles.length, false],
                       ["all", "Semua hasil", data.totalResults, allOverLimit],
                     ] as const).map(([value, label, amount, unavailable]) => (
-                      <label key={value} className={choiceClass}>
+                      <label key={value} className={cn(choiceClass, "text-rose-950 hover:bg-white has-checked:bg-rose-100 has-checked:ring-rose-600 has-disabled:cursor-not-allowed has-disabled:text-rose-900/75 has-disabled:hover:bg-transparent")}>
                         <span className="flex flex-wrap items-center gap-x-1.5 text-sm font-extrabold tabular-nums">
                           <input
                             type="radio"
@@ -277,16 +304,16 @@ export function ScopusExportPanel({ data, selected, allOnPageSelected, onToggleP
 
                 <fieldset className="min-w-0">
                   <legend className="mb-2 text-sm font-bold text-slate-950">Format file</legend>
-                  <div className="grid grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1">
+                  <div className="grid grid-cols-3 gap-1.5 py-1 sm:gap-2">
                     {formats.map((item) => (
-                      <label key={item.id} className={choiceClass}>
+                      <label key={item.id} className={cn(choiceClass, item.tone)}>
                         <input type="radio" name={`${panelId}-format`} aria-label={`${item.name} (${item.extension})`} checked={format === item.id} onChange={() => { setFormat(item.id); clearFeedback(); }} className="sr-only" />
                         <span className="flex w-full items-center gap-1.5 text-sm font-extrabold leading-tight">
                           <item.icon aria-hidden="true" className="size-4 shrink-0" />
                           {item.name}
-                          {format === item.id && <Check aria-hidden="true" className="ml-auto hidden size-4 shrink-0 text-red-800 min-[375px]:block" />}
+                          {format === item.id && <Check aria-hidden="true" className="ml-auto hidden size-4 shrink-0 min-[375px]:block" />}
                         </span>
-                        <span className="text-xs leading-tight text-slate-600">{item.extension}</span>
+                        <span className="text-xs leading-tight opacity-80">{item.extension}</span>
                       </label>
                     ))}
                   </div>
@@ -320,62 +347,63 @@ export function ScopusExportPanel({ data, selected, allOnPageSelected, onToggleP
                 </div>
 
                 {format === "ris" && (
-                  <p className="mt-2 flex items-start gap-2 text-xs leading-relaxed text-slate-600">
+                  <p className="mt-2 flex items-start gap-2 text-xs leading-relaxed text-violet-900">
                     <Info aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" />
-                    Kolom screening hanya untuk Excel dan CSV. Metadata tambahan tanpa tag RIS masuk ke catatan referensi.
+                    Metadata tambahan tanpa tag RIS masuk ke catatan referensi.
                   </p>
                 )}
 
                 <div id={columnsId} hidden={!columnsOpen}>
                   {columnsOpen && (
-                    <Tabs defaultValue="citation" className="mt-3 rounded-xl bg-slate-50 p-2 sm:p-3">
-                      <TabsList aria-label="Kategori kolom ekspor" className="grid h-auto w-full grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1 sm:grid-cols-4">
-                        {SCOPUS_EXPORT_GROUPS.map((group) => (
-                          <TabsTrigger key={group.id} value={group.id} className="min-h-10 cursor-pointer rounded-md px-2 text-xs font-semibold text-slate-700 data-[state=active]:bg-white data-[state=active]:font-bold data-[state=active]:text-red-950 data-[state=active]:shadow-none motion-reduce:transition-none">
-                            {groupLabels[group.id]}
-                          </TabsTrigger>
-                        ))}
+                    <Tabs defaultValue="citation" className="mt-3">
+                      <TabsList aria-label="Kategori kolom ekspor" className="grid h-auto w-full grid-cols-3 gap-2 bg-transparent p-0">
+                        {columnGroups.map((group) => {
+                          const theme = columnThemes[group.id];
+                          return (
+                            <TabsTrigger key={group.id} value={group.id} className={cn("min-h-11 cursor-pointer flex-col gap-1 rounded-lg px-1.5 py-2 text-xs font-semibold transition-colors data-[state=active]:font-bold data-[state=active]:inset-ring-1 data-[state=active]:shadow-none motion-reduce:transition-none min-[375px]:flex-row sm:gap-2", theme.tab)}>
+                              <theme.icon aria-hidden="true" className="size-4 shrink-0" />
+                              {theme.label}
+                            </TabsTrigger>
+                          );
+                        })}
                       </TabsList>
 
-                      {SCOPUS_EXPORT_GROUPS.map((group) => {
+                      {columnGroups.map((group) => {
+                        const theme = columnThemes[group.id];
                         const groupFields = compatibleFields.filter((field) => field.group === group.id);
                         const chosen = groupFields.filter((field) => fields.includes(field.id)).length;
-                        const allChosen = groupFields.length > 0 && chosen === groupFields.length;
+                        const allChosen = chosen === groupFields.length;
                         return (
-                          <TabsContent key={group.id} value={group.id} className="mt-3 rounded-lg px-1 sm:px-2">
-                            {groupFields.length ? (
-                              <fieldset>
-                                <legend className="sr-only">{group.label}</legend>
-                                <div className="flex flex-wrap items-center justify-between gap-x-3 border-b border-slate-200 pb-1">
-                                  <label className="flex min-h-11 cursor-pointer items-center gap-2 text-xs font-bold text-slate-800">
-                                    <input
-                                      type="checkbox"
-                                      checked={allChosen}
-                                      ref={(element) => { if (element) element.indeterminate = chosen > 0 && !allChosen; }}
-                                      onChange={() => chooseFields(allChosen ? fields.filter((id) => !groupFields.some((field) => field.id === id)) : [...new Set([...fields, ...groupFields.map((field) => field.id)])])}
-                                      className={cn("size-4 shrink-0 accent-red-800", focusRing)}
-                                    />
-                                    Pilih semua di kategori ini
+                          <TabsContent key={group.id} value={group.id} className={cn("mt-2 rounded-xl p-3 sm:px-4", theme.panel)}>
+                            <fieldset>
+                              <legend className="sr-only">{group.label}</legend>
+                              <div className={cn("flex flex-wrap items-center justify-between gap-x-3 border-b pb-1", theme.line)}>
+                                <label className="flex min-h-11 cursor-pointer items-center gap-2 text-xs font-bold">
+                                  <input
+                                    type="checkbox"
+                                    checked={allChosen}
+                                    ref={(element) => { if (element) element.indeterminate = chosen > 0 && !allChosen; }}
+                                    onChange={() => chooseFields(allChosen ? fields.filter((id) => !groupFields.some((field) => field.id === id)) : [...new Set([...fields, ...groupFields.map((field) => field.id)])])}
+                                    className={cn("size-4 shrink-0", theme.accent, focusRing)}
+                                  />
+                                  Pilih semua di kategori ini
+                                </label>
+                                <span className="text-xs tabular-nums opacity-80">{chosen} dari {groupFields.length} dipilih</span>
+                              </div>
+                              <div className="grid gap-x-4 pt-1 min-[360px]:grid-cols-2 lg:grid-cols-3">
+                                {groupFields.map((field) => (
+                                  <label key={field.id} className={cn("flex min-h-11 cursor-pointer items-center gap-2.5 rounded-md px-1 py-1.5 text-sm", theme.field)}>
+                                    <input type="checkbox" checked={fields.includes(field.id)} onChange={() => toggleField(field.id)} className={cn("size-4 shrink-0", theme.accent, focusRing)} />
+                                    {field.label}
                                   </label>
-                                  <span className="text-xs tabular-nums text-slate-600">{chosen} dari {groupFields.length} dipilih</span>
-                                </div>
-                                <div className="grid gap-x-4 pt-1 min-[360px]:grid-cols-2 lg:grid-cols-3">
-                                  {groupFields.map((field) => (
-                                    <label key={field.id} className="flex min-h-11 cursor-pointer items-center gap-2.5 rounded-md px-1 py-1.5 text-sm text-slate-800 hover:bg-slate-100">
-                                      <input type="checkbox" checked={fields.includes(field.id)} onChange={() => toggleField(field.id)} className={cn("size-4 shrink-0 accent-red-800", focusRing)} />
-                                      {field.label}
-                                    </label>
-                                  ))}
-                                </div>
-                              </fieldset>
-                            ) : (
-                              <p className="py-3 text-sm text-slate-600">Pilih Excel atau CSV untuk menyertakan kolom screening.</p>
-                            )}
+                                ))}
+                              </div>
+                            </fieldset>
                           </TabsContent>
                         );
                       })}
 
-                      <div className="mt-2 flex justify-end border-t border-slate-200 px-1 pt-1 sm:px-2">
+                      <div className="mt-1 flex px-1 sm:justify-end sm:px-2">
                         <button type="button" disabled={fields.length === 0} onClick={() => chooseFields([])} className={cn("min-h-10 cursor-pointer rounded-sm text-xs font-semibold text-red-800 underline-offset-4 hover:underline disabled:cursor-not-allowed disabled:text-slate-500", focusRing)}>
                           Kosongkan semua kolom
                         </button>
@@ -387,20 +415,20 @@ export function ScopusExportPanel({ data, selected, allOnPageSelected, onToggleP
             </div>
           )}
 
-          <footer className="border-t border-slate-200 bg-slate-50 px-4 py-3 sm:px-6">
+          <footer className="border-t border-rose-100! bg-linear-to-r from-rose-50 via-white to-violet-50 px-4 py-3 sm:px-6">
             {error && <p role="alert" className="mb-3 text-sm font-medium text-red-800">{error}</p>}
             {message && (
-              <p role="status" className="mb-3 flex items-center gap-2 text-sm font-medium text-slate-800">
-                {message.startsWith("Ekspor dibatalkan") ? <Info aria-hidden="true" className="size-4 shrink-0 text-slate-500" /> : <CheckCircle2 aria-hidden="true" className="size-4 shrink-0 text-emerald-700" />}
+              <p role="status" className="mb-3 flex items-center gap-2 text-sm font-medium text-rose-950">
+                {message.startsWith("Ekspor dibatalkan") ? <Info aria-hidden="true" className="size-4 shrink-0 text-rose-800" /> : <CheckCircle2 aria-hidden="true" className="size-4 shrink-0 text-emerald-700" />}
                 {message}
               </p>
             )}
             {warnings.map((warning) => <p key={warning} role="status" className="mb-3 text-xs leading-relaxed text-amber-900">{warning}</p>)}
             {!busy && effectiveFields.length === 0 && <p role="status" className="mb-2 text-xs font-semibold text-red-800">Pilih minimal satu kolom untuk mengunduh.</p>}
             <div className="flex flex-col items-start gap-x-3 gap-y-2 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm tabular-nums text-slate-600">
-                <strong className="font-bold text-slate-950">{count.toLocaleString("id-ID")}</strong> artikel
-                <span className="text-slate-500"> · </span>
+              <p className="text-sm tabular-nums text-rose-950">
+                <strong className="font-bold">{count.toLocaleString("id-ID")}</strong> artikel
+                <span className="text-rose-800"> · </span>
                 {effectiveFields.length} kolom
               </p>
               {busy ? (
