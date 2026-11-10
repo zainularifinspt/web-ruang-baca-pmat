@@ -29,13 +29,17 @@ parser.add_argument("pdf")
 parser.add_argument("output")
 parser.add_argument("--kind", choices=["book", "thesis"], required=True)
 args = parser.parse_args()
+webp_quality = int(os.environ.get("READER_WEBP_QUALITY", "88"))
+if not 60 <= webp_quality <= 95:
+    raise RuntimeError("Kualitas WebP harus antara 60 dan 95.")
 root = Path(args.output)
 root.mkdir(parents=True, exist_ok=True)
 doc = fitz.open(args.pdf)
 if doc.is_encrypted:
     raise RuntimeError("PDF terkunci; tidak dapat diproses.")
-if not 1 <= len(doc) <= 1000:
-    raise RuntimeError("Batas pemrosesan adalah 1–1000 halaman.")
+page_limit = 1500 if args.kind == "book" else 1000
+if not 1 <= len(doc) <= page_limit:
+    raise RuntimeError(f"Batas pemrosesan adalah 1–{page_limit} halaman.")
 texts, raw_words, ocr_pages = [], {}, set()
 tessdata = Path(os.environ.get("READER_TESSDATA_DIR", ".reader-data/tessdata")).resolve()
 ocr_enabled = bool(shutil.which("tesseract")) and (tessdata / "eng.traineddata").exists()
@@ -78,7 +82,7 @@ for i, page in enumerate(doc):
         pix = page.get_pixmap(matrix=fitz.Matrix(width / rect.width, width / rect.width), alpha=False)
         image = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
         filename = f"{i + 1}-{name}.webp"
-        image.save(root / filename, "WEBP", quality=88, method=4)
+        image.save(root / filename, "WEBP", quality=webp_quality, method=4)
         assets[name] = filename
     words = []
     for word in raw_words[i]:

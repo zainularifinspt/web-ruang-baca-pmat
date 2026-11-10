@@ -76,6 +76,7 @@ if (!items.length)
   );
 let failures = 0;
 async function runPython(file, dir, type) {
+  const timeoutMinutes = type === "book" ? 30 : 10;
   await new Promise((ok, no) => {
     const child = spawn(
       process.env.READER_PYTHON || "python3",
@@ -84,8 +85,8 @@ async function runPython(file, dir, type) {
     );
     const timeout = setTimeout(() => {
       child.kill("SIGKILL");
-      no(Error("Pemrosesan melewati 10 menit."));
-    }, 600000);
+      no(Error(`Pemrosesan melewati ${timeoutMinutes} menit.`));
+    }, timeoutMinutes * 60000);
     child.on("error", no);
     child.on("close", (code) => {
       clearTimeout(timeout);
@@ -139,7 +140,8 @@ for (const item of items) {
       .update(
         hash +
           READER_POLICY +
-          "render-v2" +
+          "render-v3-webp" +
+          (process.env.READER_WEBP_QUALITY || "88") +
           (process.env.READER_EMBEDDING_MODEL || "none") +
           (args.includes("--force") ? job : ""),
       )

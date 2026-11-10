@@ -4,7 +4,7 @@ Implementasi awal, 7 November 2026, branch `codex/flipbook-chatbot`.
 
 ## Kondisi yang sudah diuji
 
-- Pembaca `/baca/buku/{id}` dan `/baca/skripsi/{id}` memakai aset WebP yang disiapkan di latar. Pembukaan normal tidak mengunduh atau merender PDF penuh.
+- Flipbook buku di `/baca/buku/{id}` memakai aset WebP yang disiapkan di latar. Skripsi dibaca lewat penampil PDF di halaman detail katalog. Tautan lama `/baca/skripsi/{id}` mengarah ke halaman detail tersebut.
 - Dua halaman pada desktop, satu pada ponsel; zoom memakai aset HD, mode halaman biasa tersedia, dan preferensi pengurangan gerak dihormati. Teks yang dapat dipilih tersedia melalui tombol baca teks.
 - Pencarian isi, thumbnail bertahap, daftar isi PDF jika tersedia, dan tautan `?page={nomor PDF}&v={revisi}` menggunakan nomor halaman sumber yang sama. Label halaman cetak ditampilkan terpisah.
 - Chatbot menyediakan pencarian metadata tanpa model, serta tanya isi melalui DeepSeek. Konteks bisa seluruh koleksi terindeks, satu dokumen, atau satu halaman. Jawaban diperiksa maksimal dua paragraf/160 kata; kutipan harus berasal dari bukti yang disediakan. Model tidak memiliki alat internet.
@@ -62,7 +62,9 @@ Pengindeksan langsung memproses satu dokumen secara berurutan. `--limit 3` memba
 
 Pasang Tesseract dari pengelola paket sistem dan sediakan model bahasa resmi `eng.traineddata` serta `ind.traineddata` dalam `.reader-data/tessdata` (atau `READER_TESSDATA_DIR`). `READER_OCR_LANGUAGES=eng+ind` memilih keduanya. Tanpa Tesseract/model, halaman tetap dapat dibaca sebagai gambar tetapi halaman pindai belum dapat dicari atau dijadikan bukti AI. OCR juga mencoba memperbaiki lapisan teks yang kata-katanya menyatu dan hanya memilih hasil dengan batas kata yang lebih baik. Teks yang masih rusak diberi penanda pada pencarian dan dikeluarkan dari bukti AI. OCR hanya berjalan saat pemrosesan latar.
 
-Batas bawaan 150 MB/PDF (`READER_MAX_PDF_MB`, maksimum 250), 1.000 halaman, dan 10 menit per proses ekstraksi. PDF terkunci/ukuran halaman ekstrem ditolak. Batas host unduhan berupa daftar HTTPS yang diizinkan; tambahkan hostname penyimpanan resmi pada `READER_ALLOWED_PDF_HOSTS`, bukan URL dari pesan pengunjung.
+Batas bawaan 150 MB/PDF (`READER_MAX_PDF_MB`, maksimum 250). Buku dibatasi 1.500 halaman dan 30 menit per ekstraksi. Pengindeksan skripsi untuk Tama dibatasi 1.000 halaman dan 10 menit per ekstraksi. PDF terkunci atau berukuran halaman ekstrem ditolak. `READER_ALLOWED_PDF_HOSTS` berisi hostname HTTPS resmi yang boleh diunduh.
+
+`READER_WEBP_QUALITY` mengatur kompresi gambar dari 60 sampai 95, dengan nilai bawaan 88. Batch buku untuk R2 memakai 78 setelah pemeriksaan sampel agar penyimpanan akun muat. Keluaran memakai thumbnail 180 px, halaman 1.100 px, dan HD 1.800 px.
 
 ## Mengaktifkan produksi
 

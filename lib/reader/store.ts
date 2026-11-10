@@ -77,22 +77,17 @@ export async function getReaderDocument(
         : null;
     }
     if (!d?.active_revision || !d.is_public) return null;
-    const [{ data: v }, { data: pages, error: pe }] = await Promise.all([
+    const [{ data: v }, pages] = await Promise.all([
       db
         .from("reader_document_versions")
         .select("*")
         .eq("document_id", key)
         .eq("id", d.active_revision)
         .single(),
-      db
-        .from("reader_pages")
-        .select("page_number,label,width,height,image,thumbnail,hd,quality")
-        .eq("document_id", key)
-        .eq("revision", d.active_revision)
-        .order("page_number")
-        .limit(1000),
+      readPublishedPages(db, key, d.active_revision),
     ]);
-    if (!v || pe) return null;
+    if (!v || !pages || (kind === "book" && pages.length !== v.total_pages))
+      return null;
     doc = {
       schema: 1,
       key,
@@ -109,7 +104,7 @@ export async function getReaderDocument(
       outline: v.outline,
       embeddingModel: v.embedding_model,
       embeddingReady: v.embedding_ready,
-      pages: (pages || []).map((p) => ({
+      pages: pages.map((p) => ({
         ...p,
         number: p.page_number,
         text: "",
@@ -122,6 +117,26 @@ export async function getReaderDocument(
   if (!doc || doc.policy !== READER_POLICY || doc.sourceUrl !== sourceUrl(item))
     return null;
   return doc;
+}
+async function readPublishedPages(
+  db: ReturnType<typeof createSupabaseAdminClient>,
+  key: string,
+  revision: string,
+) {
+  const batchSize = 1000;
+  const pages = [];
+  for (let offset = 0; ; offset += batchSize) {
+    const { data, error } = await db
+      .from("reader_pages")
+      .select("page_number,label,width,height,image,thumbnail,hd,quality")
+      .eq("document_id", key)
+      .eq("revision", revision)
+      .order("page_number")
+      .range(offset, offset + batchSize - 1);
+    if (error || !data) return null;
+    pages.push(...data);
+    if (data.length < batchSize) return pages;
+  }
 }
 export async function readerPage(
   doc: ReaderDocument,

@@ -46,7 +46,7 @@ const sources = [
     title: "Dokumen",
     page: 42,
     label: "32",
-    url: "/baca/skripsi/x?page=42",
+    url: "/katalog/skripsi/x",
     excerpt: doc.pages[0].text,
   },
 ];
@@ -54,9 +54,10 @@ test("canonical source pages retain PDF numbers rather than display offsets", ()
   assert.equal(readerKey("book", "ebk-a"), "book-ebk-a");
   assert.throws(() => readerKey("book", "../../secret"));
   assert.equal(
-    readerUrl("thesis", "x", 42, "abc"),
-    "/baca/skripsi/x?page=42&v=abc",
+    readerUrl("book", "x", 42, "abc"),
+    "/baca/buku/x?page=42&v=abc",
   );
+  assert.equal(readerUrl("thesis", "x", 42, "abc"), "/katalog/skripsi/x");
   const found = searchPages(doc, "purposive sampling");
   assert.equal(found.length, 1);
   assert.equal(found[0].page, 42);

@@ -27,10 +27,12 @@ export function readerUrl(
   page?: number,
   revision?: string,
 ) {
+  const encodedId = encodeURIComponent(id);
+  if (kind === "thesis") return `/katalog/skripsi/${encodedId}`;
   const params = new URLSearchParams();
   if (page) params.set("page", String(page));
   if (revision) params.set("v", revision);
-  return `/baca/${kind === "book" ? "buku" : "skripsi"}/${encodeURIComponent(id)}${params.size ? `?${params}` : ""}`;
+  return `/baca/buku/${encodedId}${params.size ? `?${params}` : ""}`;
 }
 export function normalizeText(value: string) {
   return value
