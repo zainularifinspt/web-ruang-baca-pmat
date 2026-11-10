@@ -24,6 +24,7 @@ const nextConfig: NextConfig = {
   },
   compress: true,
   poweredByHeader: false,
+  serverExternalPackages: ["pdfjs-dist"],
   experimental: {
     optimizePackageImports: ["lucide-react"],
   },

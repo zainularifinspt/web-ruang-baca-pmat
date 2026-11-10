@@ -105,7 +105,7 @@ export function ChatLauncher({
 
 function ThesisChat({ id }: { id: string }) {
   const [revision, setRevision] = useState("");
-  const [message, setMessage] = useState("");
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -115,19 +115,17 @@ function ThesisChat({ id }: { id: string }) {
       try {
         const response = await fetch(`/api/reader/thesis/${encodeURIComponent(id)}`, { signal });
         if (signal.aborted) return;
-        if (response.status === 404) {
-          setMessage("Teks skripsi ini belum disiapkan untuk Tama. PDF tetap bisa dibaca.");
-          return;
+        if (response.ok) {
+          const manifest: ReaderManifest = await response.json();
+          if (signal.aborted) return;
+          if (manifest.searchReady && manifest.revision) {
+            setRevision(manifest.revision);
+          }
         }
-        if (!response.ok) throw new Error("Indeks skripsi belum dapat dimuat.");
-        const manifest: ReaderManifest = await response.json();
-        if (signal.aborted) return;
-        if (manifest.searchReady) setRevision(manifest.revision);
-        else setMessage("Skripsi ini belum memiliki teks yang dapat ditelusuri Tama.");
       } catch {
-        if (!signal.aborted) {
-          setMessage("Tama belum dapat memuat skripsi ini. Tutup panel lalu coba lagi.");
-        }
+        // Fallback ke pembacaan metadata & PDF langsung di server saat indeks belum tersedia.
+      } finally {
+        if (!signal.aborted) setReady(true);
       }
     }
 
@@ -135,14 +133,19 @@ function ThesisChat({ id }: { id: string }) {
     return () => controller.abort();
   }, [id]);
 
-  if (revision) {
-    return <ChatPanel title="Tanya skripsi ini" scope={{ kind: "thesis", id, revision }} />;
+  if (!ready) {
+    return (
+      <div className="reader-panel-intro">
+        <h2>Tanya skripsi ini</h2>
+        <p role="status">Menyiapkan sumber skripsi…</p>
+      </div>
+    );
   }
 
   return (
-    <div className="reader-panel-intro">
-      <h2>Tanya skripsi ini</h2>
-      <p role="status">{message || "Menyiapkan sumber skripsi…"}</p>
-    </div>
+    <ChatPanel
+      title="Tanya skripsi ini"
+      scope={revision ? { kind: "thesis", id, revision } : { kind: "thesis", id }}
+    />
   );
 }

@@ -7,6 +7,11 @@ import {
   hasVerifiedCatalogSource,
 } from "@/lib/reader/core";
 import { getReaderDocument, retrieveSources } from "@/lib/reader/store";
+import { publicCollection } from "@/lib/reader/catalog";
+import {
+  buildCatalogMetadataSource,
+  retrieveOnDemandSources,
+} from "@/lib/reader/on-demand";
 import { embedQuestion } from "@/lib/reader/embedding";
 import { chatSession, reserveChat } from "@/lib/reader/quota";
 import { answerWithDeepseek, reservedCost } from "@/lib/reader/chat";
@@ -111,6 +116,7 @@ export async function POST(request: NextRequest) {
       );
     const scope = body.scope;
     let doc = null;
+    let scopedItem = null;
     if (scope) {
       if (
         typeof scope !== "object" ||
@@ -119,23 +125,40 @@ export async function POST(request: NextRequest) {
         typeof scope.id !== "string"
       )
         return reply({ error: "Konteks dokumen tidak valid." }, 400);
-      doc = await getReaderDocument(scope.kind, scope.id);
-      if (!doc || doc.revision !== scope.revision)
+      try {
+        doc = await getReaderDocument(scope.kind, scope.id);
+      } catch {
+        doc = null;
+      }
+      if (doc) {
+        if (scope.revision && doc.revision !== scope.revision)
+          return reply(
+            {
+              error: "Dokumen belum siap atau sudah berubah. Buka ulang pembaca.",
+            },
+            409,
+          );
+        if (
+          scope.page !== undefined &&
+          (!Number.isInteger(scope.page) ||
+            !doc.pages.some((p) => p.number === scope.page))
+        )
+          return reply(
+            { error: "Halaman tidak tersedia untuk pertanyaan ini." },
+            400,
+          );
+      } else if (scope.revision) {
         return reply(
           {
             error: "Dokumen belum siap atau sudah berubah. Buka ulang pembaca.",
           },
           409,
         );
-      if (
-        scope.page !== undefined &&
-        (!Number.isInteger(scope.page) ||
-          !doc.pages.some((p) => p.number === scope.page))
-      )
-        return reply(
-          { error: "Halaman tidak tersedia untuk pertanyaan ini." },
-          400,
-        );
+      } else {
+        scopedItem = await publicCollection(scope.kind, scope.id);
+        if (!scopedItem)
+          return reply({ error: "Dokumen tidak ditemukan." }, 404);
+      }
     }
     let catalogSources: ReaderSource[] = [];
     const isCatalogQuery =
@@ -161,32 +184,19 @@ export async function POST(request: NextRequest) {
                   (i.type !== "book" || hasVerifiedCatalogSource(i)) &&
                   (!kind || i.type === kind),
               )
-              .map((i) => {
-                const fullText =
-                  i.type === "book"
-                    ? `Judul Buku: ${i.title}. Penulis: ${i.author}. Penerbit: ${i.publisher || "-"}. Tahun: ${i.year}. Kategori: ${i.category}. Lokasi Rak: ${i.rackLocation || i.location}. Status: ${i.status} (Tersedia ${i.available} dari ${i.stock}). ISBN: ${i.isbn || "-"}. Kata Kunci: ${i.keywords.join(", ")}. ${i.notes || ""}`.trim()
-                    : `Judul Skripsi: ${i.title}. Penulis: ${i.studentName}${i.studentNim ? ` (NIM ${i.studentNim})` : ""}. Tahun: ${i.year}. Topik: ${i.topic}. Pembimbing 1: ${i.supervisor1}. Pembimbing 2: ${i.supervisor2}. Lokasi: ${i.physicalLocation || i.location}. Kata Kunci: ${i.keywords.join(", ")}. Abstrak: ${i.abstract || "-"}`.trim();
-                const hay = normalizeText(fullText);
+              .map((i, idx) => {
+                const source = buildCatalogMetadataSource(i, idx);
+                const hay = normalizeText(source.excerpt);
                 const matched = terms.filter((t) => hay.includes(t)).length;
                 return {
-                  i,
-                  fullText,
+                  source,
                   score: matched / Math.max(1, terms.length),
                 };
               })
               .filter((m) => m.score >= 0.4)
               .sort((a, b) => b.score - a.score)
               .slice(0, 4)
-              .map(({ i, fullText }, n) => ({
-                id: `catalog-${n}`,
-                title: i.title,
-                author: i.type === "book" ? i.author : i.studentName,
-                url:
-                  i.type === "book" && i.pdfUrl
-                    ? readerUrl("book", i.id)
-                    : `/katalog/${i.type === "book" ? "buku" : "skripsi"}/${encodeURIComponent(i.id)}`,
-                excerpt: fullText.slice(0, 1200),
-              }));
+              .map(({ source }, n) => ({ ...source, id: `catalog-${n}` }));
           }
         }
       } catch {}
@@ -202,17 +212,26 @@ export async function POST(request: NextRequest) {
       });
     const embedding = await embedQuestion(question);
     let pdfSources: ReaderSource[] = [];
-    try {
-      pdfSources = await retrieveSources(question, doc, embedding, scope?.page);
-    } catch {
-      if (scope)
-        return reply(
-          {
-            error:
-              "Indeks sumber belum siap. Silakan gunakan katalog sementara.",
-          },
-          503,
-        );
+    if (scopedItem) {
+      pdfSources = await retrieveOnDemandSources(
+        scopedItem,
+        question,
+        embedding,
+        scope?.page,
+      );
+    } else {
+      try {
+        pdfSources = await retrieveSources(question, doc, embedding, scope?.page);
+      } catch {
+        if (scope)
+          return reply(
+            {
+              error:
+                "Indeks sumber belum siap. Silakan gunakan katalog sementara.",
+            },
+            503,
+          );
+      }
     }
     const sources = [...pdfSources, ...catalogSources].slice(0, 6);
     if (!sources.length)

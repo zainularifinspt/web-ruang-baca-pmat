@@ -11,7 +11,7 @@ import type { ChatResult } from "@/lib/reader/types";
 type Scope = {
   kind: "book" | "thesis";
   id: string;
-  revision: string;
+  revision?: string;
   page?: number;
 };
 type Message = {
@@ -42,7 +42,7 @@ export function ChatPanel({
   const messagesBox = useRef<HTMLDivElement>(null);
   const controller = useRef<AbortController | null>(null);
   const key = scope
-    ? `${scope.kind}:${scope.id}:${scope.revision}:${scope.page || "book"}`
+    ? `${scope.kind}:${scope.id}:${scope.revision || "live"}:${scope.page || "book"}`
     : "catalog";
   useEffect(() => () => controller.current?.abort(), [key]);
   useEffect(() => {
