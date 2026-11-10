@@ -48,6 +48,17 @@ test("signed anonymous sessions, atomic quotas and cost reservations resist conc
     assert.equal(await reserveChatBudget(1001), false);
     assert.equal(await reserveChatBudget(1000), true);
     assert.equal(await reserveChatBudget(1), false);
+    delete process.env.CHAT_NETWORK_DAILY_LIMIT;
+    process.env.CHAT_MINUTE_LIMIT = "100";
+    process.env.CHAT_DAILY_LIMIT = "100";
+    const ip = "203.0.113.99";
+    let ipAllowed = 0;
+    for (let i = 0; i < 25; i++) {
+      const s = await chatSession();
+      const res = await reserveChat(s.id, ip, 0);
+      if (res.ok) ipAllowed++;
+    }
+    assert.equal(ipAllowed, 20);
   } finally {
     process.env = old;
     await rm(root, { recursive: true, force: true });

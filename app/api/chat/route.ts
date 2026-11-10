@@ -94,15 +94,11 @@ export async function POST(request: NextRequest) {
       : [];
     session = await chatSession(request.cookies.get("rb-chat")?.value);
     const network =
-      process.env.VERCEL === "1"
-        ? request.headers
-            .get("x-vercel-forwarded-for")
-            ?.split(",")[0]
-            ?.trim() || null
-        : process.env.READER_TRUST_PROXY_HEADERS === "true"
-          ? request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-            null
-          : null;
+      request.headers.get("x-vercel-forwarded-for")?.split(",")[0]?.trim() ||
+      request.headers.get("cf-connecting-ip")?.trim() ||
+      request.headers.get("x-real-ip")?.trim() ||
+      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      "local-network";
     // Every request consumes a request quota, including metadata queries and refusals.
     const requestQuota = await reserveChat(session.id, network, 0);
     if (!requestQuota.ok)
@@ -141,77 +137,84 @@ export async function POST(request: NextRequest) {
           400,
         );
     }
-    if (
+    let catalogSources: ReaderSource[] = [];
+    const isCatalogQuery =
       !scope &&
       /\b(cari|carikan|buku|skripsi|koleksi|judul|rekomendasi)\b/i.test(
         question,
-      )
-    ) {
-      const { books, theses, error } = await fetchPublicCatalogData();
-      if (error) return reply({ error: "Katalog belum dapat dimuat." }, 503);
-      const terms = queryTerms(question);
-      const kind =
-        /\bskripsi\b/i.test(question) && !/\bbuku\b/i.test(question)
-          ? "thesis"
-          : /\bbuku\b/i.test(question) && !/\bskripsi\b/i.test(question)
-            ? "book"
-            : null;
-      const matches = [...books, ...theses]
-        .filter(
-          (i) =>
-            (i.type !== "book" || hasVerifiedCatalogSource(i)) &&
-            (!kind || i.type === kind),
-        )
-        .map((i) => {
-          const metadata = [
-            i.title,
-            i.type === "book" ? i.author : i.studentName,
-            i.type === "book" ? i.category : i.topic,
-            ...i.keywords,
-          ].join(" ");
-          const hay = normalizeText(metadata);
-          return {
-            i,
-            metadata,
-            score:
-              terms.filter((t) => hay.includes(t)).length /
-              Math.max(1, terms.length),
-          };
-        })
-        .filter((m) => m.score >= 0.5)
-        .sort((a, b) => b.score - a.score)
-        .slice(0, 3);
-      if (matches.length)
-        return reply({
-          paragraphs: [
-            "Berikut koleksi yang cocok dengan kata kunci Anda. Pilih sumber untuk melihat detail dan membacanya.",
-          ],
-          sources: matches.map(({ i, metadata }, n) => ({
-            id: `catalog-${n}`,
-            title: i.title,
-            author: i.type === "book" ? i.author : i.studentName,
-            url:
-              i.type === "book" && i.pdfUrl
-                ? readerUrl("book", i.id)
-                : `/katalog/${i.type === "book" ? "buku" : "skripsi"}/${encodeURIComponent(i.id)}`,
-            excerpt: metadata.slice(0, 240),
-          })),
-          status: "answered",
-          remaining: requestQuota.remaining,
-        });
-    }
-    const embedding = await embedQuestion(question);
-    let sources: ReaderSource[] = [];
-    try {
-      sources = await retrieveSources(question, doc, embedding, scope?.page);
-    } catch {
-      return reply(
-        {
-          error: "Indeks sumber belum siap. Silakan gunakan katalog sementara.",
-        },
-        503,
       );
+    if (!scope) {
+      try {
+        const { books, theses, error } = await fetchPublicCatalogData();
+        if (!error) {
+          const terms = queryTerms(question);
+          const kind =
+            /\bskripsi\b/i.test(question) && !/\bbuku\b/i.test(question)
+              ? "thesis"
+              : /\bbuku\b/i.test(question) && !/\bskripsi\b/i.test(question)
+                ? "book"
+                : null;
+          if (terms.length > 0) {
+            catalogSources = [...books, ...theses]
+              .filter(
+                (i) =>
+                  (i.type !== "book" || hasVerifiedCatalogSource(i)) &&
+                  (!kind || i.type === kind),
+              )
+              .map((i) => {
+                const fullText =
+                  i.type === "book"
+                    ? `Judul Buku: ${i.title}. Penulis: ${i.author}. Penerbit: ${i.publisher || "-"}. Tahun: ${i.year}. Kategori: ${i.category}. Lokasi Rak: ${i.rackLocation || i.location}. Status: ${i.status} (Tersedia ${i.available} dari ${i.stock}). ISBN: ${i.isbn || "-"}. Kata Kunci: ${i.keywords.join(", ")}. ${i.notes || ""}`.trim()
+                    : `Judul Skripsi: ${i.title}. Penulis: ${i.studentName}${i.studentNim ? ` (NIM ${i.studentNim})` : ""}. Tahun: ${i.year}. Topik: ${i.topic}. Pembimbing 1: ${i.supervisor1}. Pembimbing 2: ${i.supervisor2}. Lokasi: ${i.physicalLocation || i.location}. Kata Kunci: ${i.keywords.join(", ")}. Abstrak: ${i.abstract || "-"}`.trim();
+                const hay = normalizeText(fullText);
+                const matched = terms.filter((t) => hay.includes(t)).length;
+                return {
+                  i,
+                  fullText,
+                  score: matched / Math.max(1, terms.length),
+                };
+              })
+              .filter((m) => m.score >= 0.4)
+              .sort((a, b) => b.score - a.score)
+              .slice(0, 4)
+              .map(({ i, fullText }, n) => ({
+                id: `catalog-${n}`,
+                title: i.title,
+                author: i.type === "book" ? i.author : i.studentName,
+                url:
+                  i.type === "book" && i.pdfUrl
+                    ? readerUrl("book", i.id)
+                    : `/katalog/${i.type === "book" ? "buku" : "skripsi"}/${encodeURIComponent(i.id)}`,
+                excerpt: fullText.slice(0, 1200),
+              }));
+          }
+        }
+      } catch {}
     }
+    if (isCatalogQuery && catalogSources.length && !process.env.DEEPSEEK_API_KEY)
+      return reply({
+        paragraphs: [
+          "Berikut koleksi yang cocok dengan kata kunci Anda. Pilih sumber untuk melihat detail dan membacanya.",
+        ],
+        sources: catalogSources.slice(0, 3),
+        status: "answered",
+        remaining: requestQuota.remaining,
+      });
+    const embedding = await embedQuestion(question);
+    let pdfSources: ReaderSource[] = [];
+    try {
+      pdfSources = await retrieveSources(question, doc, embedding, scope?.page);
+    } catch {
+      if (scope)
+        return reply(
+          {
+            error:
+              "Indeks sumber belum siap. Silakan gunakan katalog sementara.",
+          },
+          503,
+        );
+    }
+    const sources = [...pdfSources, ...catalogSources].slice(0, 6);
     if (!sources.length)
       return reply({ ...notFound, remaining: requestQuota.remaining });
     if (!process.env.DEEPSEEK_API_KEY)
@@ -235,11 +238,22 @@ export async function POST(request: NextRequest) {
         429,
       );
     const answer = await answerWithDeepseek(question, sources, history);
-    return reply(
-      answer
-        ? { ...answer, status: "answered", remaining: requestQuota.remaining }
-        : { ...notFound, remaining: requestQuota.remaining },
-    );
+    if (answer)
+      return reply({
+        ...answer,
+        status: "answered",
+        remaining: requestQuota.remaining,
+      });
+    if (isCatalogQuery && catalogSources.length)
+      return reply({
+        paragraphs: [
+          "Berikut koleksi yang cocok dengan kata kunci Anda. Pilih sumber untuk melihat detail dan membacanya.",
+        ],
+        sources: catalogSources.slice(0, 3),
+        status: "answered",
+        remaining: requestQuota.remaining,
+      });
+    return reply({ ...notFound, remaining: requestQuota.remaining });
   } catch (error) {
     return reply(
       {

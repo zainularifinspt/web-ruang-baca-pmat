@@ -189,7 +189,7 @@ export function validateAnswer(
   if (
     !Array.isArray(v.paragraphs) ||
     v.paragraphs.length < 1 ||
-    v.paragraphs.length > 2 ||
+    v.paragraphs.length > 3 ||
     !v.paragraphs.every(
       (p) =>
         typeof p === "string" &&

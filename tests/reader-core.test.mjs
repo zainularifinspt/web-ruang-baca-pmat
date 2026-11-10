@@ -80,7 +80,7 @@ test("chunks never invent another page, even with overlapping content", () => {
   assert.ok(chunks.every((c) => [42, 55].includes(c.page)));
   assert.ok(chunks[0].text.split(" ").length <= 300);
 });
-test("answers require exact evidence, allowed references, and at most two paragraphs", () => {
+test("answers require exact evidence, allowed references, and at most three paragraphs", () => {
   const valid = {
     paragraphs: ["Penelitian menggunakan purposive sampling."],
     citations: [
@@ -88,6 +88,9 @@ test("answers require exact evidence, allowed references, and at most two paragr
     ],
   };
   assert.ok(validateAnswer(valid, sources));
+  assert.ok(
+    validateAnswer({ ...valid, paragraphs: ["Paragraf 1.", "Paragraf 2.", "Paragraf 3."] }, sources),
+  );
   assert.equal(
     validateAnswer(
       { ...valid, paragraphs: ["Paragraf satu\rParagraf dua\rParagraf tiga"] },
@@ -116,7 +119,7 @@ test("answers require exact evidence, allowed references, and at most two paragr
     null,
   );
   assert.equal(
-    validateAnswer({ ...valid, paragraphs: ["a", "b", "c"] }, sources),
+    validateAnswer({ ...valid, paragraphs: ["a", "b", "c", "d"] }, sources),
     null,
   );
   assert.equal(

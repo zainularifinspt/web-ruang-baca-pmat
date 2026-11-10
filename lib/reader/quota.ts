@@ -1,4 +1,4 @@
-import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
+import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { mkdir, readFile, writeFile, rename, rm } from "node:fs/promises";
 import path from "node:path";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
@@ -11,13 +11,22 @@ type Bucket = {
   expires: string;
   scope: string;
 };
+const memoryUsage = new Map<string, { units: number; expires: string }>();
 async function secret() {
   if (
     process.env.CHAT_SESSION_SECRET?.length &&
     process.env.CHAT_SESSION_SECRET.length >= 32
   )
     return process.env.CHAT_SESSION_SECRET;
-  if (!readerLocal()) throw new Error("Layanan chat belum dikonfigurasi.");
+  const fallbackSeed =
+    process.env.DEEPSEEK_API_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!readerLocal()) {
+    if (fallbackSeed)
+      return createHash("sha256")
+        .update(`ruang-baca-chat:${fallbackSeed}`)
+        .digest("hex");
+    throw new Error("Layanan chat belum dikonfigurasi.");
+  }
   await mkdir(dataRoot(), { recursive: true });
   const file = path.join(dataRoot(), "session.key");
   try {
@@ -97,7 +106,7 @@ export async function reserveChat(
     buckets.push({
       key: `ip:${digest(key, network)}:${day}`,
       units: 1,
-      limit: positive(process.env.CHAT_NETWORK_DAILY_LIMIT, 100),
+      limit: positive(process.env.CHAT_NETWORK_DAILY_LIMIT, 20),
       scope: "network",
       expires: exp,
     });
@@ -124,18 +133,31 @@ export async function reserveChatBudget(cost: number) {
   );
   return result.ok;
 }
+function reserveMemoryBuckets(buckets: Bucket[], daily: number, now: number) {
+  for (const [k, v] of memoryUsage.entries())
+    if (Date.parse(v.expires) < now) memoryUsage.delete(k);
+  if (buckets.some((b) => (memoryUsage.get(b.key)?.units || 0) + b.units > b.limit))
+    return { ok: false, remaining: 0 };
+  let remaining = daily;
+  for (const b of buckets) {
+    const used = (memoryUsage.get(b.key)?.units || 0) + b.units;
+    memoryUsage.set(b.key, { units: used, expires: b.expires });
+    if (b.scope === "daily" || b.scope === "network")
+      remaining = Math.min(remaining, b.limit - used);
+  }
+  return { ok: true, remaining };
+}
 async function reserveBuckets(buckets: Bucket[], daily: number) {
   const now = Date.now();
   if (!readerLocal()) {
-    const { data, error } = await createSupabaseAdminClient().rpc(
-      "reader_reserve_usage",
-      { p_buckets: buckets },
-    );
-    if (error)
-      throw new Error(
-        "Layanan chat belum diaktifkan. Katalog dan pembaca tetap tersedia.",
+    try {
+      const { data, error } = await createSupabaseAdminClient().rpc(
+        "reader_reserve_usage",
+        { p_buckets: buckets },
       );
-    return data as { ok: boolean; remaining: number };
+      if (!error && data) return data as { ok: boolean; remaining: number };
+    } catch {}
+    return reserveMemoryBuckets(buckets, daily, now);
   }
   await mkdir(dataRoot(), { recursive: true });
   const lock = path.join(dataRoot(), "quota.lock");
@@ -166,7 +188,8 @@ async function reserveBuckets(buckets: Bucket[], daily: number) {
         units: (usage[b.key]?.units || 0) + b.units,
         expires: b.expires,
       };
-      if (b.scope === "daily") remaining = b.limit - usage[b.key].units;
+      if (b.scope === "daily" || b.scope === "network")
+        remaining = Math.min(remaining, b.limit - usage[b.key].units);
     }
     await writeFile(file + ".tmp", JSON.stringify(usage), { mode: 0o600 });
     await rename(file + ".tmp", file);

@@ -78,7 +78,7 @@ begin
   select units into used from chat_usage where bucket_key=b->>'key';
   used:=coalesce(used,0);
   if used+(b->>'units')::bigint>(b->>'limit')::bigint then return jsonb_build_object('ok',false,'remaining',0); end if;
-  if b->>'scope'='daily' then remaining:=least(remaining,((b->>'limit')::bigint-used-(b->>'units')::bigint)); end if;
+  if b->>'scope' in ('daily','network') then remaining:=least(remaining,((b->>'limit')::bigint-used-(b->>'units')::bigint)); end if;
  end loop;
  for b in select * from jsonb_array_elements(p_buckets) loop
   insert into chat_usage(bucket_key,units,expires_at) values(b->>'key',(b->>'units')::bigint,(b->>'expires')::timestamptz)

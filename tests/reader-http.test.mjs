@@ -62,7 +62,7 @@ test(
     assert.equal(metadata.status, 200);
     const data = await metadata.json();
     assert.ok(data.sources.length > 0);
-    assert.ok(data.paragraphs.length <= 2);
+    assert.ok(data.paragraphs.length <= 3);
     assert.ok(data.sources.every((s) => s.url.startsWith("/")));
     const outside = await fetch(`${base}/api/chat`, {
       method: "POST",
