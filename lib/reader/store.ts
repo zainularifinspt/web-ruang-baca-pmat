@@ -298,6 +298,48 @@ export async function retrieveSources(
   }
   const terms = queryTerms(query);
   const db = createSupabaseAdminClient();
+  if (!doc && !embedding) {
+    if (!terms.length) return [];
+    const find = (keywords: string) => db
+      .from("reader_chunks")
+      .select("id,document_id,revision,page_number,text_content")
+      .textSearch("search_vector", keywords, { config: "simple", type: "websearch" })
+      .limit(40);
+    let { data, error } = await find(terms.join(" "));
+    if (!error && !data?.length && terms.length > 1) {
+      ({ data, error } = await find(terms.join(" OR ")));
+    }
+    if (error) throw new Error("Indeks dokumen belum tersedia.");
+
+    const grouped = new Map<string, NonNullable<typeof data>>();
+    for (const row of data || []) {
+      const rows = grouped.get(row.document_id) || [];
+      rows.push(row);
+      grouped.set(row.document_id, rows);
+    }
+    const candidates = await Promise.all([...grouped].slice(0, 8).map(async ([key, rows]) => {
+      const delimiter = key.indexOf("-");
+      const kind = key.slice(0, delimiter);
+      if (kind !== "book" && kind !== "thesis") return [];
+      const allowed = await getReaderDocument(kind, key.slice(delimiter + 1)).catch(() => null);
+      if (!allowed) return [];
+      const pages = new Map(allowed.pages.map((p) => [p.number, p]));
+      return rows.flatMap<ReaderSource>((row) => {
+        if (row.revision !== allowed.revision || !pages.has(row.page_number)) return [];
+        return [{
+          id: `${key}:${row.revision}:${row.id}`,
+          title: allowed.title,
+          author: allowed.author,
+          page: row.page_number,
+          label: pages.get(row.page_number)?.label,
+          revision: row.revision,
+          url: readerUrl(allowed.kind, allowed.collectionId, row.page_number, row.revision),
+          excerpt: row.text_content,
+        }];
+      }).slice(0, 2);
+    }));
+    return candidates.flat().slice(0, 6);
+  }
   const retrieve = (keywords: string) =>
     db.rpc("reader_retrieve", {
       p_query: keywords,
