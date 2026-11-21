@@ -19,7 +19,7 @@ export async function GET(
         { status: 404, headers: { "Cache-Control": "no-store" } },
       );
     const asset = (name: string) =>
-      `/api/reader/${kind}/${encodeURIComponent(id)}/assets/${doc.revision}/${name}`;
+      name ? `/api/reader/${kind}/${encodeURIComponent(id)}/assets/${doc.revision}/${name}` : "";
     const manifest: ReaderManifest = {
       key: doc.key,
       collectionId: doc.collectionId,
@@ -41,7 +41,6 @@ export async function GET(
       searchReady: doc.pages.some((p) => p.quality !== "image"),
       textPages: doc.pages.filter((p) => p.quality !== "image").length,
       aiReady:
-        doc.storage !== "pilot" &&
         Boolean(process.env.DEEPSEEK_API_KEY) &&
         doc.pages.some((p) => p.quality !== "image"),
       embeddingReady: doc.embeddingReady,
@@ -50,6 +49,7 @@ export async function GET(
     if (doc.storage !== "pilot" && process.env.READER_ASSET_BASE_URL)
       for (const p of manifest.pages) {
         for (const field of ["image", "thumbnail", "hd"] as const) {
+          if (!p[field]) continue;
           const filename = p[field].split("/").pop();
           p[field] =
             `${process.env.READER_ASSET_BASE_URL.replace(/\/$/, "")}/${doc.key}/${doc.revision}/${filename}`;

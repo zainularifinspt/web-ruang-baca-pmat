@@ -7,7 +7,7 @@ Implementasi awal, 7 November 2026, branch `codex/flipbook-chatbot`.
 - Flipbook buku di `/baca/buku/{id}` memakai aset WebP yang disiapkan di latar. Skripsi dibaca lewat penampil PDF di halaman detail katalog. Tautan lama `/baca/skripsi/{id}` mengarah ke halaman detail tersebut.
 - Dua halaman pada desktop, satu pada ponsel; zoom memakai aset HD, mode halaman biasa tersedia, dan preferensi pengurangan gerak dihormati. Teks yang dapat dipilih tersedia melalui tombol baca teks.
 - Pencarian isi, thumbnail bertahap, daftar isi PDF jika tersedia, dan tautan `?page={nomor PDF}&v={revisi}` menggunakan nomor halaman sumber yang sama. Label halaman cetak ditampilkan terpisah.
-- Chatbot menyediakan pencarian metadata tanpa model, serta tanya isi melalui DeepSeek. Konteks bisa seluruh koleksi terindeks, satu dokumen, atau satu halaman. Jawaban diperiksa maksimal dua paragraf/160 kata; kutipan harus berasal dari bukti yang disediakan. Model tidak memiliki alat internet.
+- Chatbot menyediakan pencarian metadata tanpa model, serta tanya isi melalui DeepSeek. Konteks bisa seluruh koleksi terindeks, satu dokumen, atau satu halaman. Jawaban dibatasi tiga paragraf dan 160 kata. Kutipan untuk jawaban tentang isi buku atau skripsi diperiksa terhadap bukti koleksi. Chatbot umum juga menjawab pertanyaan tentang metodologi, analisis data, dan penulisan dengan label **Panduan umum skripsi**. Model tidak memiliki alat internet.
 - Panel admin **Dokumen Digital** (`/dashboard/dokumen`) menyediakan antrean pemrosesan dan status dasar. Worker terpisah harus aktif agar antrean bergerak.
 - Dua dokumen nyata diproses secara **lokal**, bukan seluruh koleksi: satu e-book 313 halaman dan satu skripsi 78 halaman yang diizinkan. Setelah OCR, seluruh 78 halaman skripsi uji mempunyai teks hasil ekstraksi/OCR; akurasi OCR tetap bergantung kualitas pindai.
 - Pengujian otomatis mencakup halaman tersembunyi, OCR, validasi sumber/jawaban, host unduhan, kuota paralel, dan migrasi/RPC PostgreSQL lokal. UI pencarian membuka halaman PDF 133 dan menyorot kata; jendela gambar desktop maksimal 6, ponsel 4 pada uji navigasi tersebut.
@@ -52,7 +52,7 @@ Masukkan dokumen melalui admin atau jalankan pengindeksan langsung saat aplikasi
 npm run reader:index -- --kind book --id ID_KOLEKSI
 npm run reader:index -- --kind thesis --id ID_KOLEKSI
 npm run reader:index -- --kind book --all
-npm run reader:index -- --kind thesis --all
+npm run reader:index -- --kind thesis --all --text-only
 npm run reader:doctor
 ```
 

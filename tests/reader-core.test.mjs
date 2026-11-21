@@ -57,7 +57,7 @@ test("canonical source pages retain PDF numbers rather than display offsets", ()
     readerUrl("book", "x", 42, "abc"),
     "/baca/buku/x?page=42&v=abc",
   );
-  assert.equal(readerUrl("thesis", "x", 42, "abc"), "/katalog/skripsi/x");
+  assert.equal(readerUrl("thesis", "x", 42, "abc"), "/katalog/skripsi/x?page=42");
   const found = searchPages(doc, "purposive sampling");
   assert.equal(found.length, 1);
   assert.equal(found[0].page, 42);

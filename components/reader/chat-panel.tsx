@@ -109,7 +109,7 @@ export function ChatPanel({
               ? `Bertanya tentang halaman PDF ${scope.page}.`
               : scope
                 ? `Jawaban dari bagian ${documentName} yang dapat dibaca.`
-                : "Temukan koleksi dan jawaban dari sumber Ruang Baca."}
+                : "Cari koleksi, tanyakan isi dokumen, atau minta panduan skripsi."}
           </p>
         </div>
       )}
@@ -140,6 +140,7 @@ export function ChatPanel({
             <span className="reader-message-author">
               {m.role === "user" ? "Anda" : "Asisten Ruang Baca"}
             </span>
+            {m.answer?.basis === "research_guidance" && <small>Panduan umum skripsi</small>}
             {m.content.split("\n\n").map((p, j) => (
               <p key={j}>{p}</p>
             ))}

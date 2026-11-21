@@ -36,16 +36,17 @@ const pageRenderQueue: QueuedPageRender[] = [];
 
 type ThesisPdfViewerProps = {
   thesisId: string;
+  initialPage?: number;
   pdfUrl?: string;
   pdfR2?: string;
   pdfFilename?: string;
   studentName?: string;
 };
 
-export function ThesisPdfViewer({ thesisId, pdfUrl, pdfR2, studentName }: ThesisPdfViewerProps) {
+export function ThesisPdfViewer({ thesisId, initialPage, pdfUrl, pdfR2, studentName }: ThesisPdfViewerProps) {
   const chosenPdfUrl = (pdfR2 && pdfR2.trim()) ? pdfR2.trim() : pdfUrl;
   const resolvedPdfUrl = resolveThesisPdfUrl(chosenPdfUrl);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(Boolean(initialPage));
   const [readerContainer, setReaderContainer] = useState<HTMLDivElement | null>(null);
   const readerTitle = studentName ? `File Skripsi - ${studentName}` : "File Skripsi";
   const resolvedReaderPdfUrl = resolvedPdfUrl ? readerPdfUrl(resolvedPdfUrl) : "";
@@ -80,6 +81,7 @@ export function ThesisPdfViewer({ thesisId, pdfUrl, pdfR2, studentName }: Thesis
           <DialogContent ref={setReaderContainer} hideCloseButton className="left-0 top-0 h-dvh max-h-dvh w-screen max-w-none translate-x-0 translate-y-0 flex flex-col gap-0 overflow-hidden rounded-none border-0 p-0 bg-slate-100">
             <PdfCanvasReader
               active={open}
+              initialPage={initialPage}
               pdfUrl={resolvedReaderPdfUrl}
               title={readerTitle}
               studentName={studentName}
@@ -136,11 +138,13 @@ function readerPdfUrl(value: string) {
 
 function PdfCanvasReader({
   active,
+  initialPage,
   pdfUrl,
   title,
   studentName,
 }: {
   active: boolean;
+  initialPage?: number;
   pdfUrl: string;
   title: string;
   studentName?: string;
@@ -369,6 +373,15 @@ function PdfCanvasReader({
       loadedDocument?.destroy();
     };
   }, [active, pdfUrl]);
+
+  useEffect(() => {
+    if (!active || !document || !initialPage || hiddenPageNumbers.has(initialPage)) return;
+    const frame = window.requestAnimationFrame(() => {
+      containerRef.current?.querySelector<HTMLElement>(`[data-page-number="${initialPage}"]`)
+        ?.scrollIntoView({ block: "start" });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [active, document, hiddenPageNumbers, initialPage]);
 
   useEffect(() => {
     if (!document || !containerRef.current) return;

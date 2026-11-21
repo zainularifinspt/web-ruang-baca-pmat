@@ -30,6 +30,8 @@ const base = option(
   process.env.READER_CATALOG_URL || "http://127.0.0.1:3000",
 );
 const mode = option("--storage", process.env.READER_STORAGE || "local");
+if (!["local", "supabase", "r2"].includes(mode))
+  throw Error("Gunakan --storage local, supabase, atau r2.");
 const limit = Number(option("--limit", "1"));
 if (!Number.isInteger(limit) || limit < 1)
   throw Error("Gunakan --limit angka positif, atau --all.");
@@ -44,10 +46,35 @@ const db =
       );
 const wanted = option("--id", "");
 const kind = option("--kind", "book");
+const retryLog = option("--retry-log", "");
+if (args.includes("--retry-log") && (!retryLog || retryLog.startsWith("--")))
+  throw Error("--retry-log memerlukan path log batch.");
+const retryIds = retryLog
+  ? new Set(Array.from((await readFile(retryLog, "utf8")).matchAll(/^Gagal ([a-zA-Z0-9_-]{1,160}):/gm), ([, id]) => id))
+  : null;
+if (retryIds?.size === 0) {
+  console.log("Tidak ada dokumen gagal pada log batch.");
+  process.exit(0);
+}
+const textOnly = args.includes("--text-only");
+if (textOnly && kind !== "thesis")
+  throw Error("--text-only hanya tersedia untuk skripsi.");
+const concurrency = Number(option("--concurrency", "1"));
+if (!Number.isInteger(concurrency) || concurrency < 1 || concurrency > 4 ||
+    (concurrency > 1 && (!textOnly || args.includes("--job-id"))))
+  throw Error("Gunakan --concurrency 1–4 untuk batch teks skripsi tanpa --job-id.");
+const embeddingUrl = args.includes("--no-embeddings")
+  ? ""
+  : process.env.READER_EMBEDDING_URL;
+const embeddingModel = embeddingUrl
+  ? process.env.READER_EMBEDDING_MODEL || "Xenova/multilingual-e5-small"
+  : undefined;
+const pdfSource = (item) => item.pdfR2?.trim() || item.pdfUrl?.trim() || "";
 const all = new Map();
 for (let offset = 0; offset < 100000; offset += 500) {
   const res = await fetch(
     `${base.replace(/\/$/, "")}/api/catalog?visibility=public&limit=500&offset=${offset}`,
+    { signal: AbortSignal.timeout(60000) },
   );
   const p = await res.json();
   if (!res.ok || p.error)
@@ -60,28 +87,46 @@ for (let offset = 0; offset < 100000; offset += 500) {
   )
     break;
 }
-const items = [...all.values()]
-  .filter(
-    (x) =>
-      x.type === kind &&
-      hasVerifiedCatalogSource(x) &&
-      (x.pdfR2 || x.pdfUrl) &&
-      (!wanted || x.id === wanted) &&
-      !/^ebk-\d+$/.test(x.id),
-  )
-  .slice(0, args.includes("--all") ? undefined : limit);
+const collection = [...all.values()].filter(
+  (x) =>
+    x.type === kind &&
+    hasVerifiedCatalogSource(x) &&
+    (!wanted || x.id === wanted) &&
+    (!retryIds || retryIds.has(x.id)) &&
+    !/^ebk-\d+$/.test(x.id),
+);
+const missingPdf = collection.filter((item) => !pdfSource(item));
+const allSelected = args.includes("--all") || Boolean(retryIds);
+const items = collection
+  .filter(pdfSource)
+  .slice(0, allSelected ? undefined : limit);
+console.log(`Katalog: ${collection.length}; PDF dipilih: ${items.length}; tanpa sumber PDF: ${missingPdf.length}.`);
+if (allSelected || wanted)
+  for (const item of missingPdf) console.error(`Tanpa sumber PDF: ${item.id}`);
 if (!items.length)
   throw Error(
     "Tidak ada dokumen dengan sumber dan identitas stabil yang cocok.",
   );
 let failures = 0;
+let published = 0;
+let skipped = 0;
+async function check(promise) {
+  const result = await promise;
+  if (result.error) throw new Error(result.error.message);
+  return result.data;
+}
 async function runPython(file, dir, type) {
   const timeoutMinutes = type === "book" ? 30 : 10;
+  const extractorArgs = ["scripts/reader-extract.py", file, dir, "--kind", type];
+  if (textOnly) extractorArgs.push("--text-only");
   await new Promise((ok, no) => {
     const child = spawn(
       process.env.READER_PYTHON || "python3",
-      ["scripts/reader-extract.py", file, dir, "--kind", type],
-      { stdio: "inherit" },
+      extractorArgs,
+      {
+        stdio: "inherit",
+        env: concurrency > 1 ? { ...process.env, READER_OCR_WORKERS: "1" } : process.env,
+      },
     );
     const timeout = setTimeout(() => {
       child.kill("SIGKILL");
@@ -96,8 +141,7 @@ async function runPython(file, dir, type) {
   });
 }
 async function embed(texts) {
-  if (!process.env.READER_EMBEDDING_URL) return null;
-  const res = await fetch(process.env.READER_EMBEDDING_URL, {
+  const res = await fetch(embeddingUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -123,16 +167,14 @@ async function embed(texts) {
     throw Error("Embedding harus vektor 384 dimensi.");
   return value.embeddings;
 }
-for (const item of items) {
+async function indexItem(item) {
   const key = readerKey(item.type, item.id);
   const job = option("--job-id", randomUUID());
   const work = join(root, `.work-${job}`);
   try {
     if (db)
-      await db
-        .from("reader_jobs")
-        .upsert({ id: job, document_id: key, status: "processing" });
-    const sourceUrl = (item.pdfR2 || item.pdfUrl).trim();
+      await check(db.from("reader_jobs").upsert({ id: job, document_id: key, status: "processing" }));
+    const sourceUrl = pdfSource(item);
     console.log(`Memproses ${item.type} ${item.id}`);
     const data = await downloadPdf(sourceUrl);
     const hash = createHash("sha256").update(data).digest("hex");
@@ -140,23 +182,28 @@ for (const item of items) {
       .update(
         hash +
           READER_POLICY +
-          "render-v3-webp" +
-          (process.env.READER_WEBP_QUALITY || "88") +
-          (process.env.READER_EMBEDDING_MODEL || "none") +
+          (textOnly ? "thesis-text-v2" : "render-v3-webp" + (process.env.READER_WEBP_QUALITY || "88")) +
+          (textOnly ? embeddingModel || "none" : process.env.READER_EMBEDDING_MODEL || "none") +
+          (!textOnly && args.includes("--no-embeddings") ? "no-embeddings" : "") +
           (args.includes("--force") ? job : ""),
       )
       .digest("hex")
       .slice(0, 20);
-    const current = await readFile(join(root, key, "document.json"), "utf8")
+    const current = mode === "local" ? await readFile(join(root, key, "document.json"), "utf8")
       .then(JSON.parse)
-      .catch(() => null);
+      .catch(() => null) : null;
+    const active = db && textOnly && !args.includes("--force")
+      ? await check(db.from("reader_documents").select("active_revision,is_public").eq("id", key).maybeSingle())
+      : null;
+    const activeVersion = active?.is_public && active.active_revision === revision
+      ? await check(db.from("reader_document_versions").select("source_url").eq("document_id", key).eq("id", revision).maybeSingle())
+      : null;
     if (
-      mode === "local" &&
-      current?.revision === revision &&
-      current.sourceUrl === sourceUrl &&
-      !args.includes("--force")
+      (current?.revision === revision && current.sourceUrl === sourceUrl && !args.includes("--force")) ||
+      activeVersion?.source_url === sourceUrl
     ) {
-      console.log("Versi sudah siap; dilewati.");
+      skipped++;
+      console.log(`Versi sudah siap; dilewati: ${item.id}.`);
       if (db)
         await db
           .from("reader_jobs")
@@ -166,7 +213,7 @@ for (const item of items) {
             updated_at: new Date().toISOString(),
           })
           .eq("id", job);
-      continue;
+      return;
     }
     await mkdir(work, { recursive: true });
     const pdf = join(work, "source.pdf");
@@ -176,13 +223,14 @@ for (const item of items) {
       await readFile(join(work, "extracted.json"), "utf8"),
     );
     const chunks = chunkPages(parsed.pages);
-    let embeddingReady = false;
-    if (process.env.READER_EMBEDDING_URL) {
+    if (textOnly && !chunks.length)
+      throw Error("Tidak ada teks halaman yang layak dijadikan sumber Tama.");
+    const embeddingReady = Boolean(embeddingUrl && chunks.length);
+    if (embeddingReady) {
       for (let i = 0; i < chunks.length; i += 16) {
         const vectors = await embed(chunks.slice(i, i + 16).map((c) => c.text));
-        vectors?.forEach((v, j) => (chunks[i + j].embedding = v));
+        vectors.forEach((v, j) => (chunks[i + j].embedding = v));
       }
-      embeddingReady = true;
     }
     const doc = {
       schema: 1,
@@ -199,16 +247,14 @@ for (const item of items) {
       ...parsed,
       chunks,
       embeddingReady,
-      embeddingModel: embeddingReady
-        ? process.env.READER_EMBEDDING_MODEL || "Xenova/multilingual-e5-small"
-        : undefined,
+      embeddingModel: embeddingReady ? embeddingModel : undefined,
     };
     // Originals and hidden page material never enter the asset directory.
     await rm(pdf);
     await rm(join(work, "extracted.json"));
     if (db) {
       const bucket = process.env.READER_ASSET_BUCKET || "reader-assets";
-      if (mode === "r2") {
+      if (!textOnly && mode === "r2") {
         const { S3Client, PutObjectCommand } =
           await import("@aws-sdk/client-s3");
         const s3 = new S3Client({
@@ -229,7 +275,7 @@ for (const item of items) {
                 ContentType: "image/webp",
               }),
             );
-      } else {
+      } else if (!textOnly) {
         const { data: buckets, error: be } = await db.storage.listBuckets();
         if (be) throw be;
         if (!buckets.some((b) => b.name === bucket)) {
@@ -252,11 +298,6 @@ for (const item of items) {
             if (error) throw error;
           }
       }
-      const check = async (promise) => {
-        const r = await promise;
-        if (r.error) throw r.error;
-        return r.data;
-      };
       await check(
         db.from("reader_documents").upsert({
           id: key,
@@ -279,17 +320,18 @@ for (const item of items) {
           embedding_model: doc.embeddingModel || null,
         }),
       );
-      for (let i = 0; i < doc.pages.length; i += 20)
+      const pageBatchSize = textOnly ? 100 : 20;
+      for (let i = 0; i < doc.pages.length; i += pageBatchSize)
         await check(
           db.from("reader_pages").upsert(
-            doc.pages.slice(i, i + 20).map((p) => ({
+            doc.pages.slice(i, i + pageBatchSize).map((p) => ({
               document_id: key,
               revision,
               page_number: p.number,
               label: p.label,
               width: p.width,
               height: p.height,
-              text_content: p.text,
+              text_content: textOnly ? "" : p.text,
               image: p.image,
               thumbnail: p.thumbnail,
               hd: p.hd,
@@ -298,10 +340,11 @@ for (const item of items) {
             })),
           ),
         );
-      for (let i = 0; i < chunks.length; i += 50)
+      const chunkBatchSize = textOnly ? 100 : 50;
+      for (let i = 0; i < chunks.length; i += chunkBatchSize)
         await check(
           db.from("reader_chunks").upsert(
-            chunks.slice(i, i + 50).map((c) => ({
+            chunks.slice(i, i + chunkBatchSize).map((c) => ({
               document_id: key,
               revision,
               id: c.id,
@@ -331,21 +374,24 @@ for (const item of items) {
         })
         .eq("id", job);
     }
-    const destination = join(root, key, revision);
-    await mkdir(destination, { recursive: true });
-    for (const p of doc.pages)
-      for (const f of [p.image, p.thumbnail, p.hd])
-        await copyFile(join(work, f), join(destination, f));
-    await writeFile(
-      join(root, key, "document.pending.json"),
-      JSON.stringify(doc),
-    );
-    await rename(
-      join(root, key, "document.pending.json"),
-      join(root, key, "document.json"),
-    );
+    if (!db || !textOnly) {
+      const destination = join(root, key, revision);
+      await mkdir(destination, { recursive: true });
+      for (const p of doc.pages)
+        for (const f of [p.image, p.thumbnail, p.hd].filter(Boolean))
+          await copyFile(join(work, f), join(destination, f));
+      await writeFile(
+        join(root, key, "document.pending.json"),
+        JSON.stringify(doc),
+      );
+      await rename(
+        join(root, key, "document.pending.json"),
+        join(root, key, "document.json"),
+      );
+    }
+    published++;
     console.log(
-      `Siap: ${doc.pages.length} halaman, ${chunks.length} potongan, embedding ${embeddingReady ? "aktif" : "belum diaktifkan"}.`,
+      `Siap: ${item.id}; ${doc.pages.length} halaman, ${chunks.length} potongan, embedding ${embeddingReady ? "aktif" : "belum diaktifkan"}.`,
     );
   } catch (error) {
     failures++;
@@ -366,4 +412,10 @@ for (const item of items) {
     await rm(work, { recursive: true, force: true });
   }
 }
-if (failures) process.exitCode = 1;
+const pending = items.values();
+await Promise.all(Array.from({ length: Math.min(concurrency, items.length) }, async () => {
+  for (const item of pending) await indexItem(item);
+}));
+console.log(`Selesai: ${published} diproses, ${skipped} sudah aktif, ${failures} gagal, ${missingPdf.length} tanpa sumber PDF.`);
+if (failures || ((allSelected || wanted) && missingPdf.length))
+  process.exitCode = 1;

@@ -6,6 +6,7 @@ import { readPilotBook, readPilotPages } from "./pilot";
 import { PILOT_BOOK_ID } from "./pilot-config";
 import {
   READER_POLICY,
+  chunkPages,
   readerKey,
   readerUrl,
   searchPages,
@@ -204,6 +205,22 @@ export async function retrieveSources(
   embedding?: number[],
   page?: number,
 ): Promise<ReaderSource[]> {
+  if (doc?.storage === "pilot") {
+    const allowed = new Set(doc.pages.map((p) => p.number));
+    const pages = (await readPilotPages(doc.revision)).filter((p) => allowed.has(p.number));
+    const chunks = chunkPages(pages);
+    const matches = retrieveChunks({ ...doc, chunks }, query, undefined, page);
+    return matches.map((chunk) => ({
+      id: `${doc.key}:${doc.revision}:${chunk.id}`,
+      title: doc.title,
+      author: doc.author,
+      page: chunk.page,
+      label: pages.find((p) => p.number === chunk.page)?.label,
+      revision: doc.revision,
+      url: readerUrl(doc.kind, doc.collectionId, chunk.page, doc.revision),
+      excerpt: chunk.text,
+    }));
+  }
   if (readerLocal()) {
     const keys = doc
       ? [doc.key]
@@ -248,15 +265,19 @@ export async function retrieveSources(
       .slice(0, 6)
       .map((f) => f.source);
   }
-  const { data, error } = await createSupabaseAdminClient().rpc(
-    "reader_retrieve",
-    {
-      p_query: queryTerms(query).join(" "),
+  const terms = queryTerms(query);
+  const db = createSupabaseAdminClient();
+  const retrieve = (keywords: string) =>
+    db.rpc("reader_retrieve", {
+      p_query: keywords,
       p_document: doc?.key || null,
       p_page: page || null,
       p_embedding: embedding ? JSON.stringify(embedding) : null,
-    },
-  );
+    });
+  let { data, error } = await retrieve(terms.join(" "));
+  if (!error && !data?.length && terms.length > 1) {
+    ({ data, error } = await retrieve(terms.join(" OR ")));
+  }
   if (error) throw new Error("Indeks dokumen belum tersedia.");
   const result: ReaderSource[] = [];
   const checks = new Map<string, ReaderDocument | null>();

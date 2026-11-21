@@ -3,7 +3,6 @@ import { fetchPublicCatalogData } from "@/lib/public-cache";
 import {
   normalizeText,
   queryTerms,
-  readerUrl,
   hasVerifiedCatalogSource,
 } from "@/lib/reader/core";
 import { getReaderDocument, retrieveSources } from "@/lib/reader/store";
@@ -14,7 +13,7 @@ import {
 } from "@/lib/reader/on-demand";
 import { embedQuestion } from "@/lib/reader/embedding";
 import { chatSession, reserveChat } from "@/lib/reader/quota";
-import { answerWithDeepseek, reservedCost } from "@/lib/reader/chat";
+import { allowsResearchGuidance, answerWithDeepseek, isCatalogRequest, reservedCost } from "@/lib/reader/chat";
 import type { ChatResult, ReaderSource } from "@/lib/reader/types";
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -161,11 +160,9 @@ export async function POST(request: NextRequest) {
       }
     }
     let catalogSources: ReaderSource[] = [];
-    const isCatalogQuery =
-      !scope &&
-      /\b(cari|carikan|buku|skripsi|koleksi|judul|rekomendasi)\b/i.test(
-        question,
-      );
+    const normalizedQuestion = normalizeText(question);
+    const isCatalogQuery = !scope && isCatalogRequest(normalizedQuestion);
+    let namedItem: Parameters<typeof buildCatalogMetadataSource>[0] | undefined;
     if (!scope) {
       try {
         const { books, theses, error } = await fetchPublicCatalogData();
@@ -177,13 +174,16 @@ export async function POST(request: NextRequest) {
               : /\bbuku\b/i.test(question) && !/\bskripsi\b/i.test(question)
                 ? "book"
                 : null;
+          const items = [...books, ...theses].filter(
+            (item) => hasVerifiedCatalogSource(item) && (!isCatalogQuery || !kind || item.type === kind),
+          );
+          const named = items.filter((item) => {
+            const title = normalizeText(item.title);
+            return title.length >= 12 && ` ${normalizedQuestion} `.includes(` ${title} `);
+          });
+          if (named.length === 1) namedItem = named[0];
           if (terms.length > 0) {
-            catalogSources = [...books, ...theses]
-              .filter(
-                (i) =>
-                  (i.type !== "book" || hasVerifiedCatalogSource(i)) &&
-                  (!kind || i.type === kind),
-              )
+            catalogSources = (namedItem ? [namedItem] : items)
               .map((i, idx) => {
                 const source = buildCatalogMetadataSource(i, idx);
                 const hay = normalizeText(source.excerpt);
@@ -193,7 +193,7 @@ export async function POST(request: NextRequest) {
                   score: matched / Math.max(1, terms.length),
                 };
               })
-              .filter((m) => m.score >= 0.4)
+              .filter((m) => namedItem || m.score >= 0.4)
               .sort((a, b) => b.score - a.score)
               .slice(0, 4)
               .map(({ source }, n) => ({ ...source, id: `catalog-${n}` }));
@@ -201,7 +201,7 @@ export async function POST(request: NextRequest) {
         }
       } catch {}
     }
-    if (isCatalogQuery && catalogSources.length && !process.env.DEEPSEEK_API_KEY)
+    if (isCatalogQuery && catalogSources.length)
       return reply({
         paragraphs: [
           "Berikut koleksi yang cocok dengan kata kunci Anda. Pilih sumber untuk melihat detail dan membacanya.",
@@ -210,18 +210,25 @@ export async function POST(request: NextRequest) {
         status: "answered",
         remaining: requestQuota.remaining,
       });
-    const embedding = await embedQuestion(question);
+    if (namedItem && !scope) {
+      doc = await getReaderDocument(namedItem.type, namedItem.id).catch(() => null);
+      if (!doc) scopedItem = namedItem;
+    }
+    const retrievalQuery = namedItem
+      ? normalizedQuestion.replace(normalizeText(namedItem.title), " ").trim() || question
+      : question;
+    const embedding = await embedQuestion(retrievalQuery);
     let pdfSources: ReaderSource[] = [];
     if (scopedItem) {
       pdfSources = await retrieveOnDemandSources(
         scopedItem,
-        question,
+        retrievalQuery,
         embedding,
         scope?.page,
       );
     } else {
       try {
-        pdfSources = await retrieveSources(question, doc, embedding, scope?.page);
+        pdfSources = await retrieveSources(retrievalQuery, doc, embedding, scope?.page);
       } catch {
         if (scope)
           return reply(
@@ -233,8 +240,13 @@ export async function POST(request: NextRequest) {
           );
       }
     }
-    const sources = [...pdfSources, ...catalogSources].slice(0, 6);
-    if (!sources.length)
+    if (doc?.kind === "thesis" && scope?.page === undefined && !namedItem) {
+      const item = await publicCollection("thesis", doc.collectionId).catch(() => null);
+      if (item) catalogSources.push(buildCatalogMetadataSource(item));
+    }
+    const sources = [...new Map([...pdfSources, ...catalogSources].map((source) => [source.id, source])).values()].slice(0, 6);
+    const allowGuidance = !scope && !namedItem && allowsResearchGuidance(question);
+    if (!sources.length && !allowGuidance)
       return reply({ ...notFound, remaining: requestQuota.remaining });
     if (!process.env.DEEPSEEK_API_KEY)
       return reply(
@@ -246,7 +258,7 @@ export async function POST(request: NextRequest) {
       );
     // Reserve only the global cost here; request quota was already consumed.
     const budget = await reserveChatBudget(
-      reservedCost(question, sources, history),
+      reservedCost(question, sources, history, allowGuidance),
     );
     if (!budget)
       return reply(
@@ -256,7 +268,7 @@ export async function POST(request: NextRequest) {
         },
         429,
       );
-    const answer = await answerWithDeepseek(question, sources, history);
+    const answer = await answerWithDeepseek(question, sources, history, allowGuidance);
     if (answer)
       return reply({
         ...answer,

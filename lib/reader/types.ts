@@ -81,5 +81,6 @@ export type ChatResult = {
   paragraphs: string[];
   sources: ReaderSource[];
   status: "answered" | "not_found" | "unavailable";
+  basis?: "research_guidance";
   remaining?: number;
 };

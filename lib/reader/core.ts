@@ -28,7 +28,7 @@ export function readerUrl(
   revision?: string,
 ) {
   const encodedId = encodeURIComponent(id);
-  if (kind === "thesis") return `/katalog/skripsi/${encodedId}`;
+  if (kind === "thesis") return `/katalog/skripsi/${encodedId}${page ? `?page=${page}` : ""}`;
   const params = new URLSearchParams();
   if (page) params.set("page", String(page));
   if (revision) params.set("v", revision);
@@ -64,6 +64,11 @@ export function queryTerms(query: string) {
     "skripsi",
     "halaman",
     "berapa",
+    "siapa",
+    "saja",
+    "menurut",
+    "sertakan",
+    "rujukan",
   ]);
   const all = normalizeText(query)
     .split(" ")
@@ -185,9 +190,10 @@ const quoteText = (text: string) =>
 export function validateAnswer(
   value: unknown,
   sources: ReaderSource[],
-): { paragraphs: string[]; sources: ReaderSource[] } | null {
+  allowGuidance = false,
+): { paragraphs: string[]; sources: ReaderSource[]; basis?: "research_guidance" } | null {
   if (!value || typeof value !== "object") return null;
-  const v = value as { paragraphs?: unknown; citations?: unknown };
+  const v = value as { paragraphs?: unknown; citations?: unknown; basis?: unknown };
   if (
     !Array.isArray(v.paragraphs) ||
     v.paragraphs.length < 1 ||
@@ -203,6 +209,14 @@ export function validateAnswer(
     return null;
   const paragraphs = (v.paragraphs as string[]).map((p) => p.trim());
   if (paragraphs.join(" ").split(/\s+/).length > 160) return null;
+  if (paragraphs.some((p) => /https?:\/\/|<\/?[a-z][^>]*>|\]\(/i.test(p)))
+    return null;
+  if (v.basis === "research_guidance") {
+    if (!allowGuidance || !Array.isArray(v.citations) || v.citations.length ||
+        paragraphs.some((p) => /(?:halaman|hlm\.?)\s*\d+|\b(?:doi\s*:|10\.\d{4,}\/)/i.test(p)))
+      return null;
+    return { paragraphs, sources: [], basis: "research_guidance" };
+  }
   if (
     !Array.isArray(v.citations) ||
     !v.citations.length ||
@@ -225,8 +239,6 @@ export function validateAnswer(
     if (!result.some((s) => s.id === source.id))
       result.push({ ...source, excerpt: c.quote.trim() });
   }
-  if (paragraphs.some((p) => /https?:\/\/|<\/?[a-z][^>]*>|\]\(/i.test(p)))
-    return null;
   const pageClaims = [
     ...paragraphs.join(" ").matchAll(/(?:halaman|hlm\.?)\s*(\d+)/gi),
   ].map((m) => m[1]);

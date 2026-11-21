@@ -19,7 +19,7 @@ export function buildCatalogMetadataSource(
   const fullText =
     item.type === "book"
       ? `Judul Buku: ${item.title}. Penulis: ${item.author}. Penerbit: ${item.publisher || "-"}. Tahun: ${item.year}. Kategori: ${item.category}. Lokasi Rak: ${item.rackLocation || item.location}. Status: ${item.status} (Tersedia ${item.available} dari ${item.stock}). ISBN: ${item.isbn || "-"}. Kata Kunci: ${item.keywords.join(", ")}. ${item.notes || ""}`.trim()
-      : `Judul Skripsi: ${item.title}. Penulis: ${item.studentName}${item.studentNim ? ` (NIM ${item.studentNim})` : ""}. Tahun: ${item.year}. Topik: ${item.topic}. Pembimbing 1: ${item.supervisor1}. Pembimbing 2: ${item.supervisor2}. Lokasi: ${item.physicalLocation || item.location}. Kata Kunci: ${item.keywords.join(", ")}. Abstrak: ${item.abstract || "-"}`.trim();
+      : `Judul Skripsi: ${item.title}. Penulis: ${item.studentName}. Tahun: ${item.year}. Topik: ${item.topic}. Pembimbing 1: ${item.supervisor1}. Pembimbing 2: ${item.supervisor2}. Lokasi: ${item.physicalLocation || item.location}. Kata Kunci: ${item.keywords.join(", ")}. Abstrak: ${item.abstract || "-"}`.trim();
 
   return {
     id: `catalog-${index}`,
@@ -35,9 +35,8 @@ export function buildCatalogMetadataSource(
 
 function detectHiddenChapterFourPages(
   kind: ReaderKind,
-  pageTexts: string[],
   pageLineLists: string[][],
-): Set<number> {
+): Set<number> | null {
   const hidden = new Set<number>();
   if (kind !== "thesis") return hidden;
 
@@ -45,34 +44,17 @@ function detectHiddenChapterFourPages(
     lines
       .slice(0, 12)
       .some((line) =>
-        new RegExp(`^BAB\\s*(${roman}|${num})\\b`, "i").test(line),
+        new RegExp(`^BAB\\s*(${roman}|${num})$`, "i").test(line),
       );
-
-  let ch4Start = 0;
-  let ch5Start = 0;
-  for (let i = 0; i < pageTexts.length; i++) {
-    const pageNum = i + 1;
-    const upper = pageTexts[i].toUpperCase();
-    const lines = pageLineLists[i];
-    if (
-      !ch4Start &&
-      (isChapterLine(lines, "IV", "4") || /^(\d+\s+)?BAB\s*(IV|4)\b/.test(upper))
-    ) {
-      ch4Start = pageNum;
-    } else if (
-      ch4Start &&
-      !ch5Start &&
-      (isChapterLine(lines, "V", "5") || /^(\d+\s+)?BAB\s*(V|5)\b/.test(upper))
-    ) {
-      ch5Start = pageNum;
-      break;
-    }
-  }
-
-  if (ch4Start > 0) {
-    const endPage = ch5Start > ch4Start ? ch5Start - 1 : pageTexts.length;
-    for (let p = ch4Start; p <= endPage; p++) hidden.add(p);
-  }
+  const starts = pageLineLists.flatMap((lines, i) =>
+    isChapterLine(lines, "IV", "4") ? [i + 1] : [],
+  );
+  if (starts.length !== 1) return null;
+  const ends = pageLineLists.flatMap((lines, i) =>
+    i + 1 > starts[0] && isChapterLine(lines, "V", "5") ? [i + 1] : [],
+  );
+  if (ends.length !== 1) return null;
+  for (let page = starts[0]; page < ends[0]; page++) hidden.add(page);
   return hidden;
 }
 
@@ -95,6 +77,10 @@ async function extractOnDemandDocument(
       verbosity: 0,
     }).promise;
 
+    if (item.type === "thesis" && pdfDoc.numPages > 450) {
+      await pdfDoc.destroy();
+      return null;
+    }
     const totalPages = Math.min(pdfDoc.numPages, 450);
     const pageTexts: string[] = [];
     const pageLineLists: string[][] = [];
@@ -133,9 +119,9 @@ async function extractOnDemandDocument(
 
     const hidden = detectHiddenChapterFourPages(
       item.type,
-      pageTexts,
       pageLineLists,
     );
+    if (!hidden) return null;
     const pages: ReaderPage[] = [];
     for (let i = 0; i < totalPages; i++) {
       const pageNum = i + 1;
@@ -203,10 +189,11 @@ export async function retrieveOnDemandSources(
       ? item.pdfR2?.trim() || item.pdfUrl?.trim()
       : item.pdfUrl?.trim();
 
-  if (!pdfUrl) return [metadataSource];
+  const metadata = page === undefined ? [metadataSource] : [];
+  if (!pdfUrl) return metadata;
 
   const doc = await extractOnDemandDocument(item, pdfUrl);
-  if (!doc) return [metadataSource];
+  if (!doc || (page !== undefined && !doc.pages.some((p) => p.number === page))) return metadata;
 
   const chunks = retrieveChunks(doc, question, embedding, page);
   const pdfSources: ReaderSource[] = chunks.map((c) => ({
@@ -215,12 +202,9 @@ export async function retrieveOnDemandSources(
     author: doc.author,
     page: c.page,
     label: String(c.page),
-    url:
-      item.type === "book"
-        ? readerUrl("book", item.id, c.page)
-        : `/katalog/skripsi/${encodeURIComponent(item.id)}`,
+    url: readerUrl(item.type, item.id, c.page),
     excerpt: c.text,
   }));
 
-  return [...pdfSources.slice(0, 5), metadataSource];
+  return [...pdfSources.slice(0, 5), ...metadata];
 }

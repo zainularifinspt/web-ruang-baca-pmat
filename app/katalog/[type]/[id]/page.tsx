@@ -15,8 +15,10 @@ export const revalidate = 300;
 
 export default async function CollectionDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ type: string; id: string }>;
+  searchParams: Promise<{ page?: string | string[] }>;
 }) {
   const { type, id } = await params;
   const item = await fetchCollectionById(type, id, { visibility: "public" });
@@ -24,6 +26,9 @@ export default async function CollectionDetailPage({
   if (!item) notFound();
 
   const isBook = item.type === "book";
+  const { page } = await searchParams;
+  const pageNumber = typeof page === "string" && /^\d+$/.test(page) ? Number(page) : 0;
+  const initialPage = Number.isSafeInteger(pageNumber) && pageNumber > 0 ? pageNumber : undefined;
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -86,7 +91,9 @@ export default async function CollectionDetailPage({
                   <p className="font-medium text-foreground">File Skripsi</p>
                   <div className="mt-2">
                     <ThesisPdfViewer
+                      key={`${item.id}:${initialPage ?? ""}`}
                       thesisId={item.id}
+                      initialPage={initialPage}
                       pdfUrl={item.pdfUrl}
                       pdfR2={item.pdfR2}
                       pdfFilename={item.pdfFilename}
