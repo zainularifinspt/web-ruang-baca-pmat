@@ -13,6 +13,8 @@ import {
   snippet,
   retrieveChunks,
   queryTerms,
+  thesisMethodologyPhrases,
+  wantsThesisMethodology,
   hasPoorWordBoundaries,
 } from "./core";
 import type {
@@ -274,8 +276,10 @@ export async function retrieveSources(
       p_page: page || null,
       p_embedding: embedding ? JSON.stringify(embedding) : null,
     });
-  let { data, error } = await retrieve(terms.join(" "));
-  if (!error && !data?.length && terms.length > 1) {
+  const method = doc?.kind === "thesis" && wantsThesisMethodology(query);
+  const methodQuery = thesisMethodologyPhrases.map((phrase) => `"${phrase}"`).join(" OR ");
+  let { data, error } = await retrieve(method ? methodQuery : terms.join(" "));
+  if (!error && !data?.length && (method || terms.length > 1)) {
     ({ data, error } = await retrieve(terms.join(" OR ")));
   }
   if (error) throw new Error("Indeks dokumen belum tersedia.");

@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { journalCatalogAnswer } from "@/lib/reader/journals";
 import { fetchPublicCatalogData } from "@/lib/public-cache";
 import {
   normalizeText,
   queryTerms,
+  wantsThesisMethodology,
   hasVerifiedCatalogSource,
 } from "@/lib/reader/core";
 import { getReaderDocument, retrieveSources } from "@/lib/reader/store";
@@ -114,6 +116,10 @@ export async function POST(request: NextRequest) {
         429,
       );
     const scope = body.scope;
+    if (!scope) {
+      const journals = journalCatalogAnswer(question);
+      if (journals) return reply({ ...journals, remaining: requestQuota.remaining });
+    }
     let doc = null;
     let scopedItem = null;
     if (scope) {
@@ -217,7 +223,9 @@ export async function POST(request: NextRequest) {
     const retrievalQuery = namedItem
       ? normalizedQuestion.replace(normalizeText(namedItem.title), " ").trim() || question
       : question;
-    const embedding = await embedQuestion(retrievalQuery);
+    const thesisMethod = (doc?.kind === "thesis" || scopedItem?.type === "thesis") &&
+      wantsThesisMethodology(retrievalQuery);
+    const embedding = await embedQuestion(thesisMethod ? "jenis dan desain penelitian pada Bab III" : retrievalQuery);
     let pdfSources: ReaderSource[] = [];
     if (scopedItem) {
       pdfSources = await retrieveOnDemandSources(
@@ -245,6 +253,13 @@ export async function POST(request: NextRequest) {
       if (item) catalogSources.push(buildCatalogMetadataSource(item));
     }
     const sources = [...new Map([...pdfSources, ...catalogSources].map((source) => [source.id, source])).values()].slice(0, 6);
+    if (thesisMethod && !sources.some((source) => source.page || /Abstrak: (?!-\s*$).{30,}/.test(source.excerpt)))
+      return reply({
+        paragraphs: ["Saya belum menemukan bagian metode atau abstrak yang bisa ditelusuri pada skripsi ini."],
+        sources: [],
+        status: "not_found",
+        remaining: requestQuota.remaining,
+      });
     const allowGuidance = !scope && !namedItem && allowsResearchGuidance(question);
     if (!sources.length && !allowGuidance)
       return reply({ ...notFound, remaining: requestQuota.remaining });

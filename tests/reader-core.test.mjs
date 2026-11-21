@@ -184,3 +184,10 @@ test("PDF ingestion denies arbitrary hosts, credentials, ports, and local target
     "drive.google.com",
   );
 });
+
+test("a short question about a thesis method ranks methodology ahead of its contents list", () => {
+  const contents = { id: "contents", page: 8, text: "Daftar isi BAB III metode penelitian ........... 30" };
+  const method = { id: "method", page: 42, text: "Jenis penelitian ini adalah penelitian pengembangan menggunakan model ADDIE." };
+  const selected = retrieveChunks({ kind: "thesis", chunks: [contents, method] }, "Skripsi ini pakai metode apa?");
+  assert.deepEqual(selected.map(({ id }) => id), ["method"]);
+});

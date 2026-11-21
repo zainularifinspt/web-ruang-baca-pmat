@@ -159,6 +159,19 @@ export function cosine(a: number[], b: number[]) {
   }
   return dot / Math.sqrt(aa * bb || 1);
 }
+export function wantsThesisMethodology(question: string) {
+  const query = normalizeText(question);
+  const generic = /\b(?:metode|metodologi|jenis|desain|pendekatan|model pengembangan)\b/.test(query);
+  const targeted = /\b(?:analisis data|pengumpulan data|instrumen|sampling|sampel|uji|triangulasi|validasi)\b/.test(query);
+  return generic && !targeted;
+}
+
+export const thesisMethodologyPhrases = [
+  "jenis penelitian", "desain penelitian", "metodologi penelitian",
+  "metode penelitian", "model pengembangan", "penelitian ini menggunakan",
+  "research and development", "bab iii",
+];
+
 export function retrieveChunks(
   doc: ReaderDocument,
   query: string,
@@ -166,6 +179,7 @@ export function retrieveChunks(
   page?: number,
 ) {
   const terms = queryTerms(query);
+  const method = doc.kind === "thesis" && wantsThesisMethodology(query);
   const candidates = doc.chunks
     .filter((c) => !page || c.page === page)
     .map((c) => {
@@ -175,10 +189,12 @@ export function retrieveChunks(
         : 0;
       const semantic =
         embedding && c.embedding ? cosine(embedding, c.embedding) : 0;
+      const matchesMethod = method && thesisMethodologyPhrases.some((phrase) => text.includes(phrase));
+      const inContents = /\bdaftar isi\b|\.{5,}/.test(c.text.toLowerCase());
       return {
         ...c,
-        score: lexical + semantic,
-        relevant: lexical >= 0.5 || semantic >= 0.84,
+        score: lexical + semantic + (matchesMethod && !inContents ? 2 : 0),
+        relevant: (!method || !inContents) && (lexical >= 0.5 || semantic >= 0.84 || matchesMethod),
       };
     })
     .filter((c) => c.relevant)

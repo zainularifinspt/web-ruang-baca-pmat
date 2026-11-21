@@ -2,6 +2,7 @@ import { createRequire } from "node:module";
 import {
   mkdir,
   readFile,
+  stat,
   writeFile,
   rename,
   rm,
@@ -45,6 +46,10 @@ const db =
         process.env.SUPABASE_SERVICE_ROLE_KEY,
       );
 const wanted = option("--id", "");
+const pdfFile = option("--pdf-file", "");
+if (args.includes("--pdf-file") && (!wanted || !pdfFile || pdfFile.startsWith("--") || args.includes("--all") || args.includes("--retry-log"))) {
+  throw Error("--pdf-file memerlukan satu --id dan path salinan PDF dari katalog.");
+}
 const kind = option("--kind", "book");
 const retryLog = option("--retry-log", "");
 if (args.includes("--retry-log") && (!retryLog || retryLog.startsWith("--")))
@@ -176,7 +181,16 @@ async function indexItem(item) {
       await check(db.from("reader_jobs").upsert({ id: job, document_id: key, status: "processing" }));
     const sourceUrl = pdfSource(item);
     console.log(`Memproses ${item.type} ${item.id}`);
-    const data = await downloadPdf(sourceUrl);
+    let data;
+    if (pdfFile) {
+      const maxBytes = Math.min(250, Math.max(1, Number(process.env.READER_MAX_PDF_MB) || 150)) * 1024 * 1024;
+      const file = await stat(pdfFile);
+      if (!file.isFile() || file.size > maxBytes) throw Error("Berkas PDF lokal tidak valid atau terlalu besar.");
+      data = await readFile(pdfFile);
+      if (!data.subarray(0, 1024).toString().includes("%PDF-")) throw Error("Berkas lokal bukan PDF.");
+    } else {
+      data = await downloadPdf(sourceUrl);
+    }
     const hash = createHash("sha256").update(data).digest("hex");
     const revision = createHash("sha256")
       .update(
