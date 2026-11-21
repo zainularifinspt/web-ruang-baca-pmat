@@ -13,7 +13,6 @@ import {
   snippet,
   retrieveChunks,
   queryTerms,
-  thesisMethodologyPhrases,
   wantsThesisMethodology,
   hasPoorWordBoundaries,
 } from "./core";
@@ -267,6 +266,36 @@ export async function retrieveSources(
       .slice(0, 6)
       .map((f) => f.source);
   }
+  if (doc?.kind === "thesis" && wantsThesisMethodology(query)) {
+    const db = createSupabaseAdminClient();
+    const allowed = new Map(doc.pages.map((p) => [p.number, p]));
+    const chunks: ReaderDocument["chunks"] = [];
+    const batchSize = 300;
+    for (let offset = 0; ; offset += batchSize) {
+      let request = db.from("reader_chunks")
+        .select("id,page_number,text_content")
+        .eq("document_id", doc.key)
+        .eq("revision", doc.revision);
+      if (page !== undefined) request = request.eq("page_number", page);
+      const { data, error } = await request.order("id").range(offset, offset + batchSize - 1);
+      if (error) throw new Error("Indeks metode skripsi belum dapat dibaca.");
+      for (const row of data || []) {
+        if (allowed.has(row.page_number))
+          chunks.push({ id: row.id, page: row.page_number, text: row.text_content });
+      }
+      if (!data || data.length < batchSize) break;
+    }
+    return retrieveChunks({ ...doc, chunks }, query, undefined, page).map((chunk) => ({
+      id: `${doc.key}:${doc.revision}:${chunk.id}`,
+      title: doc.title,
+      author: doc.author,
+      page: chunk.page,
+      label: allowed.get(chunk.page)?.label,
+      revision: doc.revision,
+      url: readerUrl(doc.kind, doc.collectionId, chunk.page, doc.revision),
+      excerpt: chunk.text,
+    }));
+  }
   const terms = queryTerms(query);
   const db = createSupabaseAdminClient();
   const retrieve = (keywords: string) =>
@@ -276,10 +305,8 @@ export async function retrieveSources(
       p_page: page || null,
       p_embedding: embedding ? JSON.stringify(embedding) : null,
     });
-  const method = doc?.kind === "thesis" && wantsThesisMethodology(query);
-  const methodQuery = thesisMethodologyPhrases.map((phrase) => `"${phrase}"`).join(" OR ");
-  let { data, error } = await retrieve(method ? methodQuery : terms.join(" "));
-  if (!error && !data?.length && (method || terms.length > 1)) {
+  let { data, error } = await retrieve(terms.join(" "));
+  if (!error && !data?.length && terms.length > 1) {
     ({ data, error } = await retrieve(terms.join(" OR ")));
   }
   if (error) throw new Error("Indeks dokumen belum tersedia.");
